@@ -2,16 +2,17 @@ TARGETS	= gdeasm
 PREFIX	= /usr/local
 DESTDIR	=
 BINDIR	= $(PREFIX)/bin
-CC	?= cc
-CPPFLAGSF?=
-CPPFLAGS?=
+SBINDIR	= $(PREFIX)/sbin
+CC	= cc
+CPPFLAGSF=
+CPPFLAGS=
 CFLAGSF	= -W `pkg-config --cflags libSystem libDesktop Asm`
 CFLAGS	= -Wall -g -O2 -pedantic
 LDFLAGSF= `pkg-config --libs libSystem libDesktop Asm`
-RM	?= rm -f
-LN	?= ln -f
-MKDIR	?= mkdir -p
-INSTALL	?= install
+RM	= rm -f
+LN	= ln -f
+MKDIR	= mkdir -p
+INSTALL	= install
 
 
 all: $(TARGETS)
