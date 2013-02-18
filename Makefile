@@ -39,6 +39,8 @@ dist:
 		$(PACKAGE)-$(VERSION)/src/project.h \
 		$(PACKAGE)-$(VERSION)/src/project.conf \
 		$(PACKAGE)-$(VERSION)/tools/gdeasm.c \
+		$(PACKAGE)-$(VERSION)/tools/simulator.c \
+		$(PACKAGE)-$(VERSION)/tools/simulator-main.c \
 		$(PACKAGE)-$(VERSION)/tools/project.conf \
 		$(PACKAGE)-$(VERSION)/Makefile \
 		$(PACKAGE)-$(VERSION)/COPYING \
