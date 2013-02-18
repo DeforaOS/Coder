@@ -13,14 +13,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 /* FIXME:
- * - terminate the underlying server on quit */
+ * - terminate the underlying server on quit
+ * - add an interface to run commands within the underlying display */
 
 
 
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
 #include <System.h>
+#include <Desktop.h>
 #include "simulator.h"
 #include "../config.h"
 
@@ -48,7 +51,26 @@ struct _Simulator
 /* prototypes */
 /* callbacks */
 static void _simulator_on_child_watch(GPid pid, gint status, gpointer data);
+static void _simulator_on_close(gpointer data);
 static gboolean _simulator_on_closex(gpointer data);
+
+static void _simulator_on_file_close(gpointer data);
+
+
+/* constants */
+/* menubar */
+static const DesktopMenu _simulator_file_menu[] =
+{
+	{ "_Close", G_CALLBACK(_simulator_on_file_close), GTK_STOCK_CLOSE,
+		GDK_CONTROL_MASK, GDK_KEY_W },
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
+static const DesktopMenubar _simulator_menubar[] =
+{
+	{ "_File", _simulator_file_menu },
+	{ NULL, NULL }
+};
 
 
 /* public */
@@ -57,6 +79,7 @@ static gboolean _simulator_on_closex(gpointer data);
 Simulator * simulator_new(void)
 {
 	Simulator * simulator;
+	GtkAccelGroup * group;
 	GtkWidget * vbox;
 	GtkWidget * widget;
 	char * argv[] = { BINDIR "/Xephyr", "Xephyr", "-parent", NULL, ":1",
@@ -69,15 +92,18 @@ Simulator * simulator_new(void)
 		return NULL;
 	simulator->window = NULL;
 	/* widgets */
+	group = gtk_accel_group_new();
 	simulator->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_widget_set_size_request(simulator->window, 800, 600);
+	gtk_window_add_accel_group(GTK_WINDOW(simulator->window), group);
+	g_object_unref(group);
 	gtk_window_set_resizable(GTK_WINDOW(simulator->window), FALSE);
 	gtk_window_set_title(GTK_WINDOW(simulator->window), "Simulator");
 	g_signal_connect_swapped(simulator->window, "delete-event", G_CALLBACK(
 				_simulator_on_closex), simulator);
 	vbox = gtk_vbox_new(FALSE, 0);
 	/* menu bar */
-	widget = gtk_menu_bar_new();
+	widget = desktop_menubar_create(_simulator_menubar, simulator, group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* view */
 	simulator->socket = gtk_socket_new();
@@ -143,12 +169,30 @@ static void _simulator_on_child_watch(GPid pid, gint status, gpointer data)
 }
 
 
-/* simulator_on_closex */
-static gboolean _simulator_on_closex(gpointer data)
+/* simulator_on_close */
+static void _simulator_on_close(gpointer data)
 {
 	Simulator * simulator = data;
 
 	gtk_widget_hide(simulator->window);
 	gtk_main_quit();
+}
+
+
+/* simulator_on_closex */
+static gboolean _simulator_on_closex(gpointer data)
+{
+	Simulator * simulator = data;
+
+	_simulator_on_close(simulator);
 	return TRUE;
+}
+
+
+/* simulator_on_file_close */
+static void _simulator_on_file_close(gpointer data)
+{
+	Simulator * simulator = data;
+
+	_simulator_on_close(simulator);
 }
