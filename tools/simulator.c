@@ -27,6 +27,7 @@
 #include "simulator.h"
 #include "../config.h"
 
+/* constants */
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
 #endif
@@ -101,8 +102,12 @@ Simulator * simulator_new(void)
 	gtk_window_set_title(GTK_WINDOW(simulator->window), "Simulator");
 	g_signal_connect_swapped(simulator->window, "delete-event", G_CALLBACK(
 				_simulator_on_closex), simulator);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+#else
 	vbox = gtk_vbox_new(FALSE, 0);
-	/* menu bar */
+#endif
+	/* menubar */
 	widget = desktop_menubar_create(_simulator_menubar, simulator, group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* view */
