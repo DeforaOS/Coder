@@ -1,17 +1,19 @@
 /* $Id$ */
-/* Copyright (c) 2013 Pierre Pronchery <khorben@defora.org> */
+static char const _copyright[] =
+"Copyright (c) 2013 Pierre Pronchery <khorben@defora.org>";
 /* This file is part of DeforaOS Desktop Coder */
-/* This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+static char const _license[] =
+"This program is free software: you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation, version 3 of the License.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 /* FIXME:
  * - add an interface to run commands within the underlying display */
 
@@ -63,6 +65,14 @@ struct _Simulator
 };
 
 
+/* constants */
+static char const * _authors[] =
+{
+	"Pierre Pronchery <khorben@defora.org>",
+	NULL
+};
+
+
 /* prototypes */
 /* callbacks */
 static void _simulator_on_child_watch(GPid pid, gint status, gpointer data);
@@ -70,6 +80,7 @@ static void _simulator_on_close(gpointer data);
 static gboolean _simulator_on_closex(gpointer data);
 
 static void _simulator_on_file_close(gpointer data);
+static void _simulator_on_help_about(gpointer data);
 
 
 /* constants */
@@ -81,9 +92,21 @@ static const DesktopMenu _simulator_file_menu[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
+static const DesktopMenu _simulator_help_menu[] =
+{
+#if GTK_CHECK_VERSION(2, 6, 0)
+	{ "About", G_CALLBACK(_simulator_on_help_about), GTK_STOCK_ABOUT, 0,
+		0 },
+#else
+	{ "About", G_CALLBACK(_simulator_on_help_about), NULL, 0, 0 },
+#endif
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
 static const DesktopMenubar _simulator_menubar[] =
 {
 	{ "_File", _simulator_file_menu },
+	{ "_Help", _simulator_help_menu },
 	{ NULL, NULL }
 };
 
@@ -282,4 +305,27 @@ static void _simulator_on_file_close(gpointer data)
 	Simulator * simulator = data;
 
 	_simulator_on_close(simulator);
+}
+
+
+/* simulator_on_help_about */
+static void _simulator_on_help_about(gpointer data)
+{
+	Simulator * simulator = data;
+	GtkWidget * dialog;
+
+	dialog = desktop_about_dialog_new();
+	gtk_window_set_transient_for(GTK_WINDOW(dialog),
+			GTK_WINDOW(simulator->window));
+	desktop_about_dialog_set_authors(dialog, _authors);
+	desktop_about_dialog_set_comments(dialog,
+			"Simulator for the DeforaOS desktop");
+	desktop_about_dialog_set_copyright(dialog, _copyright);
+	desktop_about_dialog_set_license(dialog, _license);
+	desktop_about_dialog_set_logo_icon_name(dialog, "stock_cell-phone");
+	desktop_about_dialog_set_name(dialog, "Simulator");
+	desktop_about_dialog_set_version(dialog, VERSION);
+	desktop_about_dialog_set_website(dialog, "http://www.defora.org/");
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
 }
