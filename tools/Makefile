@@ -38,10 +38,10 @@ simulator: $(simulator_OBJS)
 gdeasm.o: gdeasm.c ../config.h
 	$(CC) $(gdeasm_CFLAGS) -c gdeasm.c
 
-simulator.o: simulator.c ../config.h
+simulator.o: simulator.c simulator.h ../config.h
 	$(CC) -D PREFIX=\"$(PREFIX)\" $(simulator_CFLAGS) -c simulator.c
 
-simulator-main.o: simulator-main.c
+simulator-main.o: simulator-main.c simulator.h
 	$(CC) $(simulator_CFLAGS) -c simulator-main.c
 
 clean:
