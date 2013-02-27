@@ -30,4 +30,7 @@ typedef struct _Simulator Simulator;
 Simulator * simulator_new(char const * model, char const * title);
 void simulator_delete(Simulator * simulator);
 
+/* useful */
+int simulator_error(Simulator * simulator, char const * message, int ret);
+
 #endif /* !CODER_SIMULATOR_H */

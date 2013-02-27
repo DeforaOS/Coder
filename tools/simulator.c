@@ -57,6 +57,7 @@ struct _Simulator
 	int width;
 	int height;
 
+	unsigned int source;
 	GPid pid;
 
 	/* widgets */
@@ -115,6 +116,8 @@ static const DesktopMenubar _simulator_menubar[] =
 /* functions */
 /* simulator_new */
 static int _new_load(Simulator * simulator);
+/* callbacks */
+static gboolean _new_xephyr(gpointer data);
 
 Simulator * simulator_new(char const * model, char const * title)
 {
@@ -123,18 +126,13 @@ Simulator * simulator_new(char const * model, char const * title)
 	GtkWidget * vbox;
 	GtkWidget * widget;
 	char * p;
-	char * argv[] = { BINDIR "/Xephyr", "Xephyr", "-parent", NULL,
-		"-dpi", NULL, ":1", NULL };
-	char parent[16];
-	char dpi[16];
-	int flags = G_SPAWN_FILE_AND_ARGV_ZERO | G_SPAWN_DO_NOT_REAP_CHILD;
-	GError * error = NULL;
 
 	if((simulator = object_new(sizeof(*simulator))) == NULL)
 		return NULL;
 	simulator->model = (model != NULL) ? strdup(model) : NULL;
 	simulator->title = (title != NULL) ? strdup(title) : NULL;
 	simulator->pid = -1;
+	simulator->source = 0;
 	simulator->window = NULL;
 	/* check for errors */
 	if(model != NULL && simulator->model == NULL)
@@ -177,23 +175,7 @@ Simulator * simulator_new(char const * model, char const * title)
 	gtk_box_pack_start(GTK_BOX(vbox), simulator->socket, TRUE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(simulator->window), vbox);
 	gtk_widget_show_all(vbox);
-	/* launch Xephyr */
-	snprintf(parent, sizeof(parent), "%u", gtk_socket_get_id(
-				GTK_SOCKET(simulator->socket)));
-	argv[3] = parent;
-	snprintf(dpi, sizeof(dpi), "%u", simulator->dpi);
-	argv[5] = dpi;
-	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL,
-				&simulator->pid, &error) == FALSE)
-	{
-		fprintf(stderr, "%s: %s: %s\n", "Simulator", argv[1],
-				error->message);
-		g_error_free(error);
-		simulator_delete(simulator);
-		return NULL;
-	}
-	g_child_watch_add(simulator->pid, _simulator_on_child_watch,
-			simulator);
+	simulator->source = g_idle_add(_new_xephyr, simulator);
 	gtk_widget_show(simulator->window);
 	return simulator;
 }
@@ -236,10 +218,40 @@ static int _new_load(Simulator * simulator)
 	return ret;
 }
 
+static gboolean _new_xephyr(gpointer data)
+{
+	Simulator * simulator = data;
+	char * argv[] = { BINDIR "/Xephyr", "Xephyr", "-parent", NULL,
+		"-dpi", NULL, ":1", NULL };
+	char parent[16];
+	char dpi[16];
+	int flags = G_SPAWN_FILE_AND_ARGV_ZERO | G_SPAWN_DO_NOT_REAP_CHILD;
+	GError * error = NULL;
+
+	/* launch Xephyr */
+	snprintf(parent, sizeof(parent), "%u", gtk_socket_get_id(
+				GTK_SOCKET(simulator->socket)));
+	argv[3] = parent;
+	snprintf(dpi, sizeof(dpi), "%u", simulator->dpi);
+	argv[5] = dpi;
+	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL,
+				&simulator->pid, &error) == FALSE)
+	{
+		simulator_error(simulator, error->message, 1);
+		g_error_free(error);
+	}
+	else
+		g_child_watch_add(simulator->pid, _simulator_on_child_watch,
+				simulator);
+	return FALSE;
+}
+
 
 /* simulator_delete */
 void simulator_delete(Simulator * simulator)
 {
+	if(simulator->source > 0)
+		g_source_remove(simulator->source);
 	if(simulator->pid > 0)
 	{
 		kill(simulator->pid, SIGTERM);
@@ -249,6 +261,36 @@ void simulator_delete(Simulator * simulator)
 		gtk_widget_destroy(simulator->window);
 	free(simulator->model);
 	object_delete(simulator);
+}
+
+
+/* simulator_error */
+static int _error_text(char const * message, int ret);
+
+int simulator_error(Simulator * simulator, char const * message, int ret)
+{
+	GtkWidget * dialog;
+
+	if(simulator == NULL)
+		return _error_text(message, ret);
+	dialog = gtk_message_dialog_new(GTK_WINDOW(simulator->window),
+			GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
+			GTK_BUTTONS_CLOSE,
+# if GTK_CHECK_VERSION(2, 6, 0)
+			"%s", "Error");
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
+# endif
+			"%s", message);
+	gtk_window_set_title(GTK_WINDOW(dialog), "Error");
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
+	return ret;
+}
+
+static int _error_text(char const * message, int ret)
+{
+	fprintf(stderr, "%s: %s\n", "simulator", message);
+	return ret;
 }
 
 
