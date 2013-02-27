@@ -24,18 +24,18 @@
 
 /* private */
 /* prototypes */
-static int _simulator(void);
+static int _simulator(char const * model, char const * title);
 
 static int _usage(void);
 
 
 /* functions */
 /* simulator */
-static int _simulator(void)
+static int _simulator(char const * model, char const * title)
 {
 	Simulator * simulator;
 
-	if((simulator = simulator_new()) == NULL)
+	if((simulator = simulator_new(model, title)) == NULL)
 		return error_print("simulator");
 	gtk_main();
 	simulator_delete(simulator);
@@ -46,7 +46,7 @@ static int _simulator(void)
 /* usage */
 static int _usage(void)
 {
-	fputs("Usage: simulator\n", stderr);
+	fputs("Usage: simulator [-m model][-t title]\n", stderr);
 	return 1;
 }
 
@@ -57,13 +57,21 @@ static int _usage(void)
 int main(int argc, char * argv[])
 {
 	int o;
+	char const * model = NULL;
+	char const * title = NULL;
 
 	gtk_init(&argc, &argv);
-	while((o = getopt(argc, argv, "")) != -1)
+	while((o = getopt(argc, argv, "m:t:")) != -1)
 		switch(o)
 		{
+			case 'm':
+				model = optarg;
+				break;
+			case 't':
+				title = optarg;
+				break;
 			default:
 				return _usage();
 		}
-	return (_simulator() == 0) ? 0 : 2;
+	return (_simulator(model, title) == 0) ? 0 : 2;
 }

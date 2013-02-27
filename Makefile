@@ -43,6 +43,11 @@ dist:
 		$(PACKAGE)-$(VERSION)/tools/simulator.c \
 		$(PACKAGE)-$(VERSION)/tools/simulator-main.c \
 		$(PACKAGE)-$(VERSION)/tools/project.conf \
+		$(PACKAGE)-$(VERSION)/tools/models/Makefile \
+		$(PACKAGE)-$(VERSION)/tools/models/nokia-n800.conf \
+		$(PACKAGE)-$(VERSION)/tools/models/openmoko-gta01.conf \
+		$(PACKAGE)-$(VERSION)/tools/models/openmoko-gta02.conf \
+		$(PACKAGE)-$(VERSION)/tools/models/project.conf \
 		$(PACKAGE)-$(VERSION)/Makefile \
 		$(PACKAGE)-$(VERSION)/COPYING \
 		$(PACKAGE)-$(VERSION)/config.h \

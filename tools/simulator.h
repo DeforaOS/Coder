@@ -27,7 +27,7 @@ typedef struct _Simulator Simulator;
 
 /* functions */
 /* essential */
-Simulator * simulator_new(void);
+Simulator * simulator_new(char const * model, char const * title);
 void simulator_delete(Simulator * simulator);
 
 #endif /* !CODER_SIMULATOR_H */
