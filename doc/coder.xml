@@ -9,8 +9,8 @@
 	<!ENTITY section   "1">
 	<!ENTITY title     "Coder User Manual">
 	<!ENTITY package   "DeforaOS Coder">
-	<!ENTITY name      "simulator">
-	<!ENTITY purpose   "Embedded device simulator">
+	<!ENTITY name      "coder">
+	<!ENTITY purpose   "Integrated Development Environment (IDE)">
 ]>
 <refentry>
 	<refentryinfo>
@@ -49,39 +49,16 @@
 	<refsynopsisdiv>
 		<cmdsynopsis>
 			<command>&name;</command>
-			<arg choice="opt">
-				<option>-m</option>
-				<replaceable>model</replaceable>
-			</arg>
-			<arg choice="opt">
-				<option>-t</option>
-				<replaceable>title</replaceable>
-			</arg>
 		</cmdsynopsis>
 	</refsynopsisdiv>
 	<refsect1 id="description">
 		<title>Description</title>
-		<para><command>&name;</command> is a simulator for embedded devices. It
-			reproduces the screen resolution and pixel density within a virtual X
-			server (Xephyr).</para>
+		<para><command>&name;</command> is an Integrated Development Environment
+			(IDE).</para>
 	</refsect1>
 	<refsect1 id="options">
 		<title>Options</title>
-		<para>The following options are available:</para>
-		<variablelist>
-			<varlistentry>
-				<term><option>-m</option></term>
-				<listitem>
-					<para>The model of the device to simulate.</para>
-				</listitem>
-			</varlistentry>
-			<varlistentry>
-				<term><option>-t</option></term>
-				<listitem>
-					<para>A title to force for the main window.</para>
-				</listitem>
-			</varlistentry>
-		</variablelist>
+		<para>This program does not accept any options from the command line.</para>
 	</refsect1>
 	<refsect1 id="bugs">
 		<title>Bugs</title>
@@ -92,11 +69,7 @@
 		<title>See also</title>
 		<para>
 			<citerefentry>
-				<refentrytitle>coder</refentrytitle>
-				<manvolnum>1</manvolnum>
-			</citerefentry>,
-			<citerefentry>
-				<refentrytitle>Xephyr</refentrytitle>
+				<refentrytitle>simulator</refentrytitle>
 				<manvolnum>1</manvolnum>
 			</citerefentry>
 	</para>

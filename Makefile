@@ -27,6 +27,7 @@ dist:
 		$(PACKAGE)-$(VERSION)/data/project.conf \
 		$(PACKAGE)-$(VERSION)/doc/Makefile \
 		$(PACKAGE)-$(VERSION)/doc/docbook.sh \
+		$(PACKAGE)-$(VERSION)/doc/coder.xml \
 		$(PACKAGE)-$(VERSION)/doc/simulator.xml \
 		$(PACKAGE)-$(VERSION)/doc/project.conf \
 		$(PACKAGE)-$(VERSION)/po/Makefile \

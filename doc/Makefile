@@ -1,4 +1,4 @@
-TARGETS	= simulator.1 simulator.html
+TARGETS	= coder.1 coder.html simulator.1 simulator.html
 PREFIX	= /usr/local
 DESTDIR	=
 RM	= rm -f
@@ -9,6 +9,12 @@ INSTALL	= install
 
 all: $(TARGETS)
 
+coder.1: coder.xml
+	./docbook.sh -P "$(PREFIX)" -- "coder.1"
+
+coder.html: coder.xml
+	./docbook.sh -P "$(PREFIX)" -- "coder.html"
+
 simulator.1: simulator.xml
 	./docbook.sh -P "$(PREFIX)" -- "simulator.1"
 
@@ -16,17 +22,21 @@ simulator.html: simulator.xml
 	./docbook.sh -P "$(PREFIX)" -- "simulator.html"
 
 clean:
-	$(RM) -- $(simulator.1_OBJS) $(simulator.html_OBJS)
+	$(RM) -- $(coder.1_OBJS) $(coder.html_OBJS) $(simulator.1_OBJS) $(simulator.html_OBJS)
 	./docbook.sh -c -P "$(PREFIX)" -- "simulator.html"
 
 distclean: clean
 	$(RM) -- $(TARGETS)
 
 install: $(TARGETS)
+	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "coder.1"
+	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "coder.html"
 	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "simulator.1"
 	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "simulator.html"
 
 uninstall:
+	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -u -- "coder.1"
+	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -u -- "coder.html"
 	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -u -- "simulator.1"
 	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -u -- "simulator.html"
 
