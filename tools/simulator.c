@@ -23,6 +23,7 @@ static char const _license[] =
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #if GTK_CHECK_VERSION(3, 0, 0)
@@ -81,6 +82,7 @@ static void _simulator_on_close(gpointer data);
 static gboolean _simulator_on_closex(gpointer data);
 
 static void _simulator_on_file_close(gpointer data);
+static void _simulator_on_file_run(gpointer data);
 static void _simulator_on_help_about(gpointer data);
 
 
@@ -88,6 +90,9 @@ static void _simulator_on_help_about(gpointer data);
 /* menubar */
 static const DesktopMenu _simulator_file_menu[] =
 {
+	{ "_Run...", G_CALLBACK(_simulator_on_file_run), NULL, GDK_CONTROL_MASK,
+		GDK_KEY_R },
+	{ "", NULL, NULL, 0, 0 },
 	{ "_Close", G_CALLBACK(_simulator_on_file_close), GTK_STOCK_CLOSE,
 		GDK_CONTROL_MASK, GDK_KEY_W },
 	{ NULL, NULL, NULL, 0, 0 }
@@ -225,7 +230,8 @@ static gboolean _new_xephyr(gpointer data)
 		"-dpi", NULL, ":1", NULL };
 	char parent[16];
 	char dpi[16];
-	int flags = G_SPAWN_FILE_AND_ARGV_ZERO | G_SPAWN_DO_NOT_REAP_CHILD;
+	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO
+		| G_SPAWN_DO_NOT_REAP_CHILD;
 	GError * error = NULL;
 
 	/* launch Xephyr */
@@ -347,6 +353,58 @@ static void _simulator_on_file_close(gpointer data)
 	Simulator * simulator = data;
 
 	_simulator_on_close(simulator);
+}
+
+
+/* simulator_on_file_run */
+static void _simulator_on_file_run(gpointer data)
+{
+	Simulator * simulator = data;
+	GtkWidget * dialog;
+	GtkWidget * vbox;
+	GtkWidget * hbox;
+	GtkWidget * widget;
+	char const * command;
+	int res;
+	char * argv[] = { "/bin/sh", "run", "-c", NULL, NULL };
+	char * envp[] = { "DISPLAY=:1.0", NULL };
+	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO | G_SPAWN_SEARCH_PATH;
+	GError * error = NULL;
+
+	dialog = gtk_dialog_new_with_buttons("Run...",
+			GTK_WINDOW(simulator->window),
+			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_EXECUTE, GTK_RESPONSE_ACCEPT, NULL);
+	gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
+#if GTK_CHECK_VERSION(2, 14, 0)
+	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+#else
+	vbox = GTK_DIALOG(dialog)->vbox;
+#endif
+	hbox = gtk_hbox_new(FALSE, 4);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);
+	widget = gtk_label_new("Command:");
+	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	widget = gtk_entry_new();
+	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
+	gtk_widget_show_all(vbox);
+	res = gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_hide(dialog);
+	if(res == GTK_RESPONSE_ACCEPT)
+	{
+		command = gtk_entry_get_text(GTK_ENTRY(widget));
+		if((argv[3] = strdup(command)) == NULL)
+			simulator_error(simulator, strerror(errno), 1);
+		else if(g_spawn_async(NULL, argv, envp, flags, NULL, NULL, NULL,
+					&error) == FALSE)
+		{
+			simulator_error(simulator, error->message, 1);
+			g_error_free(error);
+		}
+		free(argv[3]);
+	}
+	gtk_widget_destroy(dialog);
 }
 
 
