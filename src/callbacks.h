@@ -1,5 +1,5 @@
 /* $Id$ */
-/* Copyright (c) 2010 Pierre Pronchery <khorben@defora.org> */
+/* Copyright (c) 2011-2013 Pierre Pronchery <khorben@defora.org> */
 /* This file is part of DeforaOS Devel GEDI */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,5 +39,6 @@ void on_project_save_as(gpointer data);
 
 /* help menu */
 void on_help_about(gpointer data);
+void on_help_contents(gpointer data);
 
 #endif /* !GEDI_CALLBACKS_H */

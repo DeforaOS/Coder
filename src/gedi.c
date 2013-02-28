@@ -1,6 +1,6 @@
 /* $Id$ */
 static char const _copyright[] =
-"Copyright (c) 2011-2012 Pierre Pronchery <khorben@defora.org>";
+"Copyright (c) 2011-2013 Pierre Pronchery <khorben@defora.org>";
 /* This file is part of DeforaOS Desktop Coder */
 static char const _license[] =
 "This program is free software: you can redistribute it and/or modify\n"
@@ -112,6 +112,8 @@ static DesktopMenu _gedi_menu_projects[] = /* FIXME will certainly be dynamic */
 
 static DesktopMenu _gedi_menu_help[] =
 {
+	{ N_("_Contants"), G_CALLBACK(on_help_contents), "help-contents", 0,
+		0 },
 	{ N_("_About"), G_CALLBACK(on_help_about), GTK_STOCK_ABOUT, 0, 0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };

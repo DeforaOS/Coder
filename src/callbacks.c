@@ -1,5 +1,5 @@
 /* $Id$ */
-/* Copyright (c) 2011 Pierre Pronchery <khorben@defora.org> */
+/* Copyright (c) 2011-2013 Pierre Pronchery <khorben@defora.org> */
 /* This file is part of DeforaOS Devel GEDI */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,10 @@
 
 
 
+#include <Desktop.h>
 #include "gedi.h"
 #include "callbacks.h"
+#include "../config.h"
 
 
 /* functions */
@@ -82,6 +84,13 @@ void on_help_about(gpointer data)
 	GEDI * gedi = data;
 
 	gedi_about(gedi);
+}
+
+
+/* on_help_contents */
+void on_help_contents(gpointer data)
+{
+	desktop_help_contents(PACKAGE, "coder");
 }
 
 

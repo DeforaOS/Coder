@@ -25,7 +25,7 @@ coder_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
 coder: $(coder_OBJS)
 	$(CC) -o coder $(coder_OBJS) $(coder_LDFLAGS)
 
-callbacks.o: callbacks.c callbacks.h gedi.h project.h
+callbacks.o: callbacks.c callbacks.h gedi.h project.h ../config.h
 	$(CC) $(coder_CFLAGS) -c callbacks.c
 
 gedi.o: gedi.c callbacks.h gedi.h project.h ../config.h
