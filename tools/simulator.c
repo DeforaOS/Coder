@@ -84,6 +84,7 @@ static gboolean _simulator_on_closex(gpointer data);
 static void _simulator_on_file_close(gpointer data);
 static void _simulator_on_file_run(gpointer data);
 static void _simulator_on_help_about(gpointer data);
+static void _simulator_on_help_contents(gpointer data);
 
 
 /* constants */
@@ -100,6 +101,8 @@ static const DesktopMenu _simulator_file_menu[] =
 
 static const DesktopMenu _simulator_help_menu[] =
 {
+	{ "_Contents", G_CALLBACK(_simulator_on_help_contents),
+		"help-contents", 0, GDK_KEY_F1 },
 #if GTK_CHECK_VERSION(2, 6, 0)
 	{ "About", G_CALLBACK(_simulator_on_help_about), GTK_STOCK_ABOUT, 0,
 		0 },
@@ -428,4 +431,11 @@ static void _simulator_on_help_about(gpointer data)
 	desktop_about_dialog_set_website(dialog, "http://www.defora.org/");
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
+}
+
+
+/* simulator_on_help_contents */
+static void _simulator_on_help_contents(gpointer data)
+{
+	desktop_help_contents(PACKAGE, "simulator");
 }
