@@ -198,29 +198,36 @@ static int _new_load(Simulator * simulator)
 	char const * q;
 	long l;
 
-	config = config_new();
-	p = string_new_append(DATADIR "/" PACKAGE "/Simulator/models/", model,
-			".conf", NULL);
+	/* set default values */
 	simulator->dpi = 96;
 	simulator->width = 640;
 	simulator->height = 480;
-	if(config != NULL && p != NULL && (ret = config_load(config, p)) == 0)
+	/* load the selected model */
+	config = config_new();
+	p = string_new_append(DATADIR "/" PACKAGE "/Simulator/models/", model,
+			".conf", NULL);
+	if(config != NULL && p != NULL)
+		ret = config_load(config, p);
+	free(p);
+	if(ret == 0)
 	{
 		if((q = config_get(config, NULL, "dpi")) != NULL
-				&& (l = strtol(q, NULL, 10)) > 0)
+				&& (l = strtol(q, &p, 10)) > 0
+				&& q[0] != '\0' && *p == '\0')
 			simulator->dpi = l;
 		if((q = config_get(config, NULL, "width")) != NULL
-				&& (l = strtol(q, NULL, 10)) > 0)
+				&& (l = strtol(q, &p, 10)) > 0
+				&& q[0] != '\0' && *p == '\0')
 			simulator->width = l;
 		if((q = config_get(config, NULL, "height")) != NULL
-				&& (l = strtol(q, NULL, 10)) > 0)
+				&& (l = strtol(q, &p, 10)) > 0
+				&& q[0] != '\0' && *p == '\0')
 			simulator->height = l;
 		if(simulator->title == NULL
 				&& (q = config_get(config, NULL, "title"))
 				!= NULL)
 			simulator->title = strdup(q);
 	}
-	free(p);
 	if(config != NULL)
 		config_delete(config);
 	return ret;
