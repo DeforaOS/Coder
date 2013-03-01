@@ -15,17 +15,30 @@
 
 
 
+#include <dirent.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 #include <gtk/gtk.h>
 #include <System.h>
 #include "simulator.h"
+#include "../config.h"
+
+/* constants */
+#ifndef PREFIX
+# define PREFIX		"/usr/local"
+#endif
+#ifndef DATADIR
+# define DATADIR	PREFIX "/share"
+#endif
 
 
 /* private */
 /* prototypes */
 static int _simulator(char const * model, char const * title);
+static int _simulator_list(void);
 
+static int _error(char const * message, int ret);
 static int _usage(void);
 
 
@@ -43,10 +56,56 @@ static int _simulator(char const * model, char const * title)
 }
 
 
+/* simulator_list */
+static int _simulator_list(void)
+{
+	int ret = 0;
+	char const models[] = DATADIR "/" PACKAGE "/Simulator/models";
+	char const ext[] = ".conf";
+	DIR * dir;
+	struct dirent * de;
+	size_t len;
+	char const * sep = "";
+
+	if((dir = opendir(models)) == NULL)
+		ret = -_error(models, 1);
+	else
+	{
+		puts("Available models:");
+		while((de = readdir(dir)) != NULL)
+		{
+			if(de->d_name[0] == '.')
+				continue;
+			if((len = strlen(de->d_name)) <= sizeof(ext))
+				continue;
+			if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
+				continue;
+			de->d_name[len - sizeof(ext) + 1] = '\0';
+			printf("%s%s", sep, de->d_name);
+			sep = ", ";
+		}
+		if(sep[0] != '\0')
+			puts("");
+		closedir(dir);
+	}
+	return ret;
+}
+
+
+/* error */
+static int _error(char const * message, int ret)
+{
+	fputs("simulator: ", stderr);
+	perror(message);
+	return ret;
+}
+
+
 /* usage */
 static int _usage(void)
 {
-	fputs("Usage: simulator [-m model][-t title]\n", stderr);
+	fputs("Usage: simulator [-m model][-t title]\n"
+"       simulator -l\n", stderr);
 	return 1;
 }
 
@@ -57,13 +116,17 @@ static int _usage(void)
 int main(int argc, char * argv[])
 {
 	int o;
+	int list = 0;
 	char const * model = NULL;
 	char const * title = NULL;
 
 	gtk_init(&argc, &argv);
-	while((o = getopt(argc, argv, "m:t:")) != -1)
+	while((o = getopt(argc, argv, "lm:t:")) != -1)
 		switch(o)
 		{
+			case 'l':
+				list = 1;
+				break;
 			case 'm':
 				model = optarg;
 				break;
@@ -73,5 +136,9 @@ int main(int argc, char * argv[])
 			default:
 				return _usage();
 		}
+	if(optind != argc)
+		return _usage();
+	if(list != 0)
+		return (_simulator_list() == 0) ? 0 : 2;
 	return (_simulator(model, title) == 0) ? 0 : 2;
 }

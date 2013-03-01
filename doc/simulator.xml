@@ -58,6 +58,10 @@
 				<replaceable>title</replaceable>
 			</arg>
 		</cmdsynopsis>
+		<cmdsynopsis>
+			<command>&name;</command>
+			<arg choice="plain"><option>-l</option></arg>
+		</cmdsynopsis>
 	</refsynopsisdiv>
 	<refsect1 id="description">
 		<title>Description</title>
@@ -69,6 +73,12 @@
 		<title>Options</title>
 		<para>The following options are available:</para>
 		<variablelist>
+			<varlistentry>
+				<term><option>-l</option></term>
+				<listitem>
+					<para>List the different models available.</para>
+				</listitem>
+			</varlistentry>
 			<varlistentry>
 				<term><option>-m</option></term>
 				<listitem>
