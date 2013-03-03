@@ -65,16 +65,24 @@ static char const * _authors[] =
 
 
 /* prototypes */
+static int _sequel_error(Sequel * sequel, char const * message, int res);
+
 static int _sequel_open_tab(Sequel * sequel);
 static void _sequel_close_tab(Sequel * sequel, unsigned int i);
+
+static int _sequel_connect(Sequel * sequel, char const * engine,
+		char const * filename, char const * section);
+static int _sequel_connect_dialog(Sequel * sequel);
 
 /* callbacks */
 static void _sequel_on_close(gpointer data);
 static gboolean _sequel_on_closex(gpointer data);
+static void _sequel_on_connect(gpointer data);
 
 static void _sequel_on_new_tab(gpointer data);
 
 static void _sequel_on_file_close_all(gpointer data);
+static void _sequel_on_file_connect(gpointer data);
 static void _sequel_on_file_new_tab(gpointer data);
 static void _sequel_on_help_about(gpointer data);
 
@@ -87,6 +95,8 @@ static const DesktopMenu _sequel_file_menu[] =
 {
 	{ "New _tab", G_CALLBACK(_sequel_on_file_new_tab), "tab-new",
 		GDK_CONTROL_MASK, GDK_KEY_T },
+	{ "", NULL, NULL, 0, 0 },
+	{ "Connect...", G_CALLBACK(_sequel_on_file_connect), NULL, 0, 0 },
 	{ "", NULL, NULL, 0, 0 },
 	{ "Close all tabs", G_CALLBACK(_sequel_on_file_close_all), NULL, 0, 0 },
 	{ NULL, NULL, NULL, 0, 0 }
@@ -116,6 +126,9 @@ static const DesktopMenubar _sequel_menubar[] =
 static DesktopToolbar _sequel_toolbar[] =
 {
 	{ "New tab", G_CALLBACK(_sequel_on_new_tab), "tab-new", 0, 0, NULL },
+	{ "", NULL, NULL, 0, 0, NULL },
+	{ "Connect", G_CALLBACK(_sequel_on_connect), GTK_STOCK_CONNECT, 0, 0,
+		NULL },
 	{ NULL, NULL, NULL, 0, 0, NULL }
 };
 
@@ -229,6 +242,118 @@ static void _sequel_close_tab(Sequel * sequel, unsigned int i)
 }
 
 
+/* sequel_connect */
+static int _sequel_connect(Sequel * sequel, char const * engine,
+		char const * filename, char const * section)
+{
+	Config * config;
+
+	if(engine == NULL || filename == NULL)
+		return _sequel_connect_dialog(sequel);
+	if(sequel->database != NULL)
+	{
+		database_delete(sequel->database);
+		sequel->database = NULL;
+	}
+	if((config = config_new()) != NULL
+			&& config_load(config, filename) == 0)
+		sequel->database = database_new(engine, config, section);
+	if(sequel->database == NULL)
+		_sequel_error(sequel, NULL, 1);
+	if(config != NULL)
+		config_delete(config);
+	return (sequel->database != NULL) ? 0 : -1;
+}
+
+
+/* sequel_connect_dialog */
+static int _sequel_connect_dialog(Sequel * sequel)
+{
+	int ret;
+	GtkWidget * dialog;
+	GtkWidget * vbox;
+	GtkWidget * hbox;
+	GtkWidget * entry1;
+	GtkWidget * filesel;
+	GtkWidget * entry2;
+	gchar const * engine;
+	gchar * filename;
+	gchar const * section;
+
+	dialog = gtk_dialog_new_with_buttons("Connect...",
+			GTK_WINDOW(sequel->window),
+			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_CONNECT, GTK_RESPONSE_ACCEPT, NULL);
+#if GTK_CHECK_VERSION(2, 14, 0)
+	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+#else
+	vbox = GTK_DIALOG(dialog)->vbox;
+#endif
+	/* engine */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
+	hbox = gtk_hbox_new(FALSE, 4);
+#endif
+	gtk_box_pack_start(GTK_BOX(hbox), gtk_label_new("Engine:"), FALSE, TRUE,
+			0);
+	entry1 = gtk_entry_new();
+	gtk_box_pack_start(GTK_BOX(hbox), entry1, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	/* filename */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
+	hbox = gtk_hbox_new(FALSE, 4);
+#endif
+	gtk_box_pack_start(GTK_BOX(hbox), gtk_label_new("Connection file:"),
+			FALSE, TRUE, 0);
+	filesel = gtk_file_chooser_button_new("Open connection file...",
+			GTK_FILE_CHOOSER_ACTION_OPEN);
+	gtk_box_pack_start(GTK_BOX(hbox), filesel, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	/* section */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
+	hbox = gtk_hbox_new(FALSE, 4);
+#endif
+	gtk_box_pack_start(GTK_BOX(hbox), gtk_label_new("Section:"), FALSE,
+			TRUE, 0);
+	entry2 = gtk_entry_new();
+	gtk_box_pack_start(GTK_BOX(hbox), entry2, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	gtk_widget_show_all(vbox);
+	if(gtk_dialog_run(dialog) != GTK_RESPONSE_ACCEPT)
+	{
+		gtk_widget_destroy(dialog);
+		return 0;
+	}
+	gtk_widget_hide(dialog);
+	engine = gtk_entry_get_text(GTK_ENTRY(entry1));
+	filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(filesel));
+	section = gtk_entry_get_text(GTK_ENTRY(entry2));
+	if(filename == NULL)
+		/* FIXME report error */
+		ret = -1;
+	else
+		ret = _sequel_connect(sequel, engine, filename, section);
+	g_free(filename);
+	gtk_widget_destroy(dialog);
+	return ret;
+}
+
+
+/* sequel_error */
+static int _sequel_error(Sequel * sequel, char const * message, int res)
+{
+	/* FIXME really implement */
+	error_print("sequel");
+	return res;
+}
+
+
 /* sequel_open_tab */
 static int _sequel_open_tab(Sequel * sequel)
 {
@@ -307,12 +432,30 @@ static gboolean _sequel_on_closex(gpointer data)
 }
 
 
+/* sequel_on_connect */
+static void _sequel_on_connect(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_connect_dialog(sequel);
+}
+
+
 /* sequel_on_file_close */
 static void _sequel_on_file_close_all(gpointer data)
 {
 	Sequel * sequel = data;
 
 	_sequel_on_close(sequel);
+}
+
+
+/* sequel_on_file_connect */
+static void _sequel_on_file_connect(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_on_connect(sequel);
 }
 
 
