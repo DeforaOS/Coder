@@ -415,17 +415,18 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 	view = GTK_TREE_VIEW(sequel->tabs[i].view);
 	if((store = sequel->tabs[i].store) == NULL)
 	{
-		/* XXX ugly hack */
-		sequel->tabs[i].store = gtk_list_store_new(MIN(argc, 10),
+		/* create the current store */
+		/* XXX no longer hard-code the number of columns */
+		sequel->tabs[i].store = gtk_list_store_new(10,
 				G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
 				G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
 				G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
 				G_TYPE_STRING);
 		store = sequel->tabs[i].store;
 		gtk_tree_view_set_model(view, GTK_TREE_MODEL(store));
-		l = gtk_tree_view_get_columns(view);
-		if(l == NULL)
+		if((l = gtk_tree_view_get_columns(view)) == NULL)
 		{
+			/* create the rendering columns */
 			for(i = 0; i < 10; i++)
 			{
 				renderer = gtk_cell_renderer_text_new();
@@ -435,18 +436,21 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 			}
 			l = gtk_tree_view_get_columns(view);
 		}
+		/* set the visible columns */
 		for(p = l, i = 0; p != NULL && i < MIN(argc, 10); p = p->next,
 				i++)
 		{
 			gtk_tree_view_column_set_title(p->data, columns[i]);
 			gtk_tree_view_column_set_visible(p->data, TRUE);
 		}
+		/* hide the remaining columns */
 		for(; p != NULL && i < MIN(argc, 10); p = p->next, i++)
 			gtk_tree_view_column_set_visible(p->data, FALSE);
 		g_list_free(l);
 	}
 	gtk_list_store_append(store, &iter);
 	for(i = 0; i < MIN(argc, 10); i++)
+		/* XXX the data may not be valid UTF-8 */
 		gtk_list_store_set(store, &iter, i, argv[i], -1);
 	return 0;
 }
