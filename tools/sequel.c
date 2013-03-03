@@ -432,6 +432,8 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 				renderer = gtk_cell_renderer_text_new();
 				c = gtk_tree_view_column_new_with_attributes("",
 						renderer, "text", i, NULL);
+				gtk_tree_view_column_set_resizable(c, TRUE);
+				gtk_tree_view_column_set_sort_column_id(c, i);
 				gtk_tree_view_append_column(view, c);
 			}
 			l = gtk_tree_view_get_columns(view);
