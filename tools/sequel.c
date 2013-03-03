@@ -462,7 +462,7 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 static int _sequel_open_tab(Sequel * sequel)
 {
 	SequelTab * p;
-	GtkWidget * vbox;
+	GtkWidget * paned;
 	GtkWidget * widget;
 	char buf[24];
 
@@ -488,18 +488,14 @@ static int _sequel_open_tab(Sequel * sequel)
 	gtk_button_set_relief(GTK_BUTTON(widget), GTK_RELIEF_NONE);
 	gtk_box_pack_start(GTK_BOX(p->label), widget, FALSE, TRUE, 0);
 	gtk_widget_show_all(p->label);
-#if GTK_CHECK_VERSION(3, 0, 0)
-	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-#else
-	vbox = gtk_vbox_new(FALSE, 0);
-#endif
+	paned = gtk_vpaned_new();
 	/* text area */
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	p->text = gtk_text_view_new();
 	gtk_container_add(GTK_CONTAINER(widget), p->text);
-	gtk_box_pack_start(GTK_BOX(vbox), widget, TRUE, TRUE, 0);
+	gtk_paned_add1(GTK_PANED(paned), widget);
 	/* results area */
 	p->store = NULL;
 	p->view = gtk_tree_view_new();
@@ -507,9 +503,9 @@ static int _sequel_open_tab(Sequel * sequel)
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_container_add(GTK_CONTAINER(widget), p->view);
-	gtk_box_pack_start(GTK_BOX(vbox), widget, TRUE, TRUE, 0);
-	gtk_widget_show_all(vbox);
-	gtk_notebook_append_page(GTK_NOTEBOOK(sequel->notebook), vbox,
+	gtk_paned_add2(GTK_PANED(paned), widget);
+	gtk_widget_show_all(paned);
+	gtk_notebook_append_page(GTK_NOTEBOOK(sequel->notebook), paned,
 			p->label);
 	return 0;
 }
