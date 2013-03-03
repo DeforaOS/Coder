@@ -2,7 +2,7 @@
 Name=Simulator
 Comment=A simulator for embedded devices
 Exec=simulator
-Icon=applications-development
+Icon=stock_cell-phone
 Type=Application
 Categories=Development;IDE;GTK;
 StartupNotify=true
