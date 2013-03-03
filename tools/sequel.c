@@ -19,6 +19,7 @@ static char const _license[] =
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <System.h>
@@ -62,6 +63,7 @@ static char const * _authors[] =
 
 /* prototypes */
 static int _sequel_open_tab(Sequel * sequel);
+static void _sequel_close_tab(Sequel * sequel, unsigned int i);
 
 /* callbacks */
 static void _sequel_on_close(gpointer data);
@@ -72,6 +74,8 @@ static void _sequel_on_new_tab(gpointer data);
 static void _sequel_on_file_close_all(gpointer data);
 static void _sequel_on_file_new_tab(gpointer data);
 static void _sequel_on_help_about(gpointer data);
+
+static void _sequel_on_tab_close(GtkWidget * widget, gpointer data);
 
 
 /* constants */
@@ -208,6 +212,17 @@ static int _error_text(char const * message, int ret)
 
 /* private */
 /* functions */
+/* sequel_close_tab */
+static void _sequel_close_tab(Sequel * sequel, unsigned int i)
+{
+	gtk_notebook_remove_page(GTK_NOTEBOOK(sequel->notebook), i);
+	memmove(&sequel->tabs[i], &sequel->tabs[i + 1],
+			(sequel->tabs_cnt - (i + 1)) * sizeof(*sequel->tabs));
+	if(--sequel->tabs_cnt == 0)
+		gtk_main_quit();
+}
+
+
 /* sequel_open_tab */
 static int _sequel_open_tab(Sequel * sequel)
 {
@@ -222,9 +237,22 @@ static int _sequel_open_tab(Sequel * sequel)
 	sequel->tabs = p;
 	p = &sequel->tabs[sequel->tabs_cnt++];
 	/* create the tab */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	p->label = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+#else
+	p->label = gtk_hbox_new(FALSE, 4);
+#endif
 	snprintf(buf, sizeof(buf), "Tab %lu", sequel->tabs_cnt);
-	p->label = gtk_label_new(buf);
-	gtk_widget_show(p->label);
+	gtk_box_pack_start(GTK_BOX(p->label), gtk_label_new(buf), TRUE, TRUE,
+			0);
+	widget = gtk_button_new();
+	g_signal_connect(widget, "clicked", G_CALLBACK(_sequel_on_tab_close),
+			sequel);
+	gtk_container_add(GTK_CONTAINER(widget), gtk_image_new_from_stock(
+				GTK_STOCK_CLOSE, GTK_ICON_SIZE_MENU));
+	gtk_button_set_relief(GTK_BUTTON(widget), GTK_RELIEF_NONE);
+	gtk_box_pack_start(GTK_BOX(p->label), widget, FALSE, TRUE, 0);
+	gtk_widget_show_all(p->label);
 #if GTK_CHECK_VERSION(3, 0, 0)
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 #else
@@ -320,4 +348,21 @@ static void _sequel_on_new_tab(gpointer data)
 	Sequel * sequel = data;
 
 	_sequel_open_tab(sequel);
+}
+
+
+/* sequel_on_tab_close */
+static void _sequel_on_tab_close(GtkWidget * widget, gpointer data)
+{
+	Sequel * sequel = data;
+	size_t i;
+
+	widget = gtk_widget_get_parent(widget);
+	for(i = 0; i < sequel->tabs_cnt; i++)
+		if(sequel->tabs[i].label == widget)
+			break;
+	if(i == sequel->tabs_cnt)
+		/* should not happen */
+		return;
+	_sequel_close_tab(sequel, i);
 }
