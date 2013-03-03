@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Sequel
+Comment=SQL console
+Exec=sequel
+Icon=stock_insert-table
+Type=Application
+Categories=Development;IDE;GTK;
+StartupNotify=true

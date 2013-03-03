@@ -71,11 +71,14 @@ install: $(TARGETS)
 	$(MKDIR) $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 0755 -- gdeasm $(DESTDIR)$(BINDIR)/gdeasm
 	$(MKDIR) $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 0755 -- sequel $(DESTDIR)$(BINDIR)/sequel
+	$(MKDIR) $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 0755 -- simulator $(DESTDIR)$(BINDIR)/simulator
 
 uninstall:
 	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) uninstall) || exit; done
 	$(RM) -- $(DESTDIR)$(BINDIR)/gdeasm
+	$(RM) -- $(DESTDIR)$(BINDIR)/sequel
 	$(RM) -- $(DESTDIR)$(BINDIR)/simulator
 
 .PHONY: all subdirs clean distclean install uninstall
