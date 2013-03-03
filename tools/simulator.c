@@ -182,9 +182,8 @@ Simulator * simulator_new(char const * model, char const * title)
 	simulator->socket = gtk_socket_new();
 	gtk_box_pack_start(GTK_BOX(vbox), simulator->socket, TRUE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(simulator->window), vbox);
-	gtk_widget_show_all(vbox);
+	gtk_widget_show_all(simulator->window);
 	simulator->source = g_idle_add(_new_xephyr, simulator);
-	gtk_widget_show(simulator->window);
 	return simulator;
 }
 
