@@ -28,6 +28,11 @@ static char const _license[] =
 #include "sequel.h"
 #include "../config.h"
 
+/* macros */
+#ifndef MIN
+# define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
 
 /* Sequel */
 /* private */
@@ -379,6 +384,14 @@ static int _sequel_execute(Sequel * sequel)
 	gtk_text_buffer_get_start_iter(buffer, &start);
 	gtk_text_buffer_get_end_iter(buffer, &end);
 	query = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+	if(sequel->tabs[i].store != NULL)
+	{
+		gtk_list_store_clear(sequel->tabs[i].store);
+		gtk_tree_view_set_model(GTK_TREE_VIEW(sequel->tabs[i].view),
+				NULL);
+		g_object_unref(sequel->tabs[i].store);
+		sequel->tabs[i].store = NULL;
+	}
 	database_query(sequel->database, query, _execute_on_callback, sequel);
 	g_free(query);
 	/* FIXME really detect errors */
@@ -388,22 +401,53 @@ static int _sequel_execute(Sequel * sequel)
 static int _execute_on_callback(void * data, int argc, char ** argv,
 		char ** columns)
 {
-	/* FIXME really implement */
-	char const * sep = "";
+	Sequel * sequel = data;
 	int i;
+	GtkTreeView * view;
+	GtkListStore * store;
+	GList * l;
+	GtkCellRenderer * renderer;
+	GtkTreeViewColumn * c;
+	GList * p;
+	GtkTreeIter iter;
 
-	for(i = 0; i < argc; i++)
+	i = gtk_notebook_get_current_page(GTK_NOTEBOOK(sequel->notebook));
+	view = GTK_TREE_VIEW(sequel->tabs[i].view);
+	if((store = sequel->tabs[i].store) == NULL)
 	{
-		fprintf(stderr, "%s%s", sep, columns[i]);
-		sep = ",";
+		/* XXX ugly hack */
+		sequel->tabs[i].store = gtk_list_store_new(MIN(argc, 10),
+				G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
+				G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
+				G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
+				G_TYPE_STRING);
+		store = sequel->tabs[i].store;
+		gtk_tree_view_set_model(view, GTK_TREE_MODEL(store));
+		l = gtk_tree_view_get_columns(view);
+		if(l == NULL)
+		{
+			for(i = 0; i < 10; i++)
+			{
+				renderer = gtk_cell_renderer_text_new();
+				c = gtk_tree_view_column_new_with_attributes("",
+						renderer, "text", i, NULL);
+				gtk_tree_view_append_column(view, c);
+			}
+			l = gtk_tree_view_get_columns(view);
+		}
+		for(p = l, i = 0; p != NULL && i < MIN(argc, 10); p = p->next,
+				i++)
+		{
+			gtk_tree_view_column_set_title(p->data, columns[i]);
+			gtk_tree_view_column_set_visible(p->data, TRUE);
+		}
+		for(; p != NULL && i < MIN(argc, 10); p = p->next, i++)
+			gtk_tree_view_column_set_visible(p->data, FALSE);
+		g_list_free(l);
 	}
-	sep = "\n";
-	for(i = 0; i < argc; i++)
-	{
-		fprintf(stderr, "%s%s", sep, argv[i]);
-		sep = ",";
-	}
-	fputs("\n", stderr);
+	gtk_list_store_append(store, &iter);
+	for(i = 0; i < MIN(argc, 10); i++)
+		gtk_list_store_set(store, &iter, i, argv[i], -1);
 	return 0;
 }
 
@@ -451,8 +495,8 @@ static int _sequel_open_tab(Sequel * sequel)
 	gtk_container_add(GTK_CONTAINER(widget), p->text);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, TRUE, TRUE, 0);
 	/* results area */
-	p->store = gtk_list_store_new(0);
-	p->view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(p->store));
+	p->store = NULL;
+	p->view = gtk_tree_view_new();
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
