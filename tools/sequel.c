@@ -24,6 +24,7 @@ static char const _license[] =
 #include <gdk/gdkkeysyms.h>
 #include <System.h>
 #include <Desktop.h>
+#include <Database.h>
 #include "sequel.h"
 #include "../config.h"
 
@@ -38,6 +39,8 @@ struct _Sequel
 	/* internal */
 	SequelTab * tabs;
 	size_t tabs_cnt;
+
+	Database * database;
 
 	/* widgets */
 	GtkWidget * window;
@@ -132,6 +135,7 @@ Sequel * sequel_new(void)
 	sequel->tabs = NULL;
 	sequel->tabs_cnt = 0;
 	sequel->window = NULL;
+	sequel->database = NULL;
 	/* widgets */
 	group = gtk_accel_group_new();
 	sequel->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -174,6 +178,8 @@ Sequel * sequel_new(void)
 /* sequel_delete */
 void sequel_delete(Sequel * sequel)
 {
+	if(sequel->database != NULL)
+		database_delete(sequel->database);
 	if(sequel->window != NULL)
 		gtk_widget_destroy(sequel->window);
 	object_delete(sequel);

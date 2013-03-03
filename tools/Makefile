@@ -29,8 +29,8 @@ gdeasm: $(gdeasm_OBJS)
 	$(CC) -o gdeasm $(gdeasm_OBJS) $(gdeasm_LDFLAGS)
 
 sequel_OBJS = sequel.o sequel-main.o
-sequel_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
-sequel_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
+sequel_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS) `pkg-config --cflags libDatabase`
+sequel_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs libDatabase`
 
 sequel: $(sequel_OBJS)
 	$(CC) -o sequel $(sequel_OBJS) $(sequel_LDFLAGS)
