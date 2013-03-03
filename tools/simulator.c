@@ -154,6 +154,10 @@ Simulator * simulator_new(char const * model, char const * title)
 	/* widgets */
 	group = gtk_accel_group_new();
 	simulator->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+#if GTK_CHECK_VERSION(2, 6, 0)
+	gtk_window_set_icon_name(GTK_WINDOW(simulator->window),
+			"stock_cell-phone");
+#endif
 	gtk_widget_set_size_request(simulator->window, simulator->width,
 			simulator->height);
 	gtk_window_add_accel_group(GTK_WINDOW(simulator->window), group);
