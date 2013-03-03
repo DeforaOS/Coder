@@ -67,7 +67,10 @@ static int _sequel_open_tab(Sequel * sequel);
 static void _sequel_on_close(gpointer data);
 static gboolean _sequel_on_closex(gpointer data);
 
-static void _sequel_on_file_close(gpointer data);
+static void _sequel_on_new_tab(gpointer data);
+
+static void _sequel_on_file_close_all(gpointer data);
+static void _sequel_on_file_new_tab(gpointer data);
 static void _sequel_on_help_about(gpointer data);
 
 
@@ -75,8 +78,10 @@ static void _sequel_on_help_about(gpointer data);
 /* menubar */
 static const DesktopMenu _sequel_file_menu[] =
 {
-	{ "_Close", G_CALLBACK(_sequel_on_file_close), GTK_STOCK_CLOSE,
-		GDK_CONTROL_MASK, GDK_KEY_W },
+	{ "New _tab", G_CALLBACK(_sequel_on_file_new_tab), "tab-new",
+		GDK_CONTROL_MASK, GDK_KEY_T },
+	{ "", NULL, NULL, 0, 0 },
+	{ "Close all tabs", G_CALLBACK(_sequel_on_file_close_all), NULL, 0, 0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
@@ -96,6 +101,15 @@ static const DesktopMenubar _sequel_menubar[] =
 	{ "_File", _sequel_file_menu },
 	{ "_Help", _sequel_help_menu },
 	{ NULL, NULL }
+};
+
+
+/* variables */
+/* toolbar */
+static DesktopToolbar _sequel_toolbar[] =
+{
+	{ "New tab", G_CALLBACK(_sequel_on_new_tab), "tab-new", 0, 0, NULL },
+	{ NULL, NULL, NULL, 0, 0, NULL }
 };
 
 
@@ -134,6 +148,9 @@ Sequel * sequel_new(void)
 #endif
 	/* menubar */
 	widget = desktop_menubar_create(_sequel_menubar, sequel, group);
+	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+	/* toolbar */
+	widget = desktop_toolbar_create(_sequel_toolbar, sequel, group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* view */
 	sequel->notebook = gtk_notebook_new();
@@ -236,7 +253,7 @@ static int _sequel_open_tab(Sequel * sequel)
 
 
 /* callbacks */
-/* sequel_on_close */
+/* sequel_on_close_all */
 static void _sequel_on_close(gpointer data)
 {
 	Sequel * sequel = data;
@@ -257,11 +274,20 @@ static gboolean _sequel_on_closex(gpointer data)
 
 
 /* sequel_on_file_close */
-static void _sequel_on_file_close(gpointer data)
+static void _sequel_on_file_close_all(gpointer data)
 {
 	Sequel * sequel = data;
 
 	_sequel_on_close(sequel);
+}
+
+
+/* sequel_on_file_new_tab */
+static void _sequel_on_file_new_tab(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_on_new_tab(sequel);
 }
 
 
@@ -285,4 +311,13 @@ static void _sequel_on_help_about(gpointer data)
 	desktop_about_dialog_set_website(dialog, "http://www.defora.org/");
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
+}
+
+
+/* sequel_on_new_tab */
+static void _sequel_on_new_tab(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_open_tab(sequel);
 }
