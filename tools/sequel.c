@@ -74,10 +74,13 @@ static int _sequel_connect(Sequel * sequel, char const * engine,
 		char const * filename, char const * section);
 static int _sequel_connect_dialog(Sequel * sequel);
 
+static int _sequel_execute(Sequel * sequel);
+
 /* callbacks */
 static void _sequel_on_close(gpointer data);
 static gboolean _sequel_on_closex(gpointer data);
 static void _sequel_on_connect(gpointer data);
+static void _sequel_on_execute(gpointer data);
 
 static void _sequel_on_new_tab(gpointer data);
 
@@ -128,6 +131,9 @@ static DesktopToolbar _sequel_toolbar[] =
 	{ "New tab", G_CALLBACK(_sequel_on_new_tab), "tab-new", 0, 0, NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
 	{ "Connect", G_CALLBACK(_sequel_on_connect), GTK_STOCK_CONNECT, 0, 0,
+		NULL },
+	{ "", NULL, NULL, 0, 0, NULL },
+	{ "Execute", G_CALLBACK(_sequel_on_execute), GTK_STOCK_EXECUTE, 0, 0,
 		NULL },
 	{ NULL, NULL, NULL, 0, 0, NULL }
 };
@@ -325,7 +331,7 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	gtk_box_pack_start(GTK_BOX(hbox), entry2, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
-	if(gtk_dialog_run(dialog) != GTK_RESPONSE_ACCEPT)
+	if(gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_ACCEPT)
 	{
 		gtk_widget_destroy(dialog);
 		return 0;
@@ -351,6 +357,54 @@ static int _sequel_error(Sequel * sequel, char const * message, int res)
 	/* FIXME really implement */
 	error_print("sequel");
 	return res;
+}
+
+
+/* sequel_execute */
+static int _execute_on_callback(void * data, int argc, char ** argv,
+		char ** columns);
+
+static int _sequel_execute(Sequel * sequel)
+{
+	int i;
+	GtkTextBuffer * buffer;
+	GtkTextIter start;
+	GtkTextIter end;
+	gchar * query;
+
+	if(sequel->database == NULL)
+		return _sequel_connect_dialog(sequel);
+	i = gtk_notebook_get_current_page(GTK_NOTEBOOK(sequel->notebook));
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(sequel->tabs[i].text));
+	gtk_text_buffer_get_start_iter(buffer, &start);
+	gtk_text_buffer_get_end_iter(buffer, &end);
+	query = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+	database_query(sequel->database, query, _execute_on_callback, sequel);
+	g_free(query);
+	/* FIXME really detect errors */
+	return 0;
+}
+
+static int _execute_on_callback(void * data, int argc, char ** argv,
+		char ** columns)
+{
+	/* FIXME really implement */
+	char const * sep = "";
+	int i;
+
+	for(i = 0; i < argc; i++)
+	{
+		fprintf(stderr, "%s%s", sep, columns[i]);
+		sep = ",";
+	}
+	sep = "\n";
+	for(i = 0; i < argc; i++)
+	{
+		fprintf(stderr, "%s%s", sep, argv[i]);
+		sep = ",";
+	}
+	fputs("\n", stderr);
+	return 0;
 }
 
 
@@ -456,6 +510,15 @@ static void _sequel_on_file_connect(gpointer data)
 	Sequel * sequel = data;
 
 	_sequel_on_connect(sequel);
+}
+
+
+/* sequel_on_execute */
+static void _sequel_on_execute(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_execute(sequel);
 }
 
 
