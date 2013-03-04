@@ -1,6 +1,6 @@
 /* $Id$ */
 /* Copyright (c) 2011-2013 Pierre Pronchery <khorben@defora.org> */
-/* This file is part of DeforaOS Devel GEDI */
+/* This file is part of DeforaOS Devel Coder */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License.
@@ -15,8 +15,8 @@
 
 
 
-#ifndef GEDI_CALLBACKS_H
-# define GEDI_CALLBACKS_H
+#ifndef CODER_CALLBACKS_H
+# define CODER_CALLBACKS_H
 
 # include <gtk/gtk.h>
 
@@ -45,4 +45,4 @@ void on_tools_sql_console(gpointer data);
 void on_help_about(gpointer data);
 void on_help_contents(gpointer data);
 
-#endif /* !GEDI_CALLBACKS_H */
+#endif /* !CODER_CALLBACKS_H */

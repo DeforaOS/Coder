@@ -1,6 +1,6 @@
 /* $Id$ */
-/* Copyright (c) 2011 Pierre Pronchery <khorben@defora.org> */
-/* This file is part of DeforaOS Devel GEDI */
+/* Copyright (c) 2011-2013 Pierre Pronchery <khorben@defora.org> */
+/* This file is part of DeforaOS Devel Coder */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License.
@@ -15,8 +15,8 @@
 
 
 
-#ifndef GEDI_PROJECT_H
-# define GEDI_PROJECT_H
+#ifndef CODER_PROJECT_H
+# define CODER_PROJECT_H
 
 
 /* Project */
@@ -39,4 +39,4 @@ int project_save(Project * project);
 
 void project_properties(Project * project);
 
-#endif /* !GEDI_PROJECT_H */
+#endif /* !CODER_PROJECT_H */
