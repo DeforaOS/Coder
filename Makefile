@@ -54,6 +54,7 @@ dist:
 		$(PACKAGE)-$(VERSION)/tools/project.conf \
 		$(PACKAGE)-$(VERSION)/tools/models/Makefile \
 		$(PACKAGE)-$(VERSION)/tools/models/nokia-n800.conf \
+		$(PACKAGE)-$(VERSION)/tools/models/nokia-n9.conf \
 		$(PACKAGE)-$(VERSION)/tools/models/nokia-n900.conf \
 		$(PACKAGE)-$(VERSION)/tools/models/openmoko-gta01.conf \
 		$(PACKAGE)-$(VERSION)/tools/models/openmoko-gta02.conf \

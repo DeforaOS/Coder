@@ -15,6 +15,8 @@ install:
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/Coder/Simulator/models
 	$(INSTALL) -m 0644 -- nokia-n800.conf $(DESTDIR)$(PREFIX)/share/Coder/Simulator/models/nokia-n800.conf
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/Coder/Simulator/models
+	$(INSTALL) -m 0644 -- nokia-n9.conf $(DESTDIR)$(PREFIX)/share/Coder/Simulator/models/nokia-n9.conf
+	$(MKDIR) $(DESTDIR)$(PREFIX)/share/Coder/Simulator/models
 	$(INSTALL) -m 0644 -- nokia-n900.conf $(DESTDIR)$(PREFIX)/share/Coder/Simulator/models/nokia-n900.conf
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/Coder/Simulator/models
 	$(INSTALL) -m 0644 -- openmoko-gta01.conf $(DESTDIR)$(PREFIX)/share/Coder/Simulator/models/openmoko-gta01.conf
@@ -23,6 +25,7 @@ install:
 
 uninstall:
 	$(RM) -- $(DESTDIR)$(PREFIX)/share/Coder/Simulator/models/nokia-n800.conf
+	$(RM) -- $(DESTDIR)$(PREFIX)/share/Coder/Simulator/models/nokia-n9.conf
 	$(RM) -- $(DESTDIR)$(PREFIX)/share/Coder/Simulator/models/nokia-n900.conf
 	$(RM) -- $(DESTDIR)$(PREFIX)/share/Coder/Simulator/models/openmoko-gta01.conf
 	$(RM) -- $(DESTDIR)$(PREFIX)/share/Coder/Simulator/models/openmoko-gta02.conf
