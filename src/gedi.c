@@ -112,7 +112,7 @@ static DesktopMenu _gedi_menu_projects[] = /* FIXME will certainly be dynamic */
 
 static DesktopMenu _gedi_menu_help[] =
 {
-	{ N_("_Contants"), G_CALLBACK(on_help_contents), "help-contents", 0,
+	{ N_("_Contents"), G_CALLBACK(on_help_contents), "help-contents", 0,
 		0 },
 	{ N_("_About"), G_CALLBACK(on_help_about), GTK_STOCK_ABOUT, 0, 0 },
 	{ NULL, NULL, NULL, 0, 0 }
