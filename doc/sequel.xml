@@ -9,8 +9,8 @@
 	<!ENTITY section   "1">
 	<!ENTITY title     "Coder User Manual">
 	<!ENTITY package   "DeforaOS Coder">
-	<!ENTITY name      "coder">
-	<!ENTITY purpose   "Integrated Development Environment (IDE)">
+	<!ENTITY name      "sequel">
+	<!ENTITY purpose   "SQL console">
 ]>
 <refentry>
 	<refentryinfo>
@@ -53,8 +53,7 @@
 	</refsynopsisdiv>
 	<refsect1 id="description">
 		<title>Description</title>
-		<para><command>&name;</command> is an Integrated Development Environment
-			(IDE).</para>
+		<para><command>&name;</command> is a SQL console tool.</para>
 	</refsect1>
 	<refsect1 id="options">
 		<title>Options</title>
@@ -69,7 +68,7 @@
 		<title>See also</title>
 		<para>
 			<citerefentry>
-				<refentrytitle>sequel</refentrytitle>
+				<refentrytitle>coder</refentrytitle>
 				<manvolnum>1</manvolnum>
 			</citerefentry>,
 			<citerefentry>
