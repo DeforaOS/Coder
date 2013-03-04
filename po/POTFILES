@@ -1,5 +1,6 @@
 ../src/coder.c
 ../src/main.c
+../src/project.c
 ../tools/gdeasm.c
 ../tools/simulator.c
 ../tools/simulator-main.c

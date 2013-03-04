@@ -19,9 +19,11 @@
 
 
 #include <stdlib.h>
+#include <libintl.h>
 #include <gtk/gtk.h>
 #include <System.h>
 #include "project.h"
+#define _(string) gettext(string)
 
 
 /* Project */
@@ -120,8 +122,8 @@ int project_load(Project * project, char const * pathname)
 			project->config = config;
 			return 0;
 		}
-		error_set_code(1, "%s", "Project file is missing"
-					" package name and version");
+		error_set_code(1, "%s", _("Project file is missing"
+					" package name and version"));
 	}
 	return -1;
 }
@@ -132,9 +134,9 @@ int project_save(Project * project)
 {
 	if(project->pathname == NULL)
 		return -error_set_code(1, "%s",
-				"No path defined for the project");
+				_("No path defined for the project"));
 	/* FIXME implement */
-	return -error_set_code(1, "%s", "Not implemented yet");
+	return -error_set_code(1, "%s", _("Not implemented yet"));
 }
 
 
@@ -153,7 +155,7 @@ static void _properties_new(Project * p)
 {
 	p->pr_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_container_set_border_width(GTK_CONTAINER(p->pr_window), 4);
-	gtk_window_set_title(GTK_WINDOW(p->pr_window), "Project properties");
+	gtk_window_set_title(GTK_WINDOW(p->pr_window), _("Project properties"));
 	g_signal_connect_swapped(G_OBJECT(p->pr_window), "delete-event",
 			G_CALLBACK(_on_properties_closex), p);
 	/* FIXME */

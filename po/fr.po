@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Coder 0.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-03-04 23:37+0100\n"
+"POT-Creation-Date: 2013-03-04 23:46+0100\n"
 "PO-Revision-Date: 2012-06-06 22:28+0200\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: French\n"
@@ -149,6 +149,22 @@ msgstr "Aucun projet n'est ouvert"
 #: ../src/main.c:42
 msgid "Usage: coder\n"
 msgstr "Usage: coder\n"
+
+#: ../src/project.c:125
+msgid "Project file is missing package name and version"
+msgstr "Le fichier de projet ne spécifie pas de paquet et/ou version"
+
+#: ../src/project.c:137
+msgid "No path defined for the project"
+msgstr "Pas de chemin défini pour le projet"
+
+#: ../src/project.c:139
+msgid "Not implemented yet"
+msgstr "Pas encore implémenté"
+
+#: ../src/project.c:158
+msgid "Project properties"
+msgstr "Propriétés du projet"
 
 #: ../tools/gdeasm.c:149
 msgid "_Open..."
