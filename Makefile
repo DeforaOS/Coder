@@ -51,6 +51,7 @@ dist:
 		$(PACKAGE)-$(VERSION)/tools/sequel-main.c \
 		$(PACKAGE)-$(VERSION)/tools/simulator.c \
 		$(PACKAGE)-$(VERSION)/tools/simulator-main.c \
+		$(PACKAGE)-$(VERSION)/tools/Makefile \
 		$(PACKAGE)-$(VERSION)/tools/project.conf \
 		$(PACKAGE)-$(VERSION)/tools/models/Makefile \
 		$(PACKAGE)-$(VERSION)/tools/models/nokia-n800.conf \
