@@ -1,6 +1,6 @@
 /* $Id$ */
 /* Copyright (c) 2011-2013 Pierre Pronchery <khorben@defora.org> */
-/* This file is part of DeforaOS Devel GEDI */
+/* This file is part of DeforaOS Devel Coder */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License.
@@ -42,7 +42,7 @@ gboolean on_closex(gpointer data)
 /* on_file_new */
 void on_file_new(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 
 	gedi_file_open(gedi, NULL); /* XXX hack */
 }
@@ -51,7 +51,7 @@ void on_file_new(gpointer data)
 /* on_file_open */
 void on_file_open(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 	GtkWidget * dialog;
 	char * file;
 
@@ -72,7 +72,7 @@ void on_file_open(gpointer data)
 /* on_file_preferences */
 void on_file_preferences(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 
 	gedi_show_preferences(gedi, TRUE);
 }
@@ -89,7 +89,7 @@ void on_file_exit(gpointer data)
 /* on_help_about */
 void on_help_about(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 
 	gedi_about(gedi);
 }
@@ -105,7 +105,7 @@ void on_help_contents(gpointer data)
 /* on_project_new */
 void on_project_new(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 	Project * project;
 
 	if((project = project_new()) == NULL)
@@ -118,7 +118,7 @@ void on_project_new(gpointer data)
 /* on_project_open */
 void on_project_open(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 
 	gedi_project_open_dialog(gedi);
 }
@@ -127,7 +127,7 @@ void on_project_open(gpointer data)
 /* on_project_properties */
 void on_project_properties(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 
 	gedi_project_properties(gedi);
 }
@@ -136,7 +136,7 @@ void on_project_properties(gpointer data)
 /* on_project_save */
 void on_project_save(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 
 	gedi_project_save(gedi);
 }
@@ -145,7 +145,7 @@ void on_project_save(gpointer data)
 /* on_project_save_as */
 void on_project_save_as(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 
 	gedi_project_save_dialog(gedi);
 }
@@ -154,7 +154,7 @@ void on_project_save_as(gpointer data)
 /* on_tools_simulator */
 void on_tools_simulator(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 	char * argv[] = { BINDIR "/simulator", "simulator", NULL };
 	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO;
 	GError * error = NULL;
@@ -171,7 +171,7 @@ void on_tools_simulator(gpointer data)
 /* on_tools_sql_console */
 void on_tools_sql_console(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 	char * argv[] = { BINDIR "/sequel", "sequel", NULL };
 	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO;
 	GError * error = NULL;

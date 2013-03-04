@@ -50,7 +50,7 @@ static int _usage(void)
 int main(int argc, char * argv[])
 {
 	int o;
-	GEDI * gedi;
+	Coder * gedi;
 
 	setlocale(LC_ALL, "");
 	bindtextdomain(PACKAGE, LOCALEDIR);

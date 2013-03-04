@@ -38,10 +38,10 @@ static char const _license[] =
 #endif
 
 
-/* GEDI */
+/* Coder */
 /* private */
 /* types */
-struct _GEDI
+struct _Coder
 {
 	Config * config;
 	Project ** projects;
@@ -147,17 +147,17 @@ static DesktopToolbar _gedi_toolbar[] =
 
 
 /* prototypes */
-static Project * _gedi_get_current_project(GEDI * gedi);
+static Project * _gedi_get_current_project(Coder * gedi);
 
 
 /* public */
 /* functions */
 /* gedi_new */
-static void _new_config(GEDI * g);
+static void _new_config(Coder * g);
 
-GEDI * gedi_new(void)
+Coder * gedi_new(void)
 {
-	GEDI * gedi;
+	Coder * gedi;
 	GtkAccelGroup * group;
 	GtkWidget * vbox;
 	GtkWidget * hbox;
@@ -212,7 +212,7 @@ GEDI * gedi_new(void)
 }
 
 static char * _config_file(void);
-static void _new_config(GEDI * gedi)
+static void _new_config(Coder * gedi)
 {
 	char * filename;
 
@@ -246,7 +246,7 @@ static char * _config_file(void)
 
 
 /* gedi_delete */
-void gedi_delete(GEDI * gedi)
+void gedi_delete(Coder * gedi)
 {
 	char * filename;
 	size_t i;
@@ -268,7 +268,7 @@ void gedi_delete(GEDI * gedi)
 /* gedi_about */
 static gboolean _about_on_closex(gpointer data);
 
-void gedi_about(GEDI * gedi)
+void gedi_about(Coder * gedi)
 {
 	if(gedi->ab_window != NULL)
 	{
@@ -294,7 +294,7 @@ void gedi_about(GEDI * gedi)
 
 static gboolean _about_on_closex(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 
 	gtk_widget_hide(gedi->ab_window);
 	return TRUE;
@@ -302,7 +302,7 @@ static gboolean _about_on_closex(gpointer data)
 
 
 /* gedi_error */
-int gedi_error(GEDI * gedi, char const * message, int ret)
+int gedi_error(Coder * gedi, char const * message, int ret)
 {
 	GtkWidget * dialog;
 
@@ -322,7 +322,7 @@ int gedi_error(GEDI * gedi, char const * message, int ret)
 
 
 /* gedi_file_open */
-void gedi_file_open(GEDI * gedi, char const * filename)
+void gedi_file_open(Coder * gedi, char const * filename)
 {
 	/* FIXME really use the MIME sub-system */
 	char * argv[] = { NULL, NULL, NULL };
@@ -347,7 +347,7 @@ void gedi_file_open(GEDI * gedi, char const * filename)
 
 
 /* gedi_project_open */
-int gedi_project_open(GEDI * gedi, char const * filename)
+int gedi_project_open(Coder * gedi, char const * filename)
 {
 	Project * project;
 
@@ -376,7 +376,7 @@ int gedi_project_open(GEDI * gedi, char const * filename)
 
 
 /* gedi_project_open_dialog */
-void gedi_project_open_dialog(GEDI * gedi)
+void gedi_project_open_dialog(Coder * gedi)
 {
 	GtkWidget * dialog;
 	GtkFileFilter * filter;
@@ -408,7 +408,7 @@ void gedi_project_open_dialog(GEDI * gedi)
 
 
 /* gedi_project_open_project */
-int gedi_project_open_project(GEDI * gedi, Project * project)
+int gedi_project_open_project(Coder * gedi, Project * project)
 {
 	Project ** p;
 
@@ -424,7 +424,7 @@ int gedi_project_open_project(GEDI * gedi, Project * project)
 
 
 /* gedi_project_properties */
-void gedi_project_properties(GEDI * gedi)
+void gedi_project_properties(Coder * gedi)
 {
 	Project * project;
 
@@ -435,7 +435,7 @@ void gedi_project_properties(GEDI * gedi)
 
 
 /* gedi_project_save */
-int gedi_project_save(GEDI * gedi)
+int gedi_project_save(Coder * gedi)
 {
 	Project * project;
 
@@ -448,7 +448,7 @@ int gedi_project_save(GEDI * gedi)
 
 
 /* gedi_project_save_as */
-int gedi_project_save_as(GEDI * gedi, char const * filename)
+int gedi_project_save_as(Coder * gedi, char const * filename)
 {
 	Project * project;
 
@@ -461,7 +461,7 @@ int gedi_project_save_as(GEDI * gedi, char const * filename)
 
 
 /* gedi_project_save_dialog */
-int gedi_project_save_dialog(GEDI * gedi)
+int gedi_project_save_dialog(Coder * gedi)
 {
 	int ret = -1;
 	Project * project;
@@ -487,14 +487,14 @@ int gedi_project_save_dialog(GEDI * gedi)
 
 
 /* gedi_show_preferences */
-static void _show_preferences_window(GEDI * gedi);
-static void _preferences_set(GEDI * gedi);
+static void _show_preferences_window(Coder * gedi);
+static void _preferences_set(Coder * gedi);
 static gboolean _on_preferences_closex(gpointer data);
 static void _on_preferences_apply(gpointer data);
 static void _on_preferences_cancel(gpointer data);
 static void _on_preferences_ok(gpointer data);
 
-void gedi_show_preferences(GEDI * gedi, gboolean show)
+void gedi_show_preferences(Coder * gedi, gboolean show)
 {
 	if(gedi->pr_window == NULL)
 		_show_preferences_window(gedi);
@@ -504,7 +504,7 @@ void gedi_show_preferences(GEDI * gedi, gboolean show)
 		gtk_widget_hide(gedi->pr_window);
 }
 
-static void _show_preferences_window(GEDI * gedi)
+static void _show_preferences_window(Coder * gedi)
 {
 	GtkWidget * vbox;
 	GtkWidget * nb;
@@ -563,7 +563,7 @@ static void _show_preferences_window(GEDI * gedi)
 	gtk_widget_show_all(vbox);
 }
 
-static void _preferences_set(GEDI * gedi)
+static void _preferences_set(Coder * gedi)
 {
 	char const * p;
 
@@ -575,7 +575,7 @@ static void _preferences_set(GEDI * gedi)
 
 static void _on_preferences_apply(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 
 	config_set(gedi->config, "editor", "command", gtk_entry_get_text(
 				GTK_ENTRY(gedi->pr_editor_command)));
@@ -585,7 +585,7 @@ static void _on_preferences_apply(gpointer data)
 
 static void _on_preferences_cancel(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 
 	_preferences_set(gedi);
 	gtk_widget_hide(gedi->pr_window);
@@ -593,7 +593,7 @@ static void _on_preferences_cancel(gpointer data)
 
 static void _on_preferences_ok(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 
 	_on_preferences_apply(gedi);
 	gtk_widget_hide(gedi->pr_window);
@@ -602,7 +602,7 @@ static void _on_preferences_ok(gpointer data)
 
 static gboolean _on_preferences_closex(gpointer data)
 {
-	GEDI * gedi = data;
+	Coder * gedi = data;
 
 	_on_preferences_cancel(gedi);
 	return TRUE;
@@ -611,7 +611,7 @@ static gboolean _on_preferences_closex(gpointer data)
 
 /* private */
 /* gedi_get_current_project */
-static Project * _gedi_get_current_project(GEDI * gedi)
+static Project * _gedi_get_current_project(Coder * gedi)
 {
 	if(gedi->cur == NULL)
 	{

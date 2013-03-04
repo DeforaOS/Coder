@@ -1,6 +1,6 @@
 /* $Id$ */
 /* Copyright (c) 2011 Pierre Pronchery <khorben@defora.org> */
-/* This file is part of DeforaOS Devel GEDI */
+/* This file is part of DeforaOS Devel Coder */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License.
@@ -15,40 +15,40 @@
 
 
 
-#ifndef GEDI_GEDI_H
-# define GEDI_GEDI_H
+#ifndef CODER_CODER_H
+# define CODER_CODER_H
 
 # include <System.h>
 # include <gtk/gtk.h>
 # include "project.h"
 
 
-/* GEDI */
+/* Coder */
 /* types */
-typedef struct _GEDI GEDI;
+typedef struct _Coder Coder;
 
 
 /* functions */
-GEDI * gedi_new(void);
-void gedi_delete(GEDI * gedi);
+Coder * gedi_new(void);
+void gedi_delete(Coder * gedi);
 
 /* useful */
-void gedi_about(GEDI * gedi);
+void gedi_about(Coder * gedi);
 
-int gedi_error(GEDI * gedi, char const * message, int ret);
+int gedi_error(Coder * gedi, char const * message, int ret);
 
-void gedi_file_open(GEDI * gedi, char const * filename);
+void gedi_file_open(Coder * gedi, char const * filename);
 
 /* project */
-int gedi_project_open(GEDI * gedi, char const * filename);
-void gedi_project_open_dialog(GEDI * gedi);
-int gedi_project_open_project(GEDI * gedi, Project * project);
-void gedi_project_properties(GEDI * gedi);
-int gedi_project_save(GEDI * gedi);
-int gedi_project_save_as(GEDI * gedi, char const * filename);
-int gedi_project_save_dialog(GEDI * gedi);
+int gedi_project_open(Coder * gedi, char const * filename);
+void gedi_project_open_dialog(Coder * gedi);
+int gedi_project_open_project(Coder * gedi, Project * project);
+void gedi_project_properties(Coder * gedi);
+int gedi_project_save(Coder * gedi);
+int gedi_project_save_as(Coder * gedi, char const * filename);
+int gedi_project_save_dialog(Coder * gedi);
 
 /* interface */
-void gedi_show_preferences(GEDI * gedi, gboolean show);
+void gedi_show_preferences(Coder * gedi, gboolean show);
 
-#endif /* !GEDI_GEDI_H */
+#endif /* !CODER_CODER_H */
