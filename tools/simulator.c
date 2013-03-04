@@ -24,6 +24,7 @@ static char const _license[] =
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <libintl.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #if GTK_CHECK_VERSION(3, 0, 0)
@@ -33,6 +34,8 @@ static char const _license[] =
 #include <Desktop.h>
 #include "simulator.h"
 #include "../config.h"
+#define _(string) gettext(string)
+#define N_(string) (string)
 
 /* constants */
 #ifndef PREFIX
@@ -91,31 +94,31 @@ static void _simulator_on_help_contents(gpointer data);
 /* menubar */
 static const DesktopMenu _simulator_file_menu[] =
 {
-	{ "_Run...", G_CALLBACK(_simulator_on_file_run), NULL, GDK_CONTROL_MASK,
-		GDK_KEY_R },
+	{ N_("_Run..."), G_CALLBACK(_simulator_on_file_run), NULL,
+		GDK_CONTROL_MASK, GDK_KEY_R },
 	{ "", NULL, NULL, 0, 0 },
-	{ "_Close", G_CALLBACK(_simulator_on_file_close), GTK_STOCK_CLOSE,
+	{ N_("_Close"), G_CALLBACK(_simulator_on_file_close), GTK_STOCK_CLOSE,
 		GDK_CONTROL_MASK, GDK_KEY_W },
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
 static const DesktopMenu _simulator_help_menu[] =
 {
-	{ "_Contents", G_CALLBACK(_simulator_on_help_contents),
+	{ N_("_Contents"), G_CALLBACK(_simulator_on_help_contents),
 		"help-contents", 0, GDK_KEY_F1 },
 #if GTK_CHECK_VERSION(2, 6, 0)
-	{ "About", G_CALLBACK(_simulator_on_help_about), GTK_STOCK_ABOUT, 0,
+	{ N_("About"), G_CALLBACK(_simulator_on_help_about), GTK_STOCK_ABOUT, 0,
 		0 },
 #else
-	{ "About", G_CALLBACK(_simulator_on_help_about), NULL, 0, 0 },
+	{ N_("About"), G_CALLBACK(_simulator_on_help_about), NULL, 0, 0 },
 #endif
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
 static const DesktopMenubar _simulator_menubar[] =
 {
-	{ "_File", _simulator_file_menu },
-	{ "_Help", _simulator_help_menu },
+	{ N_("_File"), _simulator_file_menu },
+	{ N_("_Help"), _simulator_help_menu },
 	{ NULL, NULL }
 };
 
@@ -161,10 +164,10 @@ Simulator * simulator_new(char const * model, char const * title)
 	gtk_widget_set_size_request(simulator->window, simulator->width,
 			simulator->height);
 	gtk_window_add_accel_group(GTK_WINDOW(simulator->window), group);
-	if(simulator->title == NULL || (p = string_new_append("Simulator - ",
+	if(simulator->title == NULL || (p = string_new_append(_("Simulator - "),
 					simulator->title, NULL)) == NULL)
 		gtk_window_set_title(GTK_WINDOW(simulator->window),
-				"Simulator");
+				_("Simulator"));
 	else
 	{
 		gtk_window_set_title(GTK_WINDOW(simulator->window), p);
@@ -296,11 +299,11 @@ int simulator_error(Simulator * simulator, char const * message, int ret)
 			GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
 			GTK_BUTTONS_CLOSE,
 # if GTK_CHECK_VERSION(2, 6, 0)
-			"%s", "Error");
+			"%s", _("Error"));
 	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
 # endif
 			"%s", message);
-	gtk_window_set_title(GTK_WINDOW(dialog), "Error");
+	gtk_window_set_title(GTK_WINDOW(dialog), _("Error"));
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
 	return ret;
@@ -327,14 +330,15 @@ static void _simulator_on_child_watch(GPid pid, gint status, gpointer data)
 	{
 		if(WEXITSTATUS(status) != 0)
 			fprintf(stderr, "%s: %s%u\n", "Simulator",
-					"Xephyr exited with status ",
+					_("Xephyr exited with status "),
 					WEXITSTATUS(status));
 		gtk_main_quit();
 	}
 	else if(WIFSIGNALED(status))
 	{
 		fprintf(stderr, "%s: %s%u\n", "Simulator",
-				"Xephyr exited with signal ", WTERMSIG(status));
+				_("Xephyr exited with signal "),
+				WTERMSIG(status));
 		gtk_main_quit();
 	}
 }
@@ -432,7 +436,7 @@ static void _simulator_on_help_about(gpointer data)
 			GTK_WINDOW(simulator->window));
 	desktop_about_dialog_set_authors(dialog, _authors);
 	desktop_about_dialog_set_comments(dialog,
-			"Simulator for the DeforaOS desktop");
+			_("Simulator for the DeforaOS desktop"));
 	desktop_about_dialog_set_copyright(dialog, _copyright);
 	desktop_about_dialog_set_license(dialog, _license);
 	desktop_about_dialog_set_logo_icon_name(dialog, "stock_cell-phone");

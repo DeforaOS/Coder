@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Coder 0.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-03-04 23:26+0100\n"
+"POT-Creation-Date: 2013-03-04 23:30+0100\n"
 "PO-Revision-Date: 2012-06-06 22:28+0200\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: French\n"
@@ -60,7 +60,7 @@ msgstr "_Simulateur"
 msgid "S_QL console"
 msgstr "Console S_QL"
 
-#: ../src/gedi.c:124
+#: ../src/gedi.c:124 ../tools/simulator.c:107
 msgid "_Contents"
 msgstr "_Sommaire"
 
@@ -68,7 +68,7 @@ msgstr "_Sommaire"
 msgid "_About"
 msgstr "À _propos"
 
-#: ../src/gedi.c:132 ../tools/gdeasm.c:174
+#: ../src/gedi.c:132 ../tools/gdeasm.c:174 ../tools/simulator.c:120
 msgid "_File"
 msgstr "_Fichier"
 
@@ -80,7 +80,7 @@ msgstr "_Projet"
 msgid "_Tools"
 msgstr "_Outils"
 
-#: ../src/gedi.c:135 ../tools/gdeasm.c:175
+#: ../src/gedi.c:135 ../tools/gdeasm.c:175 ../tools/simulator.c:121
 msgid "_Help"
 msgstr "_Aide"
 
@@ -101,7 +101,7 @@ msgid "Integrated Development Environment for the DeforaOS desktop"
 msgstr "Interface Intégrée de Développement pour l'environnement DeforaOS"
 
 #: ../src/gedi.c:313 ../src/gedi.c:317 ../tools/gdeasm.c:373
-#: ../tools/gdeasm.c:377
+#: ../tools/gdeasm.c:377 ../tools/simulator.c:302 ../tools/simulator.c:306
 msgid "Error"
 msgstr "Erreur"
 
@@ -162,7 +162,7 @@ msgstr "_Charger des commentaires..."
 msgid "_Save comments as..."
 msgstr "Enregistrer les commentaires _sous..."
 
-#: ../tools/gdeasm.c:157
+#: ../tools/gdeasm.c:157 ../tools/simulator.c:100
 msgid "_Close"
 msgstr "_Fermer"
 
@@ -265,6 +265,34 @@ msgstr "Objets partagés"
 #: ../tools/gdeasm.c:956
 msgid "Usage: gdeasm [-C comments][-D][-a arch][-f format] filename\n"
 msgstr "Usage: gdeasm [-C commentaires][-D][-a arch][-f format] fichier\n"
+
+#: ../tools/simulator.c:97
+msgid "_Run..."
+msgstr "_Exécuter..."
+
+#: ../tools/simulator.c:110 ../tools/simulator.c:113
+msgid "About"
+msgstr "À propos"
+
+#: ../tools/simulator.c:167
+msgid "Simulator - "
+msgstr "Simulateur - "
+
+#: ../tools/simulator.c:170
+msgid "Simulator"
+msgstr "Simulateur"
+
+#: ../tools/simulator.c:333
+msgid "Xephyr exited with status "
+msgstr ""
+
+#: ../tools/simulator.c:340
+msgid "Xephyr exited with signal "
+msgstr ""
+
+#: ../tools/simulator.c:439
+msgid "Simulator for the DeforaOS desktop"
+msgstr "Simulateur pour l'environnement DeforaOS"
 
 #: ../tools/simulator-main.c:80
 msgid "Available models:"
