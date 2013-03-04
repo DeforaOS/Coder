@@ -28,7 +28,7 @@ static char const _license[] =
 #include <gdk/gdkkeysyms.h>
 #include <Desktop.h>
 #include "callbacks.h"
-#include "gedi.h"
+#include "coder.h"
 #include "../config.h"
 #define _(string) gettext(string)
 #define N_(string) (string)

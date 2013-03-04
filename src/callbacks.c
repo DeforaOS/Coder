@@ -16,7 +16,7 @@
 
 
 #include <Desktop.h>
-#include "gedi.h"
+#include "coder.h"
 #include "callbacks.h"
 #include "../config.h"
 

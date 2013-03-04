@@ -18,20 +18,20 @@ INSTALL	= install
 
 all: $(TARGETS)
 
-coder_OBJS = callbacks.o gedi.o main.o project.o
+coder_OBJS = callbacks.o coder.o main.o project.o
 coder_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
 coder_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
 
 coder: $(coder_OBJS)
 	$(CC) -o coder $(coder_OBJS) $(coder_LDFLAGS)
 
-callbacks.o: callbacks.c callbacks.h gedi.h project.h ../config.h
+callbacks.o: callbacks.c callbacks.h coder.h project.h ../config.h
 	$(CC) -D PREFIX=\"$(PREFIX)\" $(coder_CFLAGS) -c callbacks.c
 
-gedi.o: gedi.c callbacks.h gedi.h project.h ../config.h
-	$(CC) -D PREFIX=\"$(PREFIX)\" $(coder_CFLAGS) -c gedi.c
+coder.o: coder.c callbacks.h coder.h project.h ../config.h
+	$(CC) -D PREFIX=\"$(PREFIX)\" $(coder_CFLAGS) -c coder.c
 
-main.o: main.c gedi.h
+main.o: main.c coder.h
 	$(CC) $(coder_CFLAGS) -c main.c
 
 project.o: project.c project.h

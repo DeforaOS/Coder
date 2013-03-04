@@ -38,12 +38,12 @@ dist:
 		$(PACKAGE)-$(VERSION)/po/fr.po \
 		$(PACKAGE)-$(VERSION)/po/project.conf \
 		$(PACKAGE)-$(VERSION)/src/callbacks.c \
-		$(PACKAGE)-$(VERSION)/src/gedi.c \
+		$(PACKAGE)-$(VERSION)/src/coder.c \
 		$(PACKAGE)-$(VERSION)/src/main.c \
 		$(PACKAGE)-$(VERSION)/src/project.c \
 		$(PACKAGE)-$(VERSION)/src/Makefile \
 		$(PACKAGE)-$(VERSION)/src/callbacks.h \
-		$(PACKAGE)-$(VERSION)/src/gedi.h \
+		$(PACKAGE)-$(VERSION)/src/coder.h \
 		$(PACKAGE)-$(VERSION)/src/project.h \
 		$(PACKAGE)-$(VERSION)/src/project.conf \
 		$(PACKAGE)-$(VERSION)/tools/gdeasm.c \

@@ -1,4 +1,4 @@
-../src/gedi.c
+../src/coder.c
 ../src/main.c
 ../tools/gdeasm.c
 ../tools/simulator.c

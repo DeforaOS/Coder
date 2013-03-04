@@ -1,6 +1,6 @@
 /* $Id$ */
-/* Copyright (c) 2011-2012 Pierre Pronchery <khorben@defora.org> */
-/* This file is part of DeforaOS Devel GEDI */
+/* Copyright (c) 2011-2013 Pierre Pronchery <khorben@defora.org> */
+/* This file is part of DeforaOS Devel Coder */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License.
@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <locale.h>
 #include <libintl.h>
-#include "gedi.h"
+#include "coder.h"
 #include "../config.h"
 #define _(string) gettext(string)
 
