@@ -502,6 +502,7 @@ static int _sequel_open_tab(Sequel * sequel)
 	/* results area */
 	p->store = NULL;
 	p->view = gtk_tree_view_new();
+	gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(p->view), TRUE);
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
