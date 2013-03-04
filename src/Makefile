@@ -26,7 +26,7 @@ coder: $(coder_OBJS)
 	$(CC) -o coder $(coder_OBJS) $(coder_LDFLAGS)
 
 callbacks.o: callbacks.c callbacks.h gedi.h project.h ../config.h
-	$(CC) $(coder_CFLAGS) -c callbacks.c
+	$(CC) -D PREFIX=\"$(PREFIX)\" $(coder_CFLAGS) -c callbacks.c
 
 gedi.o: gedi.c callbacks.h gedi.h project.h ../config.h
 	$(CC) -D PREFIX=\"$(PREFIX)\" $(coder_CFLAGS) -c gedi.c

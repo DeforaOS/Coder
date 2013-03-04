@@ -20,6 +20,14 @@
 #include "callbacks.h"
 #include "../config.h"
 
+/* constants */
+#ifndef PREFIX
+# define PREFIX		"/usr/local"
+#endif
+#ifndef BINDIR
+# define BINDIR		PREFIX "/bin"
+#endif
+
 
 /* functions */
 /* callbacks */
@@ -147,11 +155,12 @@ void on_project_save_as(gpointer data)
 void on_tools_simulator(gpointer data)
 {
 	GEDI * gedi = data;
-	char * argv[] = { "simulator", NULL };
+	char * argv[] = { BINDIR "/simulator", "simulator", NULL };
+	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO;
 	GError * error = NULL;
 
-	if(g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL,
-				NULL, &error) != TRUE)
+	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL, NULL, &error)
+			!= TRUE)
 	{
 		gedi_error(gedi, error->message, 1);
 		g_error_free(error);
@@ -163,11 +172,12 @@ void on_tools_simulator(gpointer data)
 void on_tools_sql_console(gpointer data)
 {
 	GEDI * gedi = data;
-	char * argv[] = { "sequel", NULL };
+	char * argv[] = { BINDIR "/sequel", "sequel", NULL };
+	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO;
 	GError * error = NULL;
 
-	if(g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL,
-				NULL, &error) != TRUE)
+	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL, NULL, &error)
+			!= TRUE)
 	{
 		gedi_error(gedi, error->message, 1);
 		g_error_free(error);
