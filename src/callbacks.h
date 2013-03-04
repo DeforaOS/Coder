@@ -37,6 +37,10 @@ void on_project_properties(gpointer data);
 void on_project_save(gpointer data);
 void on_project_save_as(gpointer data);
 
+/* tools menu */
+void on_tools_simulator(gpointer data);
+void on_tools_sql_console(gpointer data);
+
 /* help menu */
 void on_help_about(gpointer data);
 void on_help_contents(gpointer data);

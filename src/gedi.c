@@ -77,9 +77,8 @@ static char const * _authors[] =
 };
 
 
-/* variables */
 /* menubar */
-static DesktopMenu _gedi_menu_file[] =
+static const DesktopMenu _gedi_menu_file[] =
 {
 	{ N_("_New file..."), G_CALLBACK(on_file_new), GTK_STOCK_NEW,
 		GDK_CONTROL_MASK, GDK_KEY_N },
@@ -94,7 +93,8 @@ static DesktopMenu _gedi_menu_file[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
-static DesktopMenu _gedi_menu_projects[] = /* FIXME will certainly be dynamic */
+/* FIXME will certainly be dynamic */
+static const DesktopMenu _gedi_menu_project[] =
 {
 	{ N_("_New project..."), G_CALLBACK(on_project_new), GTK_STOCK_NEW, 0,
 		0 },
@@ -110,7 +110,16 @@ static DesktopMenu _gedi_menu_projects[] = /* FIXME will certainly be dynamic */
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
-static DesktopMenu _gedi_menu_help[] =
+static const DesktopMenu _gedi_menu_tools[] =
+{
+	{ N_("_Simulator"), G_CALLBACK(on_tools_simulator), "stock_cell-phone",
+		0, 0 },
+	{ N_("S_QL console"), G_CALLBACK(on_tools_sql_console),
+		"stock_insert-table", 0, 0 },
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
+static const DesktopMenu _gedi_menu_help[] =
 {
 	{ N_("_Contents"), G_CALLBACK(on_help_contents), "help-contents", 0,
 		0 },
@@ -118,14 +127,17 @@ static DesktopMenu _gedi_menu_help[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
-static DesktopMenubar _gedi_menubar[] =
+static const DesktopMenubar _gedi_menubar[] =
 {
 	{ N_("_File"),		_gedi_menu_file },
-	{ N_("_Projects"),	_gedi_menu_projects },
+	{ N_("_Project"),	_gedi_menu_project },
+	{ N_("_Tools"),		_gedi_menu_tools },
 	{ N_("_Help"),		_gedi_menu_help },
 	{ NULL,			NULL }
 };
 
+
+/* variables */
 /* toolbar */
 static DesktopToolbar _gedi_toolbar[] =
 {
@@ -325,7 +337,10 @@ void gedi_file_open(GEDI * gedi, char const * filename)
 		argv[1] = strdup(filename); /* XXX check and report error */
 	if(g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL,
 				NULL, &error) != TRUE)
+	{
 		gedi_error(gedi, error->message, 1);
+		g_error_free(error);
+	}
 	free(argv[1]);
 	free(argv[0]);
 }

@@ -141,3 +141,35 @@ void on_project_save_as(gpointer data)
 
 	gedi_project_save_dialog(gedi);
 }
+
+
+/* on_tools_simulator */
+void on_tools_simulator(gpointer data)
+{
+	GEDI * gedi = data;
+	char * argv[] = { "simulator", NULL };
+	GError * error = NULL;
+
+	if(g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL,
+				NULL, &error) != TRUE)
+	{
+		gedi_error(gedi, error->message, 1);
+		g_error_free(error);
+	}
+}
+
+
+/* on_tools_sql_console */
+void on_tools_sql_console(gpointer data)
+{
+	GEDI * gedi = data;
+	char * argv[] = { "sequel", NULL };
+	GError * error = NULL;
+
+	if(g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL,
+				NULL, &error) != TRUE)
+	{
+		gedi_error(gedi, error->message, 1);
+		g_error_free(error);
+	}
+}
