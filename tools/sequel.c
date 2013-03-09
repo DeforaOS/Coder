@@ -184,6 +184,7 @@ Sequel * sequel_new(void)
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* toolbar */
 	widget = desktop_toolbar_create(_sequel_toolbar, sequel, group);
+	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[4].widget), FALSE);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* view */
 	sequel->notebook = gtk_notebook_new();
@@ -271,7 +272,14 @@ static int _sequel_connect(Sequel * sequel, char const * engine,
 			&& config_load(config, filename) == 0)
 		sequel->database = database_new(engine, config, section);
 	if(sequel->database == NULL)
+	{
 		sequel_error(sequel, error_get(), 1);
+		gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[4].widget),
+				FALSE);
+	}
+	else
+		gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[4].widget),
+				TRUE);
 	if(config != NULL)
 		config_delete(config);
 	return (sequel->database != NULL) ? 0 : -1;
