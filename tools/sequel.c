@@ -290,9 +290,11 @@ static int _sequel_connect(Sequel * sequel, char const * engine,
 static int _sequel_connect_dialog(Sequel * sequel)
 {
 	int ret;
+	GtkSizeGroup * group;
 	GtkWidget * dialog;
 	GtkWidget * vbox;
 	GtkWidget * hbox;
+	GtkWidget * label;
 	GtkWidget * entry1;
 	GtkWidget * filesel;
 	GtkWidget * entry2;
@@ -305,6 +307,7 @@ static int _sequel_connect_dialog(Sequel * sequel)
 			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 			GTK_STOCK_CONNECT, GTK_RESPONSE_ACCEPT, NULL);
+	group = gtk_size_group_new(GTK_SIZE_GROUP_BOTH);
 #if GTK_CHECK_VERSION(2, 14, 0)
 	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
 #else
@@ -316,8 +319,10 @@ static int _sequel_connect_dialog(Sequel * sequel)
 #else
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
-	gtk_box_pack_start(GTK_BOX(hbox), gtk_label_new("Engine:"), FALSE, TRUE,
-			0);
+	label = gtk_label_new("Engine:");
+	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+	gtk_size_group_add_widget(group, label);
+	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
 	entry1 = gtk_entry_new();
 	gtk_box_pack_start(GTK_BOX(hbox), entry1, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
@@ -327,8 +332,10 @@ static int _sequel_connect_dialog(Sequel * sequel)
 #else
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
-	gtk_box_pack_start(GTK_BOX(hbox), gtk_label_new("Connection file:"),
-			FALSE, TRUE, 0);
+	label = gtk_label_new("Connection file:");
+	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+	gtk_size_group_add_widget(group, label);
+	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
 	filesel = gtk_file_chooser_button_new("Open connection file...",
 			GTK_FILE_CHOOSER_ACTION_OPEN);
 	gtk_box_pack_start(GTK_BOX(hbox), filesel, TRUE, TRUE, 0);
@@ -339,8 +346,10 @@ static int _sequel_connect_dialog(Sequel * sequel)
 #else
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
-	gtk_box_pack_start(GTK_BOX(hbox), gtk_label_new("Section:"), FALSE,
-			TRUE, 0);
+	label = gtk_label_new("Section:");
+	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+	gtk_size_group_add_widget(group, label);
+	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
 	entry2 = gtk_entry_new();
 	gtk_box_pack_start(GTK_BOX(hbox), entry2, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
