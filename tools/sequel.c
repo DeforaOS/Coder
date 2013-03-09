@@ -70,8 +70,6 @@ static char const * _authors[] =
 
 
 /* prototypes */
-static int _sequel_error(Sequel * sequel, char const * message, int res);
-
 static int _sequel_open_tab(Sequel * sequel);
 static void _sequel_close_tab(Sequel * sequel, unsigned int i);
 
@@ -273,7 +271,7 @@ static int _sequel_connect(Sequel * sequel, char const * engine,
 			&& config_load(config, filename) == 0)
 		sequel->database = database_new(engine, config, section);
 	if(sequel->database == NULL)
-		_sequel_error(sequel, NULL, 1);
+		sequel_error(sequel, error_get(), 1);
 	if(config != NULL)
 		config_delete(config);
 	return (sequel->database != NULL) ? 0 : -1;
@@ -356,15 +354,6 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	g_free(filename);
 	gtk_widget_destroy(dialog);
 	return ret;
-}
-
-
-/* sequel_error */
-static int _sequel_error(Sequel * sequel, char const * message, int res)
-{
-	/* FIXME really implement */
-	error_print("sequel");
-	return res;
 }
 
 
