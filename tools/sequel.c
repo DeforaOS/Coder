@@ -49,6 +49,10 @@ struct _Sequel
 
 	/* widgets */
 	GtkWidget * window;
+#if GTK_CHECK_VERSION(2, 18, 0)
+	GtkWidget * infobar;
+	GtkWidget * infobar_label;
+#endif
 	GtkWidget * notebook;
 };
 
@@ -186,6 +190,24 @@ Sequel * sequel_new(void)
 	widget = desktop_toolbar_create(_sequel_toolbar, sequel, group);
 	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[4].widget), FALSE);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+#if GTK_CHECK_VERSION(2, 18, 0)
+	/* infobar */
+	sequel->infobar = gtk_info_bar_new_with_buttons(GTK_STOCK_CLOSE,
+			GTK_RESPONSE_CLOSE, NULL);
+	gtk_info_bar_set_message_type(GTK_INFO_BAR(sequel->infobar),
+			GTK_MESSAGE_ERROR);
+	g_signal_connect(sequel->infobar, "close", G_CALLBACK(gtk_widget_hide),
+			NULL);
+	g_signal_connect(sequel->infobar, "response", G_CALLBACK(
+				gtk_widget_hide), NULL);
+	widget = gtk_info_bar_get_content_area(GTK_INFO_BAR(sequel->infobar));
+	sequel->infobar_label = gtk_label_new(NULL);
+	gtk_widget_show(sequel->infobar_label);
+	gtk_box_pack_start(GTK_BOX(widget), sequel->infobar_label, TRUE, TRUE,
+			0);
+	gtk_widget_set_no_show_all(sequel->infobar, TRUE);
+	gtk_box_pack_start(GTK_BOX(vbox), sequel->infobar, FALSE, TRUE, 0);
+#endif
 	/* view */
 	sequel->notebook = gtk_notebook_new();
 	gtk_box_pack_start(GTK_BOX(vbox), sequel->notebook, TRUE, TRUE, 0);
@@ -217,10 +239,16 @@ static int _error_text(char const * message, int ret);
 
 int sequel_error(Sequel * sequel, char const * message, int ret)
 {
+#if !GTK_CHECK_VERSION(2, 18, 0)
 	GtkWidget * dialog;
+#endif
 
 	if(sequel == NULL)
 		return _error_text(message, ret);
+#if GTK_CHECK_VERSION(2, 18, 0)
+	gtk_label_set_text(GTK_LABEL(sequel->infobar_label), message);
+	gtk_widget_show(sequel->infobar);
+#else
 	dialog = gtk_message_dialog_new(GTK_WINDOW(sequel->window),
 			GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
 			GTK_BUTTONS_CLOSE,
@@ -232,6 +260,7 @@ int sequel_error(Sequel * sequel, char const * message, int ret)
 	gtk_window_set_title(GTK_WINDOW(dialog), "Error");
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
+#endif
 	return ret;
 }
 
