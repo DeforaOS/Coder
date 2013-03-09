@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Coder 0.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-03-04 23:46+0100\n"
+"POT-Creation-Date: 2013-03-10 00:09+0100\n"
 "PO-Revision-Date: 2012-06-06 22:28+0200\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: French\n"
@@ -60,15 +60,17 @@ msgstr "_Simulateur"
 msgid "S_QL console"
 msgstr "Console S_QL"
 
-#: ../src/coder.c:124 ../tools/simulator.c:107
+#: ../src/coder.c:124 ../tools/sequel.c:122 ../tools/simulator.c:107
 msgid "_Contents"
 msgstr "_Sommaire"
 
 #: ../src/coder.c:126 ../tools/gdeasm.c:165 ../tools/gdeasm.c:167
+#: ../tools/sequel.c:125
 msgid "_About"
 msgstr "À _propos"
 
-#: ../src/coder.c:132 ../tools/gdeasm.c:174 ../tools/simulator.c:120
+#: ../src/coder.c:132 ../tools/gdeasm.c:174 ../tools/sequel.c:135
+#: ../tools/simulator.c:120
 msgid "_File"
 msgstr "_Fichier"
 
@@ -80,7 +82,8 @@ msgstr "_Projet"
 msgid "_Tools"
 msgstr "_Outils"
 
-#: ../src/coder.c:135 ../tools/gdeasm.c:175 ../tools/simulator.c:121
+#: ../src/coder.c:135 ../tools/gdeasm.c:175 ../tools/sequel.c:136
+#: ../tools/simulator.c:121
 msgid "_Help"
 msgstr "_Aide"
 
@@ -101,7 +104,8 @@ msgid "Integrated Development Environment for the DeforaOS desktop"
 msgstr "Interface Intégrée de Développement pour l'environnement DeforaOS"
 
 #: ../src/coder.c:313 ../src/coder.c:317 ../tools/gdeasm.c:373
-#: ../tools/gdeasm.c:377 ../tools/simulator.c:302 ../tools/simulator.c:306
+#: ../tools/gdeasm.c:377 ../tools/sequel.c:261 ../tools/sequel.c:265
+#: ../tools/simulator.c:302 ../tools/simulator.c:306
 msgid "Error"
 msgstr "Erreur"
 
@@ -282,13 +286,74 @@ msgstr "Objets partagés"
 msgid "Usage: gdeasm [-C comments][-D][-a arch][-f format] filename\n"
 msgstr "Usage: gdeasm [-C commentaires][-D][-a arch][-f format] fichier\n"
 
+#: ../tools/sequel.c:110
+msgid "New _tab"
+msgstr "Nouvelle _tab"
+
+#: ../tools/sequel.c:113
+msgid "C_onnect..."
+msgstr "_Connexion..."
+
+#: ../tools/sequel.c:115
+msgid "Close _all tabs"
+msgstr "Fermer _toutes les tabs"
+
+#: ../tools/sequel.c:128 ../tools/simulator.c:110 ../tools/simulator.c:113
+msgid "About"
+msgstr "À propos"
+
+#: ../tools/sequel.c:145
+msgid "New tab"
+msgstr "Nouvelle tab"
+
+#: ../tools/sequel.c:148
+msgid "Connect"
+msgstr "Connexion"
+
+#: ../tools/sequel.c:151
+msgid "Execute"
+msgstr "Exécuter"
+
+#: ../tools/sequel.c:183
+msgid "Sequel"
+msgstr "Sequel"
+
+#: ../tools/sequel.c:339
+msgid "Connect..."
+msgstr "Connexion..."
+
+#: ../tools/sequel.c:356
+msgid "Engine:"
+msgstr "Moteur :"
+
+#: ../tools/sequel.c:369
+msgid "Connection file:"
+msgstr "Fichier de connexion :"
+
+#: ../tools/sequel.c:373
+msgid "Open connection file..."
+msgstr "Ouvrir fichier de connexion..."
+
+#: ../tools/sequel.c:383
+msgid "Section:"
+msgstr "Section :"
+
+#: ../tools/sequel.c:526
+#, c-format
+msgid "Tab %lu"
+msgstr "Tab %lu"
+
+#: ../tools/sequel.c:638
+msgid "SQL console for the DeforaOS desktop"
+msgstr "Console SQL pour l'environnement DeforaOS"
+
+#: ../tools/sequel-main.c:64
+msgid "Usage: sequel\n"
+msgstr "Usage: sequel\n"
+
 #: ../tools/simulator.c:97
 msgid "_Run..."
 msgstr "_Exécuter..."
-
-#: ../tools/simulator.c:110 ../tools/simulator.c:113
-msgid "About"
-msgstr "À propos"
 
 #: ../tools/simulator.c:167
 msgid "Simulator - "

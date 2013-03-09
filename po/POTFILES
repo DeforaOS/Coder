@@ -2,5 +2,7 @@
 ../src/main.c
 ../src/project.c
 ../tools/gdeasm.c
+../tools/sequel.c
+../tools/sequel-main.c
 ../tools/simulator.c
 ../tools/simulator-main.c

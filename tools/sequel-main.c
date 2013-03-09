@@ -17,10 +17,24 @@
 
 #include <unistd.h>
 #include <stdio.h>
+#include <locale.h>
+#include <libintl.h>
 #include <gtk/gtk.h>
 #include <System.h>
 #include "sequel.h"
 #include "../config.h"
+#define _(string) gettext(string)
+
+/* constants */
+#ifndef PREFIX
+# define PREFIX		"/usr/local"
+#endif
+#ifndef DATADIR
+# define DATADIR	PREFIX "/share"
+#endif
+#ifndef LOCALEDIR
+# define LOCALEDIR	DATADIR "/locale"
+#endif
 
 
 /* private */
@@ -47,7 +61,7 @@ static int _sequel(void)
 /* usage */
 static int _usage(void)
 {
-	fputs("Usage: sequel\n", stderr);
+	fputs(_("Usage: sequel\n"), stderr);
 	return 1;
 }
 
@@ -59,6 +73,9 @@ int main(int argc, char * argv[])
 {
 	int o;
 
+	setlocale(LC_ALL, "");
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
 	while((o = getopt(argc, argv, "")) != -1)
 		switch(o)

@@ -20,6 +20,7 @@ static char const _license[] =
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <libintl.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <System.h>
@@ -27,6 +28,8 @@ static char const _license[] =
 #include <Database.h>
 #include "sequel.h"
 #include "../config.h"
+#define _(string) gettext(string)
+#define N_(string) (string)
 
 /* macros */
 #ifndef MIN
@@ -104,32 +107,33 @@ static void _sequel_on_tab_close(GtkWidget * widget, gpointer data);
 /* menubar */
 static const DesktopMenu _sequel_file_menu[] =
 {
-	{ "New _tab", G_CALLBACK(_sequel_on_file_new_tab), "tab-new",
+	{ N_("New _tab"), G_CALLBACK(_sequel_on_file_new_tab), "tab-new",
 		GDK_CONTROL_MASK, GDK_KEY_T },
 	{ "", NULL, NULL, 0, 0 },
-	{ "Connect...", G_CALLBACK(_sequel_on_file_connect), NULL, 0, 0 },
+	{ N_("C_onnect..."), G_CALLBACK(_sequel_on_file_connect), NULL, 0, 0 },
 	{ "", NULL, NULL, 0, 0 },
-	{ "Close all tabs", G_CALLBACK(_sequel_on_file_close_all), NULL, 0, 0 },
+	{ N_("Close _all tabs"), G_CALLBACK(_sequel_on_file_close_all), NULL, 0,
+		0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
 static const DesktopMenu _sequel_help_menu[] =
 {
-	{ "Contents", G_CALLBACK(_sequel_on_help_contents), "help-contents", 0,
-		GDK_KEY_F1 },
+	{ N_("_Contents"), G_CALLBACK(_sequel_on_help_contents),
+		"help-contents", 0, GDK_KEY_F1 },
 #if GTK_CHECK_VERSION(2, 6, 0)
-	{ "About", G_CALLBACK(_sequel_on_help_about), GTK_STOCK_ABOUT, 0,
+	{ N_("_About"), G_CALLBACK(_sequel_on_help_about), GTK_STOCK_ABOUT, 0,
 		0 },
 #else
-	{ "About", G_CALLBACK(_sequel_on_help_about), NULL, 0, 0 },
+	{ N_("About"), G_CALLBACK(_sequel_on_help_about), NULL, 0, 0 },
 #endif
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
 static const DesktopMenubar _sequel_menubar[] =
 {
-	{ "_File", _sequel_file_menu },
-	{ "_Help", _sequel_help_menu },
+	{ N_("_File"), _sequel_file_menu },
+	{ N_("_Help"), _sequel_help_menu },
 	{ NULL, NULL }
 };
 
@@ -138,13 +142,14 @@ static const DesktopMenubar _sequel_menubar[] =
 /* toolbar */
 static DesktopToolbar _sequel_toolbar[] =
 {
-	{ "New tab", G_CALLBACK(_sequel_on_new_tab), "tab-new", 0, 0, NULL },
-	{ "", NULL, NULL, 0, 0, NULL },
-	{ "Connect", G_CALLBACK(_sequel_on_connect), GTK_STOCK_CONNECT, 0, 0,
+	{ N_("New tab"), G_CALLBACK(_sequel_on_new_tab), "tab-new", 0, 0,
 		NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
-	{ "Execute", G_CALLBACK(_sequel_on_execute), GTK_STOCK_EXECUTE, 0, 0,
-		NULL },
+	{ N_("Connect"), G_CALLBACK(_sequel_on_connect), GTK_STOCK_CONNECT, 0,
+		0, NULL },
+	{ "", NULL, NULL, 0, 0, NULL },
+	{ N_("Execute"), G_CALLBACK(_sequel_on_execute), GTK_STOCK_EXECUTE, 0,
+		0, NULL },
 	{ NULL, NULL, NULL, 0, 0, NULL }
 };
 
@@ -175,7 +180,7 @@ Sequel * sequel_new(void)
 			"stock_insert-table");
 #endif
 	g_object_unref(group);
-	gtk_window_set_title(GTK_WINDOW(sequel->window), "Sequel");
+	gtk_window_set_title(GTK_WINDOW(sequel->window), _("Sequel"));
 	g_signal_connect_swapped(sequel->window, "delete-event", G_CALLBACK(
 				_sequel_on_closex), sequel);
 #if GTK_CHECK_VERSION(3, 0, 0)
@@ -253,11 +258,11 @@ int sequel_error(Sequel * sequel, char const * message, int ret)
 			GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
 			GTK_BUTTONS_CLOSE,
 # if GTK_CHECK_VERSION(2, 6, 0)
-			"%s", "Error");
+			"%s", _("Error"));
 	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
 # endif
 			"%s", message);
-	gtk_window_set_title(GTK_WINDOW(dialog), "Error");
+	gtk_window_set_title(GTK_WINDOW(dialog), _("Error"));
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
 #endif
@@ -331,7 +336,7 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	gchar * filename;
 	gchar const * section;
 
-	dialog = gtk_dialog_new_with_buttons("Connect...",
+	dialog = gtk_dialog_new_with_buttons(_("Connect..."),
 			GTK_WINDOW(sequel->window),
 			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
@@ -348,7 +353,7 @@ static int _sequel_connect_dialog(Sequel * sequel)
 #else
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
-	label = gtk_label_new("Engine:");
+	label = gtk_label_new(_("Engine:"));
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 	gtk_size_group_add_widget(group, label);
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
@@ -361,11 +366,11 @@ static int _sequel_connect_dialog(Sequel * sequel)
 #else
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
-	label = gtk_label_new("Connection file:");
+	label = gtk_label_new(_("Connection file:"));
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 	gtk_size_group_add_widget(group, label);
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
-	filesel = gtk_file_chooser_button_new("Open connection file...",
+	filesel = gtk_file_chooser_button_new(_("Open connection file..."),
 			GTK_FILE_CHOOSER_ACTION_OPEN);
 	gtk_box_pack_start(GTK_BOX(hbox), filesel, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
@@ -375,7 +380,7 @@ static int _sequel_connect_dialog(Sequel * sequel)
 #else
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
-	label = gtk_label_new("Section:");
+	label = gtk_label_new(_("Section:"));
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 	gtk_size_group_add_widget(group, label);
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
@@ -518,7 +523,7 @@ static int _sequel_open_tab(Sequel * sequel)
 #else
 	p->label = gtk_hbox_new(FALSE, 4);
 #endif
-	snprintf(buf, sizeof(buf), "Tab %lu", sequel->tabs_cnt);
+	snprintf(buf, sizeof(buf), _("Tab %lu"), sequel->tabs_cnt);
 	gtk_box_pack_start(GTK_BOX(p->label), gtk_label_new(buf), TRUE, TRUE,
 			0);
 	widget = gtk_button_new();
@@ -630,7 +635,7 @@ static void _sequel_on_help_about(gpointer data)
 			GTK_WINDOW(sequel->window));
 	desktop_about_dialog_set_authors(dialog, _authors);
 	desktop_about_dialog_set_comments(dialog,
-			"SQL console for the DeforaOS desktop");
+			_("SQL console for the DeforaOS desktop"));
 	desktop_about_dialog_set_copyright(dialog, _copyright);
 	desktop_about_dialog_set_license(dialog, _license);
 	desktop_about_dialog_set_logo_icon_name(dialog, "stock_insert-table");
