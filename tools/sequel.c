@@ -376,6 +376,7 @@ static int _sequel_execute(Sequel * sequel)
 	GtkTextIter start;
 	GtkTextIter end;
 	gchar * query;
+	int res;
 
 	if(sequel->database == NULL)
 		return _sequel_connect_dialog(sequel);
@@ -392,9 +393,11 @@ static int _sequel_execute(Sequel * sequel)
 		g_object_unref(sequel->tabs[i].store);
 		sequel->tabs[i].store = NULL;
 	}
-	database_query(sequel->database, query, _execute_on_callback, sequel);
+	res = database_query(sequel->database, query, _execute_on_callback,
+			sequel);
 	g_free(query);
-	/* FIXME really detect errors */
+	if(res != 0)
+		return -sequel_error(sequel, error_get(), 1);
 	return 0;
 }
 
