@@ -94,6 +94,7 @@ static void _sequel_on_execute(gpointer data);
 
 static void _sequel_on_new_tab(gpointer data);
 
+static void _sequel_on_file_close(gpointer data);
 static void _sequel_on_file_close_all(gpointer data);
 static void _sequel_on_file_connect(gpointer data);
 static void _sequel_on_file_new_tab(gpointer data);
@@ -112,6 +113,8 @@ static const DesktopMenu _sequel_file_menu[] =
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("C_onnect..."), G_CALLBACK(_sequel_on_file_connect), NULL, 0, 0 },
 	{ "", NULL, NULL, 0, 0 },
+	{ N_("_Close"), G_CALLBACK(_sequel_on_file_close), GTK_STOCK_CLOSE,
+		GDK_CONTROL_MASK, GDK_KEY_W },
 	{ N_("Close _all tabs"), G_CALLBACK(_sequel_on_file_close_all), NULL, 0,
 		0 },
 	{ NULL, NULL, NULL, 0, 0 }
@@ -589,6 +592,15 @@ static void _sequel_on_connect(gpointer data)
 
 
 /* sequel_on_file_close */
+static void _sequel_on_file_close(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_on_tab_close(NULL, sequel);
+}
+
+
+/* sequel_on_file_close */
 static void _sequel_on_file_close_all(gpointer data)
 {
 	Sequel * sequel = data;
@@ -669,10 +681,16 @@ static void _sequel_on_tab_close(GtkWidget * widget, gpointer data)
 	Sequel * sequel = data;
 	size_t i;
 
-	widget = gtk_widget_get_parent(widget);
-	for(i = 0; i < sequel->tabs_cnt; i++)
-		if(sequel->tabs[i].label == widget)
-			break;
+	if(widget != NULL)
+	{
+		widget = gtk_widget_get_parent(widget);
+		for(i = 0; i < sequel->tabs_cnt; i++)
+			if(sequel->tabs[i].label == widget)
+				break;
+	}
+	else
+		i = gtk_notebook_get_current_page(GTK_NOTEBOOK(
+					sequel->notebook));
 	if(i == sequel->tabs_cnt)
 		/* should not happen */
 		return;
