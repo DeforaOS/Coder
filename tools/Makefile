@@ -19,7 +19,7 @@ INSTALL	= install
 all: subdirs $(TARGETS)
 
 subdirs:
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE)) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE)) || exit; done
 
 gdeasm_OBJS = gdeasm.o
 gdeasm_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS) `pkg-config --cflags Asm`
@@ -58,16 +58,16 @@ simulator-main.o: simulator-main.c simulator.h
 	$(CC) $(simulator_CFLAGS) -c simulator-main.c
 
 clean:
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) clean) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) clean) || exit; done
 	$(RM) -- $(gdeasm_OBJS) $(sequel_OBJS) $(simulator_OBJS)
 
 distclean:
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) distclean) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) distclean) || exit; done
 	$(RM) -- $(gdeasm_OBJS) $(sequel_OBJS) $(simulator_OBJS)
 	$(RM) -- $(TARGETS)
 
 install: $(TARGETS)
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) install) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
 	$(MKDIR) $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 0755 -- gdeasm $(DESTDIR)$(BINDIR)/gdeasm
 	$(MKDIR) $(DESTDIR)$(BINDIR)
@@ -76,7 +76,7 @@ install: $(TARGETS)
 	$(INSTALL) -m 0755 -- simulator $(DESTDIR)$(BINDIR)/simulator
 
 uninstall:
-	@for i in $(SUBDIRS); do (cd $$i && $(MAKE) uninstall) || exit; done
+	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done
 	$(RM) -- $(DESTDIR)$(BINDIR)/gdeasm
 	$(RM) -- $(DESTDIR)$(BINDIR)/sequel
 	$(RM) -- $(DESTDIR)$(BINDIR)/simulator
