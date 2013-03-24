@@ -393,6 +393,8 @@ static void _simulator_on_file_run(gpointer data)
 			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 			GTK_STOCK_EXECUTE, GTK_RESPONSE_ACCEPT, NULL);
+	gtk_dialog_set_default_response(GTK_DIALOG(dialog),
+			GTK_RESPONSE_ACCEPT);
 	gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
 #if GTK_CHECK_VERSION(2, 14, 0)
 	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
@@ -404,23 +406,26 @@ static void _simulator_on_file_run(gpointer data)
 	widget = gtk_label_new("Command:");
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	widget = gtk_entry_new();
+	gtk_entry_set_activates_default(GTK_ENTRY(widget), TRUE);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	gtk_widget_show_all(vbox);
 	res = gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_hide(dialog);
-	if(res == GTK_RESPONSE_ACCEPT)
+	if(res != GTK_RESPONSE_ACCEPT)
 	{
-		command = gtk_entry_get_text(GTK_ENTRY(widget));
-		if((argv[3] = strdup(command)) == NULL)
-			simulator_error(simulator, strerror(errno), 1);
-		else if(g_spawn_async(NULL, argv, envp, flags, NULL, NULL, NULL,
-					&error) == FALSE)
-		{
-			simulator_error(simulator, error->message, 1);
-			g_error_free(error);
-		}
-		free(argv[3]);
+		gtk_widget_destroy(dialog);
+		return;
 	}
+	command = gtk_entry_get_text(GTK_ENTRY(widget));
+	if((argv[3] = strdup(command)) == NULL)
+		simulator_error(simulator, strerror(errno), 1);
+	else if(g_spawn_async(NULL, argv, envp, flags, NULL, NULL, NULL,
+				&error) == FALSE)
+	{
+		simulator_error(simulator, error->message, 1);
+		g_error_free(error);
+	}
+	free(argv[3]);
 	gtk_widget_destroy(dialog);
 }
 
