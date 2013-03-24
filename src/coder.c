@@ -15,7 +15,6 @@ static char const _license[] =
 "You should have received a copy of the GNU General Public License\n"
 "along with this program. If not, see <http://www.gnu.org/licenses/>.";
 /* TODO:
- * - rename to "Coder"
  * - add a "backend" type of plug-ins (asm, hexedit, make, project, UWff...)
  * - add a "plug-in" type of plug-ins (time tracker, ...) */
 
