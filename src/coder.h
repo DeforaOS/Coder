@@ -1,5 +1,5 @@
 /* $Id$ */
-/* Copyright (c) 2011 Pierre Pronchery <khorben@defora.org> */
+/* Copyright (c) 2011-2013 Pierre Pronchery <khorben@defora.org> */
 /* This file is part of DeforaOS Devel Coder */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,26 +29,26 @@ typedef struct _Coder Coder;
 
 
 /* functions */
-Coder * gedi_new(void);
-void gedi_delete(Coder * gedi);
+Coder * coder_new(void);
+void coder_delete(Coder * coder);
 
 /* useful */
-void gedi_about(Coder * gedi);
+void coder_about(Coder * coder);
 
-int gedi_error(Coder * gedi, char const * message, int ret);
+int coder_error(Coder * coder, char const * message, int ret);
 
-void gedi_file_open(Coder * gedi, char const * filename);
+void coder_file_open(Coder * coder, char const * filename);
 
 /* project */
-int gedi_project_open(Coder * gedi, char const * filename);
-void gedi_project_open_dialog(Coder * gedi);
-int gedi_project_open_project(Coder * gedi, Project * project);
-void gedi_project_properties(Coder * gedi);
-int gedi_project_save(Coder * gedi);
-int gedi_project_save_as(Coder * gedi, char const * filename);
-int gedi_project_save_dialog(Coder * gedi);
+int coder_project_open(Coder * coder, char const * filename);
+void coder_project_open_dialog(Coder * coder);
+int coder_project_open_project(Coder * coder, Project * project);
+void coder_project_properties(Coder * coder);
+int coder_project_save(Coder * coder);
+int coder_project_save_as(Coder * coder, char const * filename);
+int coder_project_save_dialog(Coder * coder);
 
 /* interface */
-void gedi_show_preferences(Coder * gedi, gboolean show);
+void coder_show_preferences(Coder * coder, gboolean show);
 
 #endif /* !CODER_CODER_H */

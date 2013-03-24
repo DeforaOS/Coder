@@ -50,7 +50,7 @@ static int _usage(void)
 int main(int argc, char * argv[])
 {
 	int o;
-	Coder * gedi;
+	Coder * coder;
 
 	setlocale(LC_ALL, "");
 	bindtextdomain(PACKAGE, LOCALEDIR);
@@ -62,9 +62,9 @@ int main(int argc, char * argv[])
 			default:
 				return _usage();
 		}
-	if((gedi = gedi_new()) == NULL)
+	if((coder = coder_new()) == NULL)
 		return 2;
 	gtk_main();
-	gedi_delete(gedi);
+	coder_delete(coder);
 	return 0;
 }

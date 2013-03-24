@@ -42,16 +42,16 @@ gboolean on_closex(gpointer data)
 /* on_file_new */
 void on_file_new(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 
-	gedi_file_open(gedi, NULL); /* XXX hack */
+	coder_file_open(coder, NULL); /* XXX hack */
 }
 
 
 /* on_file_open */
 void on_file_open(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 	GtkWidget * dialog;
 	char * file;
 
@@ -62,7 +62,7 @@ void on_file_open(gpointer data)
 	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
 	{
 		file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-		gedi_file_open(gedi, file);
+		coder_file_open(coder, file);
 		g_free(file);
 	}
 	gtk_widget_destroy(dialog);
@@ -72,9 +72,9 @@ void on_file_open(gpointer data)
 /* on_file_preferences */
 void on_file_preferences(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 
-	gedi_show_preferences(gedi, TRUE);
+	coder_show_preferences(coder, TRUE);
 }
 
 
@@ -89,9 +89,9 @@ void on_file_exit(gpointer data)
 /* on_help_about */
 void on_help_about(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 
-	gedi_about(gedi);
+	coder_about(coder);
 }
 
 
@@ -105,12 +105,12 @@ void on_help_contents(gpointer data)
 /* on_project_new */
 void on_project_new(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 	Project * project;
 
 	if((project = project_new()) == NULL)
 		return;
-	gedi_project_open_project(gedi, project);
+	coder_project_open_project(coder, project);
 	project_properties(project);
 }
 
@@ -118,43 +118,43 @@ void on_project_new(gpointer data)
 /* on_project_open */
 void on_project_open(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 
-	gedi_project_open_dialog(gedi);
+	coder_project_open_dialog(coder);
 }
 
 
 /* on_project_properties */
 void on_project_properties(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 
-	gedi_project_properties(gedi);
+	coder_project_properties(coder);
 }
 
 
 /* on_project_save */
 void on_project_save(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 
-	gedi_project_save(gedi);
+	coder_project_save(coder);
 }
 
 
 /* on_project_save_as */
 void on_project_save_as(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 
-	gedi_project_save_dialog(gedi);
+	coder_project_save_dialog(coder);
 }
 
 
 /* on_tools_simulator */
 void on_tools_simulator(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 	char * argv[] = { BINDIR "/simulator", "simulator", NULL };
 	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO;
 	GError * error = NULL;
@@ -162,7 +162,7 @@ void on_tools_simulator(gpointer data)
 	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL, NULL, &error)
 			!= TRUE)
 	{
-		gedi_error(gedi, error->message, 1);
+		coder_error(coder, error->message, 1);
 		g_error_free(error);
 	}
 }
@@ -171,7 +171,7 @@ void on_tools_simulator(gpointer data)
 /* on_tools_sql_console */
 void on_tools_sql_console(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 	char * argv[] = { BINDIR "/sequel", "sequel", NULL };
 	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO;
 	GError * error = NULL;
@@ -179,7 +179,7 @@ void on_tools_sql_console(gpointer data)
 	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL, NULL, &error)
 			!= TRUE)
 	{
-		gedi_error(gedi, error->message, 1);
+		coder_error(coder, error->message, 1);
 		g_error_free(error);
 	}
 }

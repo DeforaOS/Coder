@@ -78,7 +78,7 @@ static char const * _authors[] =
 
 
 /* menubar */
-static const DesktopMenu _gedi_menu_file[] =
+static const DesktopMenu _coder_menu_file[] =
 {
 	{ N_("_New file..."), G_CALLBACK(on_file_new), GTK_STOCK_NEW,
 		GDK_CONTROL_MASK, GDK_KEY_N },
@@ -94,7 +94,7 @@ static const DesktopMenu _gedi_menu_file[] =
 };
 
 /* FIXME will certainly be dynamic */
-static const DesktopMenu _gedi_menu_project[] =
+static const DesktopMenu _coder_menu_project[] =
 {
 	{ N_("_New project..."), G_CALLBACK(on_project_new), GTK_STOCK_NEW, 0,
 		0 },
@@ -110,7 +110,7 @@ static const DesktopMenu _gedi_menu_project[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
-static const DesktopMenu _gedi_menu_tools[] =
+static const DesktopMenu _coder_menu_tools[] =
 {
 	{ N_("_Simulator"), G_CALLBACK(on_tools_simulator), "stock_cell-phone",
 		0, 0 },
@@ -119,7 +119,7 @@ static const DesktopMenu _gedi_menu_tools[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
-static const DesktopMenu _gedi_menu_help[] =
+static const DesktopMenu _coder_menu_help[] =
 {
 	{ N_("_Contents"), G_CALLBACK(on_help_contents), "help-contents", 0,
 		0 },
@@ -127,19 +127,19 @@ static const DesktopMenu _gedi_menu_help[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
-static const DesktopMenubar _gedi_menubar[] =
+static const DesktopMenubar _coder_menubar[] =
 {
-	{ N_("_File"),		_gedi_menu_file },
-	{ N_("_Project"),	_gedi_menu_project },
-	{ N_("_Tools"),		_gedi_menu_tools },
-	{ N_("_Help"),		_gedi_menu_help },
+	{ N_("_File"),		_coder_menu_file },
+	{ N_("_Project"),	_coder_menu_project },
+	{ N_("_Tools"),		_coder_menu_tools },
+	{ N_("_Help"),		_coder_menu_help },
 	{ NULL,			NULL }
 };
 
 
 /* variables */
 /* toolbar */
-static DesktopToolbar _gedi_toolbar[] =
+static DesktopToolbar _coder_toolbar[] =
 {
 	{ N_("Exit"), G_CALLBACK(on_file_exit), GTK_STOCK_QUIT, 0, 0, NULL },
 	{ NULL, NULL, NULL, 0, 0, NULL }
@@ -147,90 +147,90 @@ static DesktopToolbar _gedi_toolbar[] =
 
 
 /* prototypes */
-static Project * _gedi_get_current_project(Coder * gedi);
+static Project * _coder_get_current_project(Coder * coder);
 
 
 /* public */
 /* functions */
-/* gedi_new */
+/* coder_new */
 static void _new_config(Coder * g);
 
-Coder * gedi_new(void)
+Coder * coder_new(void)
 {
-	Coder * gedi;
+	Coder * coder;
 	GtkAccelGroup * group;
 	GtkWidget * vbox;
 	GtkWidget * hbox;
 	GtkWidget * widget;
 
-	if((gedi = malloc(sizeof(*gedi))) == NULL)
+	if((coder = malloc(sizeof(*coder))) == NULL)
 		return NULL;
-	gedi->projects = NULL;
-	gedi->projects_cnt = 0;
-	gedi->cur = NULL;
-	_new_config(gedi);
+	coder->projects = NULL;
+	coder->projects_cnt = 0;
+	coder->cur = NULL;
+	_new_config(coder);
 	/* main window */
 	group = gtk_accel_group_new();
-	gedi->tb_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_add_accel_group(GTK_WINDOW(gedi->tb_window), group);
+	coder->tb_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_add_accel_group(GTK_WINDOW(coder->tb_window), group);
 #if GTK_CHECK_VERSION(2, 6, 0)
-	gtk_window_set_icon_name(GTK_WINDOW(gedi->tb_window), ICON_NAME);
+	gtk_window_set_icon_name(GTK_WINDOW(coder->tb_window), ICON_NAME);
 #endif
-	gtk_window_set_title(GTK_WINDOW(gedi->tb_window), _("Coder"));
-	gtk_window_set_resizable(GTK_WINDOW(gedi->tb_window), FALSE);
-	g_signal_connect_swapped(G_OBJECT(gedi->tb_window), "delete-event",
-			G_CALLBACK(on_closex), gedi);
+	gtk_window_set_title(GTK_WINDOW(coder->tb_window), _("Coder"));
+	gtk_window_set_resizable(GTK_WINDOW(coder->tb_window), FALSE);
+	g_signal_connect_swapped(G_OBJECT(coder->tb_window), "delete-event",
+			G_CALLBACK(on_closex), coder);
 	vbox = gtk_vbox_new(FALSE, 0);
 	/* menubar */
-	widget = desktop_menubar_create(_gedi_menubar, gedi, group);
+	widget = desktop_menubar_create(_coder_menubar, coder, group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* toolbar */
-	widget = desktop_toolbar_create(_gedi_toolbar, gedi, group);
+	widget = desktop_toolbar_create(_coder_toolbar, coder, group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
-	gtk_container_add(GTK_CONTAINER(gedi->tb_window), vbox);
+	gtk_container_add(GTK_CONTAINER(coder->tb_window), vbox);
 	/* files */
-	gedi->fi_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_default_size(GTK_WINDOW(gedi->fi_window), 150, 200);
-	gtk_window_set_title(GTK_WINDOW(gedi->fi_window), _("Files"));
+	coder->fi_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_default_size(GTK_WINDOW(coder->fi_window), 150, 200);
+	gtk_window_set_title(GTK_WINDOW(coder->fi_window), _("Files"));
 	hbox = gtk_hbox_new(FALSE, 0);
 	vbox = gtk_vbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, 2);
 #if GTK_CHECK_VERSION(2, 24, 0)
-	gedi->fi_combo = gtk_combo_box_text_new();
+	coder->fi_combo = gtk_combo_box_text_new();
 #else
-	gedi->fi_combo = gtk_combo_box_new_text();
+	coder->fi_combo = gtk_combo_box_new_text();
 #endif
-	gtk_box_pack_start(GTK_BOX(vbox), gedi->fi_combo, FALSE, TRUE, 2);
-	gedi->fi_view = gtk_tree_view_new();
-	gtk_box_pack_start(GTK_BOX(vbox), gedi->fi_view, TRUE, TRUE, 2);
-	gtk_container_add(GTK_CONTAINER(gedi->fi_window), hbox);
+	gtk_box_pack_start(GTK_BOX(vbox), coder->fi_combo, FALSE, TRUE, 2);
+	coder->fi_view = gtk_tree_view_new();
+	gtk_box_pack_start(GTK_BOX(vbox), coder->fi_view, TRUE, TRUE, 2);
+	gtk_container_add(GTK_CONTAINER(coder->fi_window), hbox);
 	/* about */
-	gedi->ab_window = NULL;
-	gtk_widget_show_all(gedi->tb_window);
-	gtk_widget_show_all(gedi->fi_window);
-	return gedi;
+	coder->ab_window = NULL;
+	gtk_widget_show_all(coder->tb_window);
+	gtk_widget_show_all(coder->fi_window);
+	return coder;
 }
 
 static char * _config_file(void);
-static void _new_config(Coder * gedi)
+static void _new_config(Coder * coder)
 {
 	char * filename;
 
-	if((gedi->config = config_new()) == NULL)
+	if((coder->config = config_new()) == NULL)
 	{
-		gedi_error(gedi, strerror(errno), 0);
+		coder_error(coder, strerror(errno), 0);
 		return;
 	}
-	config_load(gedi->config, PREFIX "/etc/" PACKAGE ".conf");
+	config_load(coder->config, PREFIX "/etc/" PACKAGE ".conf");
 	if((filename = _config_file()) == NULL)
 		return;
-	config_load(gedi->config, filename);
+	config_load(coder->config, filename);
 	free(filename);
 }
 
 static char * _config_file(void)
 {
-	char const conffile[] = ".gedi";
+	char const conffile[] = ".coder";
 	char const * homedir;
 	size_t len;
 	char * filename;
@@ -245,68 +245,68 @@ static char * _config_file(void)
 }
 
 
-/* gedi_delete */
-void gedi_delete(Coder * gedi)
+/* coder_delete */
+void coder_delete(Coder * coder)
 {
 	char * filename;
 	size_t i;
 
 	if((filename = _config_file()) != NULL)
 	{
-		config_save(gedi->config, filename);
+		config_save(coder->config, filename);
 		free(filename);
 	}
-	config_delete(gedi->config);
-	for(i = 0; i < gedi->projects_cnt; i++)
-		project_delete(gedi->projects[i]);
-	free(gedi->projects);
-	free(gedi);
+	config_delete(coder->config);
+	for(i = 0; i < coder->projects_cnt; i++)
+		project_delete(coder->projects[i]);
+	free(coder->projects);
+	free(coder);
 }
 
 
 /* useful */
-/* gedi_about */
+/* coder_about */
 static gboolean _about_on_closex(gpointer data);
 
-void gedi_about(Coder * gedi)
+void coder_about(Coder * coder)
 {
-	if(gedi->ab_window != NULL)
+	if(coder->ab_window != NULL)
 	{
-		gtk_window_present(GTK_WINDOW(gedi->ab_window));
+		gtk_window_present(GTK_WINDOW(coder->ab_window));
 		return;
 	}
-	gedi->ab_window = desktop_about_dialog_new();
-	gtk_window_set_transient_for(GTK_WINDOW(gedi->ab_window), GTK_WINDOW(
-				gedi->tb_window));
-	desktop_about_dialog_set_authors(gedi->ab_window, _authors);
-	desktop_about_dialog_set_comments(gedi->ab_window,
+	coder->ab_window = desktop_about_dialog_new();
+	gtk_window_set_transient_for(GTK_WINDOW(coder->ab_window), GTK_WINDOW(
+				coder->tb_window));
+	desktop_about_dialog_set_authors(coder->ab_window, _authors);
+	desktop_about_dialog_set_comments(coder->ab_window,
 			_("Integrated Development Environment for the DeforaOS"
 			" desktop"));
-	desktop_about_dialog_set_copyright(gedi->ab_window, _copyright);
-	desktop_about_dialog_set_logo_icon_name(gedi->ab_window, ICON_NAME);
-	desktop_about_dialog_set_license(gedi->ab_window, _license);
-	desktop_about_dialog_set_name(gedi->ab_window, PACKAGE);
-	desktop_about_dialog_set_version(gedi->ab_window, VERSION);
-	g_signal_connect_swapped(G_OBJECT(gedi->ab_window), "delete-event",
-			G_CALLBACK(_about_on_closex), gedi);
-	gtk_widget_show(gedi->ab_window);
+	desktop_about_dialog_set_copyright(coder->ab_window, _copyright);
+	desktop_about_dialog_set_logo_icon_name(coder->ab_window, ICON_NAME);
+	desktop_about_dialog_set_license(coder->ab_window, _license);
+	desktop_about_dialog_set_name(coder->ab_window, PACKAGE);
+	desktop_about_dialog_set_version(coder->ab_window, VERSION);
+	g_signal_connect_swapped(G_OBJECT(coder->ab_window), "delete-event",
+			G_CALLBACK(_about_on_closex), coder);
+	gtk_widget_show(coder->ab_window);
 }
 
 static gboolean _about_on_closex(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 
-	gtk_widget_hide(gedi->ab_window);
+	gtk_widget_hide(coder->ab_window);
 	return TRUE;
 }
 
 
-/* gedi_error */
-int gedi_error(Coder * gedi, char const * message, int ret)
+/* coder_error */
+int coder_error(Coder * coder, char const * message, int ret)
 {
 	GtkWidget * dialog;
 
-	dialog = gtk_message_dialog_new(GTK_WINDOW(gedi->tb_window),
+	dialog = gtk_message_dialog_new(GTK_WINDOW(coder->tb_window),
 			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
 			GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
 #if GTK_CHECK_VERSION(2, 6, 0)
@@ -321,15 +321,15 @@ int gedi_error(Coder * gedi, char const * message, int ret)
 }
 
 
-/* gedi_file_open */
-void gedi_file_open(Coder * gedi, char const * filename)
+/* coder_file_open */
+void coder_file_open(Coder * coder, char const * filename)
 {
 	/* FIXME really use the MIME sub-system */
 	char * argv[] = { NULL, NULL, NULL };
 	char const * p;
 	GError * error = NULL;
 
-	if((p = config_get(gedi->config, "editor", "command")) == NULL)
+	if((p = config_get(coder->config, "editor", "command")) == NULL)
 		p = "editor"; /* XXX gather defaults in a common place */
 	if((argv[0] = strdup(p)) == NULL)
 		return; /* XXX report error */
@@ -338,7 +338,7 @@ void gedi_file_open(Coder * gedi, char const * filename)
 	if(g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL,
 				NULL, &error) != TRUE)
 	{
-		gedi_error(gedi, error->message, 1);
+		coder_error(coder, error->message, 1);
 		g_error_free(error);
 	}
 	free(argv[1]);
@@ -346,44 +346,44 @@ void gedi_file_open(Coder * gedi, char const * filename)
 }
 
 
-/* gedi_project_open */
-int gedi_project_open(Coder * gedi, char const * filename)
+/* coder_project_open */
+int coder_project_open(Coder * coder, char const * filename)
 {
 	Project * project;
 
 	if((project = project_new()) == NULL)
-		return -gedi_error(gedi, error_get(), 1);
+		return -coder_error(coder, error_get(), 1);
 	if(project_load(project, filename) != 0
-			|| gedi_project_open_project(gedi, project) != 0)
+			|| coder_project_open_project(coder, project) != 0)
 	{
 		project_delete(project);
-		return -gedi_error(gedi, error_get(), 1);
+		return -coder_error(coder, error_get(), 1);
 	}
-	gedi->cur = project;
+	coder->cur = project;
 #if GTK_CHECK_VERSION(2, 24, 0)
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(gedi->fi_combo),
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(coder->fi_combo),
 			project_get_package(project));
 #else
-	gtk_combo_box_append_text(GTK_COMBO_BOX(gedi->fi_combo),
+	gtk_combo_box_append_text(GTK_COMBO_BOX(coder->fi_combo),
 			project_get_package(project));
 #endif
 	/* FIXME doesn't always select the last project opened */
-	gtk_combo_box_set_active(GTK_COMBO_BOX(gedi->fi_combo),
-			gtk_combo_box_get_active(GTK_COMBO_BOX(gedi->fi_combo))
+	gtk_combo_box_set_active(GTK_COMBO_BOX(coder->fi_combo),
+			gtk_combo_box_get_active(GTK_COMBO_BOX(coder->fi_combo))
 			+ 1);
 	return 0;
 }
 
 
-/* gedi_project_open_dialog */
-void gedi_project_open_dialog(Coder * gedi)
+/* coder_project_open_dialog */
+void coder_project_open_dialog(Coder * coder)
 {
 	GtkWidget * dialog;
 	GtkFileFilter * filter;
 	gchar * filename = NULL;
 
 	dialog = gtk_file_chooser_dialog_new(_("Open project..."),
-			GTK_WINDOW(gedi->tb_window),
+			GTK_WINDOW(coder->tb_window),
 			GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL,
 			GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN,
 			GTK_RESPONSE_ACCEPT, NULL);
@@ -402,57 +402,57 @@ void gedi_project_open_dialog(Coder * gedi)
 	gtk_widget_destroy(dialog);
 	if(filename == NULL)
 		return;
-	gedi_project_open(gedi, filename);
+	coder_project_open(coder, filename);
 	g_free(filename);
 }
 
 
-/* gedi_project_open_project */
-int gedi_project_open_project(Coder * gedi, Project * project)
+/* coder_project_open_project */
+int coder_project_open_project(Coder * coder, Project * project)
 {
 	Project ** p;
 
 	if(project == NULL)
 		return -error_set_code(1, "%s", strerror(EINVAL));;
-	if((p = realloc(gedi->projects, sizeof(*p) * (gedi->projects_cnt + 1)))
+	if((p = realloc(coder->projects, sizeof(*p) * (coder->projects_cnt + 1)))
 			== NULL)
 		return -error_set_code(1, "%s", strerror(errno));
-	gedi->projects = p;
-	gedi->projects[gedi->projects_cnt++] = project;
+	coder->projects = p;
+	coder->projects[coder->projects_cnt++] = project;
 	return 0;
 }
 
 
-/* gedi_project_properties */
-void gedi_project_properties(Coder * gedi)
+/* coder_project_properties */
+void coder_project_properties(Coder * coder)
 {
 	Project * project;
 
-	if((project = _gedi_get_current_project(gedi)) == NULL)
+	if((project = _coder_get_current_project(coder)) == NULL)
 		return;
 	project_properties(project);
 }
 
 
-/* gedi_project_save */
-int gedi_project_save(Coder * gedi)
+/* coder_project_save */
+int coder_project_save(Coder * coder)
 {
 	Project * project;
 
-	if((project = _gedi_get_current_project(gedi)) == NULL)
+	if((project = _coder_get_current_project(coder)) == NULL)
 		return -1;
 	if(project_get_pathname(project) == NULL)
-		return gedi_project_save_dialog(gedi);
+		return coder_project_save_dialog(coder);
 	return project_save(project);
 }
 
 
-/* gedi_project_save_as */
-int gedi_project_save_as(Coder * gedi, char const * filename)
+/* coder_project_save_as */
+int coder_project_save_as(Coder * coder, char const * filename)
 {
 	Project * project;
 
-	if((project = _gedi_get_current_project(gedi)) == NULL)
+	if((project = _coder_get_current_project(coder)) == NULL)
 		return -1;
 	if(project_set_pathname(project, filename) != 0)
 		return -1;
@@ -460,15 +460,15 @@ int gedi_project_save_as(Coder * gedi, char const * filename)
 }
 
 
-/* gedi_project_save_dialog */
-int gedi_project_save_dialog(Coder * gedi)
+/* coder_project_save_dialog */
+int coder_project_save_dialog(Coder * coder)
 {
 	int ret = -1;
 	Project * project;
 	GtkWidget * dialog;
 	gchar * filename = NULL;
 
-	if((project = _gedi_get_current_project(gedi)) == NULL)
+	if((project = _coder_get_current_project(coder)) == NULL)
 		return -1;
 	dialog = gtk_file_chooser_dialog_new(_("Save project as..."), NULL,
 			GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL,
@@ -480,31 +480,31 @@ int gedi_project_save_dialog(Coder * gedi)
 					dialog));
 	gtk_widget_destroy(dialog);
 	if(filename != NULL)
-		ret = gedi_project_save_as(gedi, filename);
+		ret = coder_project_save_as(coder, filename);
 	g_free(filename);
 	return ret;
 }
 
 
-/* gedi_show_preferences */
-static void _show_preferences_window(Coder * gedi);
-static void _preferences_set(Coder * gedi);
+/* coder_show_preferences */
+static void _show_preferences_window(Coder * coder);
+static void _preferences_set(Coder * coder);
 static gboolean _on_preferences_closex(gpointer data);
 static void _on_preferences_apply(gpointer data);
 static void _on_preferences_cancel(gpointer data);
 static void _on_preferences_ok(gpointer data);
 
-void gedi_show_preferences(Coder * gedi, gboolean show)
+void coder_show_preferences(Coder * coder, gboolean show)
 {
-	if(gedi->pr_window == NULL)
-		_show_preferences_window(gedi);
+	if(coder->pr_window == NULL)
+		_show_preferences_window(coder);
 	if(show)
-		gtk_window_present(GTK_WINDOW(gedi->pr_window));
+		gtk_window_present(GTK_WINDOW(coder->pr_window));
 	else
-		gtk_widget_hide(gedi->pr_window);
+		gtk_widget_hide(coder->pr_window);
 }
 
-static void _show_preferences_window(Coder * gedi)
+static void _show_preferences_window(Coder * coder)
 {
 	GtkWidget * vbox;
 	GtkWidget * nb;
@@ -514,11 +514,11 @@ static void _show_preferences_window(Coder * gedi)
 	GtkWidget * b_apply;
 	GtkWidget * b_cancel;
 
-	gedi->pr_window = gtk_window_new(GTK_WINDOW_TOPLEVEL); /* XXX dialog */
-	gtk_container_set_border_width(GTK_CONTAINER(gedi->pr_window), 4);
-	gtk_window_set_title(GTK_WINDOW(gedi->pr_window), _("Preferences"));
-	g_signal_connect_swapped(G_OBJECT(gedi->pr_window), "delete-event",
-			G_CALLBACK(_on_preferences_closex), gedi);
+	coder->pr_window = gtk_window_new(GTK_WINDOW_TOPLEVEL); /* XXX dialog */
+	gtk_container_set_border_width(GTK_CONTAINER(coder->pr_window), 4);
+	gtk_window_set_title(GTK_WINDOW(coder->pr_window), _("Preferences"));
+	g_signal_connect_swapped(G_OBJECT(coder->pr_window), "delete-event",
+			G_CALLBACK(_on_preferences_closex), coder);
 	vbox = gtk_vbox_new(FALSE, 4);
 	nb = gtk_notebook_new();
 	/* notebook page editor */
@@ -527,13 +527,13 @@ static void _show_preferences_window(Coder * gedi)
 	hbox = gtk_hbox_new(FALSE, 4);
 	gtk_box_pack_start(GTK_BOX(hbox), gtk_label_new(_("Editor:")), FALSE,
 			TRUE, 0);
-	gedi->pr_editor_command = gtk_entry_new();
-	gtk_box_pack_start(GTK_BOX(hbox), gedi->pr_editor_command, TRUE, TRUE,
+	coder->pr_editor_command = gtk_entry_new();
+	gtk_box_pack_start(GTK_BOX(hbox), coder->pr_editor_command, TRUE, TRUE,
 			0);
 	gtk_box_pack_start(GTK_BOX(nb_vbox), hbox, FALSE, TRUE, 0);
-	gedi->pr_editor_terminal = gtk_check_button_new_with_mnemonic(
+	coder->pr_editor_terminal = gtk_check_button_new_with_mnemonic(
 			_("Run in a _terminal"));
-	gtk_box_pack_start(GTK_BOX(nb_vbox), gedi->pr_editor_terminal, FALSE,
+	gtk_box_pack_start(GTK_BOX(nb_vbox), coder->pr_editor_terminal, FALSE,
 			TRUE, 0);
 	gtk_notebook_append_page(GTK_NOTEBOOK(nb), nb_vbox, gtk_label_new(
 				_("Editor")));
@@ -547,77 +547,77 @@ static void _show_preferences_window(Coder * gedi)
 	hbox = gtk_hbox_new(TRUE, 4);
 	b_ok = gtk_button_new_from_stock(GTK_STOCK_OK);
 	g_signal_connect_swapped(G_OBJECT(b_ok), "clicked", G_CALLBACK(
-				_on_preferences_ok), gedi);
+				_on_preferences_ok), coder);
 	gtk_box_pack_end(GTK_BOX(hbox), b_ok, FALSE, TRUE, 0);
 	b_apply = gtk_button_new_from_stock(GTK_STOCK_APPLY);
 	g_signal_connect_swapped(G_OBJECT(b_apply), "clicked", G_CALLBACK(
-				_on_preferences_apply), gedi);
+				_on_preferences_apply), coder);
 	gtk_box_pack_end(GTK_BOX(hbox), b_apply, FALSE, TRUE, 0);
 	b_cancel = gtk_button_new_from_stock(GTK_STOCK_CANCEL);
 	g_signal_connect_swapped(G_OBJECT(b_cancel), "clicked", G_CALLBACK(
-				_on_preferences_cancel), gedi);
+				_on_preferences_cancel), coder);
 	gtk_box_pack_end(GTK_BOX(hbox), b_cancel, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
-	gtk_container_add(GTK_CONTAINER(gedi->pr_window), vbox);
-	_preferences_set(gedi);
+	gtk_container_add(GTK_CONTAINER(coder->pr_window), vbox);
+	_preferences_set(coder);
 	gtk_widget_show_all(vbox);
 }
 
-static void _preferences_set(Coder * gedi)
+static void _preferences_set(Coder * coder)
 {
 	char const * p;
 
-	if((p = config_get(gedi->config, "editor", "command")) == NULL)
+	if((p = config_get(coder->config, "editor", "command")) == NULL)
 		p = "editor";
-	gtk_entry_set_text(GTK_ENTRY(gedi->pr_editor_command), p);
+	gtk_entry_set_text(GTK_ENTRY(coder->pr_editor_command), p);
 	/* FIXME implement the rest */
 }
 
 static void _on_preferences_apply(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 
-	config_set(gedi->config, "editor", "command", gtk_entry_get_text(
-				GTK_ENTRY(gedi->pr_editor_command)));
+	config_set(coder->config, "editor", "command", gtk_entry_get_text(
+				GTK_ENTRY(coder->pr_editor_command)));
 	/* FIXME implement the rest */
 }
 
 
 static void _on_preferences_cancel(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 
-	_preferences_set(gedi);
-	gtk_widget_hide(gedi->pr_window);
+	_preferences_set(coder);
+	gtk_widget_hide(coder->pr_window);
 }
 
 static void _on_preferences_ok(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 
-	_on_preferences_apply(gedi);
-	gtk_widget_hide(gedi->pr_window);
+	_on_preferences_apply(coder);
+	gtk_widget_hide(coder->pr_window);
 	/* FIXME actually save preferences */
 }
 
 static gboolean _on_preferences_closex(gpointer data)
 {
-	Coder * gedi = data;
+	Coder * coder = data;
 
-	_on_preferences_cancel(gedi);
+	_on_preferences_cancel(coder);
 	return TRUE;
 }
 
 
 /* private */
-/* gedi_get_current_project */
-static Project * _gedi_get_current_project(Coder * gedi)
+/* coder_get_current_project */
+static Project * _coder_get_current_project(Coder * coder)
 {
-	if(gedi->cur == NULL)
+	if(coder->cur == NULL)
 	{
 		/* FIXME should not happen (disable callback action) */
-		gedi_error(gedi, _("No project opened"), 1);
+		coder_error(coder, _("No project opened"), 1);
 		return NULL;
 	}
-	return gedi->cur;
+	return coder->cur;
 }
