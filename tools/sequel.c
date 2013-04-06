@@ -17,9 +17,11 @@ static char const _license[] =
 
 
 
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <libintl.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
@@ -87,6 +89,9 @@ static int _sequel_connect_dialog(Sequel * sequel);
 
 static int _sequel_execute(Sequel * sequel);
 
+static int _sequel_save_as(Sequel * sequel, char const * filename);
+static int _sequel_save_as_dialog(Sequel * sequel);
+
 /* callbacks */
 static void _sequel_on_close(gpointer data);
 static gboolean _sequel_on_closex(gpointer data);
@@ -99,6 +104,7 @@ static void _sequel_on_file_close(gpointer data);
 static void _sequel_on_file_close_all(gpointer data);
 static void _sequel_on_file_connect(gpointer data);
 static void _sequel_on_file_new_tab(gpointer data);
+static void _sequel_on_edit_save_as(gpointer data);
 static void _sequel_on_help_about(gpointer data);
 static void _sequel_on_help_contents(gpointer data);
 
@@ -121,6 +127,13 @@ static const DesktopMenu _sequel_file_menu[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
+static const DesktopMenu _sequel_edit_menu[] =
+{
+	{ N_("Save as..."), G_CALLBACK(_sequel_on_edit_save_as),
+		GTK_STOCK_SAVE_AS, GDK_CONTROL_MASK, GDK_KEY_S },
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
 static const DesktopMenu _sequel_help_menu[] =
 {
 	{ N_("_Contents"), G_CALLBACK(_sequel_on_help_contents),
@@ -137,6 +150,7 @@ static const DesktopMenu _sequel_help_menu[] =
 static const DesktopMenubar _sequel_menubar[] =
 {
 	{ N_("_File"), _sequel_file_menu },
+	{ N_("_Edit"), _sequel_edit_menu },
 	{ N_("_Help"), _sequel_help_menu },
 	{ NULL, NULL }
 };
@@ -426,7 +440,7 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 
 static int _sequel_execute(Sequel * sequel)
 {
-	int i;
+	gint i;
 	GtkTextBuffer * buffer;
 	GtkTextIter start;
 	GtkTextIter end;
@@ -460,7 +474,7 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 		char ** columns)
 {
 	Sequel * sequel = data;
-	int i;
+	gint i;
 	GtkTreeView * view;
 	GtkListStore * store;
 	GList * l;
@@ -570,12 +584,98 @@ static int _sequel_open_tab(Sequel * sequel)
 }
 
 
+/* sequel_save_as */
+static int _sequel_save_as(Sequel * sequel, char const * filename)
+{
+	struct stat st;
+	GtkWidget * dialog;
+	gboolean res;
+	FILE * fp;
+	gint i;
+	GtkWidget * text;
+	GtkTextBuffer * tbuf;
+	GtkTextIter start;
+	GtkTextIter end;
+	gchar * buf;
+	size_t len;
+
+	if(filename == NULL)
+		return _sequel_save_as_dialog(sequel);
+	if(stat(filename, &st) == 0)
+	{
+		dialog = gtk_message_dialog_new(GTK_WINDOW(sequel->window),
+				GTK_DIALOG_MODAL
+				| GTK_DIALOG_DESTROY_WITH_PARENT,
+				GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO,
+#if GTK_CHECK_VERSION(2, 6, 0)
+				"%s", _("Question"));
+		gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(
+					dialog),
+#endif
+				"%s", _("This file already exists."
+					" Overwrite?"));
+		gtk_window_set_title(GTK_WINDOW(dialog), _("Question"));
+		res = gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
+		if(res == GTK_RESPONSE_NO)
+			return -1;
+	}
+	i = gtk_notebook_get_current_page(GTK_NOTEBOOK(sequel->notebook));
+	if(i < 0)
+		return -1;
+	text = sequel->tabs[i].text;
+	tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text));
+	if((fp = fopen(filename, "w")) == NULL)
+		return -sequel_error(sequel, strerror(errno), 1);
+	/* XXX allocating the complete file is not optimal */
+	gtk_text_buffer_get_start_iter(GTK_TEXT_BUFFER(tbuf), &start);
+	gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(tbuf), &end);
+	buf = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(tbuf), &start, &end,
+			FALSE);
+	len = strlen(buf);
+	if(fwrite(buf, sizeof(char), len, fp) != len)
+	{
+		g_free(buf);
+		fclose(fp);
+		return -sequel_error(sequel, strerror(errno), 1);
+	}
+	g_free(buf);
+	if(fclose(fp) != 0)
+		return -sequel_error(sequel, strerror(errno), 1);
+	return 0;
+}
+
+
+/* sequel_save_as_dialog */
+static int _sequel_save_as_dialog(Sequel * sequel)
+{
+	int ret;
+	GtkWidget * dialog;
+	gchar * filename = NULL;
+
+	dialog = gtk_file_chooser_dialog_new(_("Save as..."),
+			GTK_WINDOW(sequel->window),
+			GTK_FILE_CHOOSER_ACTION_SAVE,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
+	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(
+					dialog));
+	gtk_widget_destroy(dialog);
+	if(filename == NULL)
+		return FALSE;
+	ret = _sequel_save_as(sequel, filename);
+	g_free(filename);
+	return ret;
+}
+
+
 /* callbacks */
 /* sequel_on_close */
 static void _sequel_on_close(gpointer data)
 {
 	Sequel * sequel = data;
-	int i;
+	gint i;
 
 	i = gtk_notebook_get_current_page(GTK_NOTEBOOK(sequel->notebook));
 	if(i < 0)
@@ -631,6 +731,24 @@ static void _sequel_on_connect(gpointer data)
 }
 
 
+/* sequel_on_edit_save_as */
+static void _sequel_on_edit_save_as(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_save_as_dialog(sequel);
+}
+
+
+/* sequel_on_execute */
+static void _sequel_on_execute(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_execute(sequel);
+}
+
+
 /* sequel_on_file_close */
 static void _sequel_on_file_close(gpointer data)
 {
@@ -655,15 +773,6 @@ static void _sequel_on_file_connect(gpointer data)
 	Sequel * sequel = data;
 
 	_sequel_on_connect(sequel);
-}
-
-
-/* sequel_on_execute */
-static void _sequel_on_execute(gpointer data)
-{
-	Sequel * sequel = data;
-
-	_sequel_execute(sequel);
 }
 
 
