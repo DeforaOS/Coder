@@ -69,11 +69,11 @@ distclean:
 install: $(TARGETS)
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
 	$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 -- gdeasm $(DESTDIR)$(BINDIR)/gdeasm
+	$(INSTALL) -m 0755 gdeasm $(DESTDIR)$(BINDIR)/gdeasm
 	$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 -- sequel $(DESTDIR)$(BINDIR)/sequel
+	$(INSTALL) -m 0755 sequel $(DESTDIR)$(BINDIR)/sequel
 	$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 -- simulator $(DESTDIR)$(BINDIR)/simulator
+	$(INSTALL) -m 0755 simulator $(DESTDIR)$(BINDIR)/simulator
 
 uninstall:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done

@@ -45,7 +45,7 @@ distclean: clean
 
 install: $(TARGETS)
 	$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 -- coder $(DESTDIR)$(BINDIR)/coder
+	$(INSTALL) -m 0755 coder $(DESTDIR)$(BINDIR)/coder
 
 uninstall:
 	$(RM) -- $(DESTDIR)$(BINDIR)/coder
