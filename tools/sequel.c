@@ -651,6 +651,7 @@ static int _sequel_save_as_dialog(Sequel * sequel)
 {
 	int ret;
 	GtkWidget * dialog;
+	GtkFileFilter * filter;
 	gchar * filename = NULL;
 
 	dialog = gtk_file_chooser_dialog_new(_("Save as..."),
@@ -658,6 +659,14 @@ static int _sequel_save_as_dialog(Sequel * sequel)
 			GTK_FILE_CHOOSER_ACTION_SAVE,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
+	filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, _("SQL files"));
+	gtk_file_filter_add_mime_type(filter, "text/x-sql");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, _("All files"));
+	gtk_file_filter_add_pattern(filter, "*");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
 		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(
 					dialog));
