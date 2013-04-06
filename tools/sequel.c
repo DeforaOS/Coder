@@ -357,6 +357,7 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	GtkWidget * label;
 	GtkWidget * entry1;
 	GtkWidget * filesel;
+	GtkFileFilter * filter;
 	GtkWidget * entry2;
 	gchar const * engine;
 	gchar * filename;
@@ -398,6 +399,14 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
 	filesel = gtk_file_chooser_button_new(_("Open connection file..."),
 			GTK_FILE_CHOOSER_ACTION_OPEN);
+	filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, _("Connection files"));
+	gtk_file_filter_add_pattern(filter, "*.conf");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(filesel), filter);
+	filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, _("All files"));
+	gtk_file_filter_add_pattern(filter, "*");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(filesel), filter);
 	gtk_box_pack_start(GTK_BOX(hbox), filesel, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* section */
