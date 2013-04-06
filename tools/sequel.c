@@ -78,6 +78,7 @@ static char const * _authors[] =
 
 /* prototypes */
 static int _sequel_open_tab(Sequel * sequel);
+static void _sequel_close_all(Sequel * sequel);
 static void _sequel_close_tab(Sequel * sequel, unsigned int i);
 
 static int _sequel_connect(Sequel * sequel, char const * engine,
@@ -281,6 +282,14 @@ static int _error_text(char const * message, int ret)
 
 /* private */
 /* functions */
+/* sequel_close_all */
+static void _sequel_close_all(Sequel * sequel)
+{
+	gtk_widget_hide(sequel->window);
+	gtk_main_quit();
+}
+
+
 /* sequel_close_tab */
 static void _sequel_close_tab(Sequel * sequel, unsigned int i)
 {
@@ -562,23 +571,54 @@ static int _sequel_open_tab(Sequel * sequel)
 
 
 /* callbacks */
-/* sequel_on_close_all */
+/* sequel_on_close */
 static void _sequel_on_close(gpointer data)
 {
 	Sequel * sequel = data;
+	int i;
 
-	gtk_widget_hide(sequel->window);
-	gtk_main_quit();
+	i = gtk_notebook_get_current_page(GTK_NOTEBOOK(sequel->notebook));
+	if(i < 0)
+		return;
+	_sequel_close_tab(sequel, i);
 }
 
 
 /* sequel_on_closex */
+static gboolean _on_closex_confirm(Sequel * sequel);
+
 static gboolean _sequel_on_closex(gpointer data)
 {
 	Sequel * sequel = data;
 
-	_sequel_on_close(sequel);
+	if(sequel->tabs_cnt > 1 && _on_closex_confirm(sequel) != TRUE)
+		return TRUE;
+	_sequel_close_all(sequel);
 	return TRUE;
+}
+
+static gboolean _on_closex_confirm(Sequel * sequel)
+{
+	GtkWidget * dialog;
+	gboolean res;
+
+	dialog = gtk_message_dialog_new(GTK_WINDOW(sequel->window),
+			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_MESSAGE_QUESTION, GTK_BUTTONS_NONE,
+#if GTK_CHECK_VERSION(2, 6, 0)
+			"%s", _("Question"));
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
+#endif
+			"%s", _("There are multiple tabs opened.\n"
+				"Do you really want to close every tab"
+				" opened in this window?"));
+	gtk_dialog_add_buttons(GTK_DIALOG(dialog),
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE, NULL);
+	gtk_window_set_title(GTK_WINDOW(dialog), _("Question"));
+	res = gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
+	return (res == GTK_RESPONSE_CLOSE) ? TRUE : FALSE;
 }
 
 
@@ -596,7 +636,7 @@ static void _sequel_on_file_close(gpointer data)
 {
 	Sequel * sequel = data;
 
-	_sequel_on_tab_close(NULL, sequel);
+	_sequel_on_close(sequel);
 }
 
 
@@ -605,7 +645,7 @@ static void _sequel_on_file_close_all(gpointer data)
 {
 	Sequel * sequel = data;
 
-	_sequel_on_close(sequel);
+	_sequel_close_all(sequel);
 }
 
 
@@ -681,17 +721,11 @@ static void _sequel_on_tab_close(GtkWidget * widget, gpointer data)
 	Sequel * sequel = data;
 	size_t i;
 
-	if(widget != NULL)
-	{
-		widget = gtk_widget_get_parent(widget);
-		for(i = 0; i < sequel->tabs_cnt; i++)
-			if(sequel->tabs[i].label == widget)
-				break;
-	}
-	else
-		i = gtk_notebook_get_current_page(GTK_NOTEBOOK(
-					sequel->notebook));
-	if(i == sequel->tabs_cnt)
+	widget = gtk_widget_get_parent(widget);
+	for(i = 0; i < sequel->tabs_cnt; i++)
+		if(sequel->tabs[i].label == widget)
+			break;
+	if(i >= sequel->tabs_cnt)
 		/* should not happen */
 		return;
 	_sequel_close_tab(sequel, i);
