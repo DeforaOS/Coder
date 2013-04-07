@@ -140,8 +140,8 @@ static const DesktopMenu _sequel_file_menu[] =
 
 static const DesktopMenu _sequel_edit_menu[] =
 {
-	{ N_("Export..."), G_CALLBACK(_sequel_on_edit_export), "spreadsheet",
-		GDK_CONTROL_MASK, GDK_KEY_E },
+	{ N_("Export..."), G_CALLBACK(_sequel_on_edit_export),
+		"stock_insert-table", GDK_CONTROL_MASK, GDK_KEY_E },
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
@@ -182,8 +182,8 @@ static DesktopToolbar _sequel_toolbar[] =
 	{ "", NULL, NULL, 0, 0, NULL },
 	{ N_("Save as..."), G_CALLBACK(_sequel_on_save_as), GTK_STOCK_SAVE_AS,
 		0, 0, NULL },
-	{ N_("Export..."), G_CALLBACK(_sequel_on_export), "spreadsheet", 0, 0,
-		NULL },
+	{ N_("Export..."), G_CALLBACK(_sequel_on_export), "stock_insert-table",
+		0, 0, NULL },
 	{ NULL, NULL, NULL, 0, 0, NULL }
 };
 
