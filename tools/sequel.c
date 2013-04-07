@@ -130,7 +130,7 @@ static const DesktopMenu _sequel_file_menu[] =
 		0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
-;
+
 
 static const DesktopMenu _sequel_help_menu[] =
 {
