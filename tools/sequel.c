@@ -97,6 +97,7 @@ static void _sequel_on_close(gpointer data);
 static gboolean _sequel_on_closex(gpointer data);
 static void _sequel_on_connect(gpointer data);
 static void _sequel_on_execute(gpointer data);
+static void _sequel_on_save_as(gpointer data);
 
 static void _sequel_on_new_tab(gpointer data);
 
@@ -168,6 +169,9 @@ static DesktopToolbar _sequel_toolbar[] =
 	{ "", NULL, NULL, 0, 0, NULL },
 	{ N_("Execute"), G_CALLBACK(_sequel_on_execute), GTK_STOCK_EXECUTE, 0,
 		0, NULL },
+	{ "", NULL, NULL, 0, 0, NULL },
+	{ N_("Save as..."), G_CALLBACK(_sequel_on_save_as), GTK_STOCK_SAVE_AS,
+		0, 0, NULL },
 	{ NULL, NULL, NULL, 0, 0, NULL }
 };
 
@@ -839,6 +843,15 @@ static void _sequel_on_new_tab(gpointer data)
 	Sequel * sequel = data;
 
 	_sequel_open_tab(sequel);
+}
+
+
+/* sequel_on_save_as */
+static void _sequel_on_save_as(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_save_as_dialog(sequel);
 }
 
 
