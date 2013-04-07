@@ -1,6 +1,6 @@
 /* $Id$ */
 static char const _gdeasm_copyright[] =
-"Copyright (c) 2011-2012 Pierre Pronchery <khorben@defora.org>";
+"Copyright (c) 2011-2013 Pierre Pronchery <khorben@defora.org>";
 static char const _gdeasm_license[] =
 "Redistribution and use in source and binary forms, with or without\n"
 "modification, are permitted provided that the following conditions\n"
@@ -27,7 +27,6 @@ static char const _gdeasm_license[] =
 /* TODO:
  * - (optionally) show a column with the hexadecimal disassembly
  * - allow new files to be created
- * - allow a file format and architecture to be forced when opening a file
  * - list registers available (combo box, on the fly)
  * - auto-complete opcodes
  * - display additional information as well (executable type...)
@@ -39,6 +38,7 @@ static char const _gdeasm_license[] =
 
 
 
+#include <dirent.h>
 #include <unistd.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -95,9 +95,6 @@ typedef enum _GDeasmStrColumn
 
 typedef struct _GDeasm
 {
-	char * arch;
-	char * format;
-
 	gboolean modified;
 
 	/* widgets */
@@ -110,15 +107,18 @@ typedef struct _GDeasm
 
 
 /* prototypes */
-static GDeasm * _gdeasm_new(char const * arch, char const * format);
+static GDeasm * _gdeasm_new(void);
 static void _gdeasm_delete(GDeasm * gdeasm);
 
 /* useful */
 static int _gdeasm_confirm(GDeasm * gdeasm, char const * message, ...);
 static int _gdeasm_error(GDeasm * gdeasm, char const * message, int ret);
+
+static int _gdeasm_open(GDeasm * gdeasm, char const * arch, char const * format,
+		char const * filename);
+
 static int _gdeasm_load_comments(GDeasm * gdeasm, char const * filename);
 static int _gdeasm_load_comments_dialog(GDeasm * gdeasm);
-static int _gdeasm_open(GDeasm * gdeasm, char const * filename, int raw);
 static int _gdeasm_save_comments(GDeasm * gdeasm, char const * filename);
 static int _gdeasm_save_comments_dialog(GDeasm * gdeasm);
 
@@ -192,7 +192,7 @@ static DesktopToolbar _gdeasm_toolbar[] =
 
 /* functions */
 /* gdeasm_new */
-static GDeasm * _gdeasm_new(char const * arch, char const * format)
+static GDeasm * _gdeasm_new(void)
 {
 	GDeasm * gdeasm;
 	GtkAccelGroup * accel;
@@ -215,8 +215,6 @@ static GDeasm * _gdeasm_new(char const * arch, char const * format)
 
 	if((gdeasm = malloc(sizeof(*gdeasm))) == NULL)
 		return NULL;
-	gdeasm->arch = (arch != NULL) ? strdup(arch) : NULL;
-	gdeasm->format = (format != NULL) ? strdup(format) : NULL;
 	gdeasm->modified = FALSE;
 	/* widgets */
 	gdeasm->func_store = gtk_list_store_new(GFC_COUNT, G_TYPE_STRING,
@@ -326,8 +324,6 @@ static GDeasm * _gdeasm_new(char const * arch, char const * format)
 /* gdeasm_delete */
 static void _gdeasm_delete(GDeasm * gdeasm)
 {
-	free(gdeasm->arch);
-	free(gdeasm->format);
 	free(gdeasm);
 }
 
@@ -473,7 +469,8 @@ static void _open_parse_dregister2(char * buf, size_t size,
 static void _open_parse_immediate(char * buf, size_t size, AsmArchOperand * ao);
 static void _open_strings(GDeasm * gdeasm, AsmString * as, size_t as_cnt);
 
-static int _gdeasm_open(GDeasm * gdeasm, char const * filename, int raw)
+static int _gdeasm_open(GDeasm * gdeasm, char const * arch, char const * format,
+		char const * filename)
 {
 	int ret = -1;
 	int res;
@@ -503,9 +500,9 @@ static int _gdeasm_open(GDeasm * gdeasm, char const * filename, int raw)
 		else if(res != GTK_RESPONSE_REJECT)
 			return 0;
 	}
-	if((a = asm_new(gdeasm->arch, gdeasm->format)) == NULL)
+	if((a = asm_new(arch, format)) == NULL)
 		return -_gdeasm_error(gdeasm, error_get(), 1);
-	if((code = asm_open_deassemble(a, filename, raw)) != NULL)
+	if((code = asm_open_deassemble(a, filename, TRUE)) != NULL)
 	{
 		gtk_list_store_clear(gdeasm->func_store);
 		gtk_list_store_clear(gdeasm->str_store);
@@ -879,15 +876,21 @@ static void _gdeasm_on_load_comments(gpointer data)
 
 
 /* gdeasm_on_open */
+static void _plugins_list_type(GtkWidget * combobox, char const * type);
+
 static void _gdeasm_on_open(gpointer data)
 {
 	GDeasm * gdeasm = data;
 	GtkWidget * dialog;
 	GtkWidget * vbox;
+	GtkWidget * hbox;
+	GtkWidget * awidget;
+	GtkWidget * fwidget;
 	GtkWidget * widget;
 	GtkFileFilter * filter;
+	char * arch = NULL;
+	char * format = NULL;
 	char * filename = NULL;
-	int raw;
 
 	dialog = gtk_file_chooser_dialog_new(_("Open file..."), NULL,
 			GTK_FILE_CHOOSER_ACTION_OPEN,
@@ -898,9 +901,26 @@ static void _gdeasm_on_open(gpointer data)
 #else
 	vbox = GTK_DIALOG(dialog)->vbox;
 #endif
-	widget = gtk_check_button_new_with_mnemonic(
-			_("Open file in _raw mode"));
-	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+	/* arch */
+	hbox = gtk_hbox_new(FALSE, 4);
+	awidget = gtk_combo_box_new_text();
+	gtk_combo_box_append_text(GTK_COMBO_BOX(awidget), _("Auto-detect"));
+	_plugins_list_type(awidget, "arch");
+	gtk_combo_box_set_active(GTK_COMBO_BOX(awidget), 0);
+	gtk_box_pack_end(GTK_BOX(hbox), awidget, FALSE, TRUE, 0);
+	widget = gtk_label_new(_("Architecture:"));
+	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	/* format */
+	hbox = gtk_hbox_new(FALSE, 4);
+	fwidget = gtk_combo_box_new_text();
+	gtk_combo_box_append_text(GTK_COMBO_BOX(fwidget), _("Auto-detect"));
+	_plugins_list_type(fwidget, "format");
+	gtk_combo_box_set_active(GTK_COMBO_BOX(fwidget), 0);
+	gtk_box_pack_end(GTK_BOX(hbox), fwidget, FALSE, TRUE, 0);
+	widget = gtk_label_new(_("File format:"));
+	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
 	/* executable files */
 	filter = gtk_file_filter_new();
@@ -930,14 +950,61 @@ static void _gdeasm_on_open(gpointer data)
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
 	{
+		if(gtk_combo_box_get_active(GTK_COMBO_BOX(awidget)) == 0)
+			arch = NULL;
+		else
+			arch = gtk_combo_box_get_active_text(GTK_COMBO_BOX(
+						awidget));
+		if(gtk_combo_box_get_active(GTK_COMBO_BOX(fwidget)) == 0)
+			format = NULL;
+		else
+			format = gtk_combo_box_get_active_text(GTK_COMBO_BOX(
+						fwidget));
 		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(
 					dialog));
-		raw = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
 	}
 	gtk_widget_destroy(dialog);
 	if(filename != NULL)
-		_gdeasm_open(gdeasm, filename, raw);
+		_gdeasm_open(gdeasm, arch, format, filename);
+	g_free(arch);
+	g_free(format);
 	g_free(filename);
+}
+
+static void _plugins_list_type(GtkWidget * combobox, char const * type)
+{
+	char * path;
+	DIR * dir;
+	struct dirent * de;
+#ifdef __APPLE__
+	char const ext[] = ".dylib";
+#else
+	char const ext[] = ".so";
+#endif
+	size_t len;
+
+	if((path = g_build_filename(LIBDIR, "Asm", type, NULL)) == NULL)
+		return;
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s(%s) \"%s\"\n", __func__, type, path);
+#endif
+	dir = opendir(path);
+	g_free(path);
+	if(dir == NULL)
+		return;
+	while((de = readdir(dir)) != NULL)
+	{
+		if(strcmp(de->d_name, ".") == 0
+				|| strcmp(de->d_name, "..") == 0)
+			continue;
+		if((len = strlen(de->d_name)) < sizeof(ext))
+			continue;
+		if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
+			continue;
+		de->d_name[len - sizeof(ext) + 1] = '\0';
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), de->d_name);
+	}
+	closedir(dir);
 }
 
 
@@ -967,7 +1034,6 @@ int main(int argc, char * argv[])
 {
 	int o;
 	GDeasm * gdeasm;
-	int raw = 0;
 	char const * arch = NULL;
 	char const * comments = NULL;
 	char const * format = NULL;
@@ -976,14 +1042,11 @@ int main(int argc, char * argv[])
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
-	while((o = getopt(argc, argv, "C:Da:f:")) != -1)
+	while((o = getopt(argc, argv, "C:a:f:")) != -1)
 		switch(o)
 		{
 			case 'C':
 				comments = optarg;
-				break;
-			case 'D':
-				raw = 1;
 				break;
 			case 'a':
 				arch = optarg;
@@ -996,10 +1059,10 @@ int main(int argc, char * argv[])
 		}
 	if(optind != argc && optind + 1 != argc)
 		return _usage();
-	if((gdeasm = _gdeasm_new(arch, format)) == NULL)
+	if((gdeasm = _gdeasm_new()) == NULL)
 		return 2;
 	if(optind + 1 == argc)
-		_gdeasm_open(gdeasm, argv[optind], raw);
+		_gdeasm_open(gdeasm, arch, format, argv[optind]);
 	if(comments != NULL)
 		_gdeasm_load_comments(gdeasm, comments);
 	gtk_main();
