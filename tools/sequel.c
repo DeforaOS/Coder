@@ -71,6 +71,8 @@ struct _SequelTab
 
 
 /* constants */
+#define COLUMN_CNT 10
+
 static char const * _authors[] =
 {
 	"Pierre Pronchery <khorben@defora.org>",
@@ -92,11 +94,15 @@ static int _sequel_execute(Sequel * sequel);
 static int _sequel_save_as(Sequel * sequel, char const * filename);
 static int _sequel_save_as_dialog(Sequel * sequel);
 
+static int _sequel_export(Sequel * sequel, char const * filename);
+static int _sequel_export_dialog(Sequel * sequel);
+
 /* callbacks */
 static void _sequel_on_close(gpointer data);
 static gboolean _sequel_on_closex(gpointer data);
 static void _sequel_on_connect(gpointer data);
 static void _sequel_on_execute(gpointer data);
+static void _sequel_on_export(gpointer data);
 static void _sequel_on_save_as(gpointer data);
 
 static void _sequel_on_new_tab(gpointer data);
@@ -106,6 +112,7 @@ static void _sequel_on_file_close_all(gpointer data);
 static void _sequel_on_file_connect(gpointer data);
 static void _sequel_on_file_new_tab(gpointer data);
 static void _sequel_on_file_save_as(gpointer data);
+static void _sequel_on_edit_export(gpointer data);
 static void _sequel_on_help_about(gpointer data);
 static void _sequel_on_help_contents(gpointer data);
 
@@ -131,6 +138,12 @@ static const DesktopMenu _sequel_file_menu[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
+static const DesktopMenu _sequel_edit_menu[] =
+{
+	{ N_("Export..."), G_CALLBACK(_sequel_on_edit_export), "spreadsheet",
+		GDK_CONTROL_MASK, GDK_KEY_E },
+	{ NULL, NULL, NULL, 0, 0 }
+};
 
 static const DesktopMenu _sequel_help_menu[] =
 {
@@ -148,6 +161,7 @@ static const DesktopMenu _sequel_help_menu[] =
 static const DesktopMenubar _sequel_menubar[] =
 {
 	{ N_("_File"), _sequel_file_menu },
+	{ N_("_Edit"), _sequel_edit_menu },
 	{ N_("_Help"), _sequel_help_menu },
 	{ NULL, NULL }
 };
@@ -168,6 +182,8 @@ static DesktopToolbar _sequel_toolbar[] =
 	{ "", NULL, NULL, 0, 0, NULL },
 	{ N_("Save as..."), G_CALLBACK(_sequel_on_save_as), GTK_STOCK_SAVE_AS,
 		0, 0, NULL },
+	{ N_("Export..."), G_CALLBACK(_sequel_on_export), "spreadsheet", 0, 0,
+		NULL },
 	{ NULL, NULL, NULL, 0, 0, NULL }
 };
 
@@ -498,7 +514,7 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 	{
 		/* create the current store */
 		/* XXX no longer hard-code the number of columns */
-		sequel->tabs[i].store = gtk_list_store_new(10,
+		sequel->tabs[i].store = gtk_list_store_new(COLUMN_CNT,
 				G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
 				G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
 				G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
@@ -508,7 +524,7 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 		if((l = gtk_tree_view_get_columns(view)) == NULL)
 		{
 			/* create the rendering columns */
-			for(i = 0; i < 10; i++)
+			for(i = 0; i < COLUMN_CNT; i++)
 			{
 				renderer = gtk_cell_renderer_text_new();
 				c = gtk_tree_view_column_new_with_attributes("",
@@ -520,22 +536,138 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 			l = gtk_tree_view_get_columns(view);
 		}
 		/* set the visible columns */
-		for(p = l, i = 0; p != NULL && i < MIN(argc, 10); p = p->next,
-				i++)
+		for(p = l, i = 0; p != NULL && i < MIN(argc, COLUMN_CNT);
+				p = p->next, i++)
 		{
 			gtk_tree_view_column_set_title(p->data, columns[i]);
 			gtk_tree_view_column_set_visible(p->data, TRUE);
 		}
 		/* hide the remaining columns */
-		for(; p != NULL && i < MIN(argc, 10); p = p->next, i++)
+		for(; p != NULL && i < MIN(argc, COLUMN_CNT); p = p->next, i++)
 			gtk_tree_view_column_set_visible(p->data, FALSE);
 		g_list_free(l);
 	}
 	gtk_list_store_append(store, &iter);
-	for(i = 0; i < MIN(argc, 10); i++)
+	for(i = 0; i < MIN(argc, COLUMN_CNT); i++)
 		/* XXX the data may not be valid UTF-8 */
 		gtk_list_store_set(store, &iter, i, argv[i], -1);
 	return 0;
+}
+
+
+/* sequel_export */
+static int _sequel_export(Sequel * sequel, char const * filename)
+{
+	struct stat st;
+	GtkWidget * dialog;
+	gboolean res;
+	FILE * fp;
+	gint i;
+	GtkWidget * view;
+	GtkTreeModel * model;
+	gboolean valid;
+	GtkTreeIter iter;
+	gchar * buf;
+	char const * sep = "";
+	size_t len;
+
+	if(filename == NULL)
+		return _sequel_export_dialog(sequel);
+	if(stat(filename, &st) == 0)
+	{
+		dialog = gtk_message_dialog_new(GTK_WINDOW(sequel->window),
+				GTK_DIALOG_MODAL
+				| GTK_DIALOG_DESTROY_WITH_PARENT,
+				GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO,
+#if GTK_CHECK_VERSION(2, 6, 0)
+				"%s", _("Question"));
+		gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(
+					dialog),
+#endif
+				"%s", _("This file already exists."
+					" Overwrite?"));
+		gtk_window_set_title(GTK_WINDOW(dialog), _("Question"));
+		res = gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
+		if(res == GTK_RESPONSE_NO)
+			return -1;
+	}
+	i = gtk_notebook_get_current_page(GTK_NOTEBOOK(sequel->notebook));
+	if(i < 0)
+		return -1;
+	view = sequel->tabs[i].view;
+	model = GTK_TREE_MODEL(sequel->tabs[i].store);
+	if((fp = fopen(filename, "w")) == NULL)
+		return -sequel_error(sequel, strerror(errno), 1);
+	for(valid = gtk_tree_model_get_iter_first(model, &iter);
+			valid; valid = gtk_tree_model_iter_next(model, &iter))
+	{
+		for(i = 0; i < COLUMN_CNT; i++)
+		{
+			gtk_tree_model_get(model, &iter, i, &buf, -1);
+			/* XXX buf may contain commas */
+			len = (buf != NULL) ? strlen(buf) : 0;
+			if(fwrite(sep, sizeof(*sep), strlen(sep), fp)
+					!= strlen(sep)
+					|| fwrite(buf, sizeof(*buf), len, fp)
+					!= len)
+			{
+				g_free(buf);
+				fclose(fp);
+				unlink(filename);
+				return -sequel_error(sequel, strerror(errno),
+						1);
+			}
+			g_free(buf);
+			sep = ",";
+		}
+		if(fwrite("\n", sizeof(char), 1, fp) != sizeof(char))
+		{
+			fclose(fp);
+			unlink(filename);
+			return -sequel_error(sequel, strerror(errno), 1);
+		}
+		sep = "";
+	}
+	if(fclose(fp) != 0)
+	{
+		unlink(filename);
+		return -sequel_error(sequel, strerror(errno), 1);
+	}
+	return 0;
+}
+
+
+/* sequel_export_dialog */
+static int _sequel_export_dialog(Sequel * sequel)
+{
+	int ret;
+	GtkWidget * dialog;
+	GtkFileFilter * filter;
+	gchar * filename = NULL;
+
+	dialog = gtk_file_chooser_dialog_new(_("Export..."),
+			GTK_WINDOW(sequel->window),
+			GTK_FILE_CHOOSER_ACTION_SAVE,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
+	filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, _("CSV files"));
+	gtk_file_filter_add_mime_type(filter, "text/csv");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, _("All files"));
+	gtk_file_filter_add_pattern(filter, "*");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(
+					dialog));
+	gtk_widget_destroy(dialog);
+	if(filename == NULL)
+		return FALSE;
+	ret = _sequel_export(sequel, filename);
+	g_free(filename);
+	return ret;
 }
 
 
@@ -642,15 +774,19 @@ static int _sequel_save_as(Sequel * sequel, char const * filename)
 	buf = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(tbuf), &start, &end,
 			FALSE);
 	len = strlen(buf);
-	if(fwrite(buf, sizeof(char), len, fp) != len)
+	if(fwrite(buf, sizeof(*buf), len, fp) != len)
 	{
 		g_free(buf);
 		fclose(fp);
+		unlink(filename);
 		return -sequel_error(sequel, strerror(errno), 1);
 	}
 	g_free(buf);
 	if(fclose(fp) != 0)
+	{
+		unlink(filename);
 		return -sequel_error(sequel, strerror(errno), 1);
+	}
 	return 0;
 }
 
@@ -755,6 +891,24 @@ static void _sequel_on_execute(gpointer data)
 	Sequel * sequel = data;
 
 	_sequel_execute(sequel);
+}
+
+
+/* sequel_on_export */
+static void _sequel_on_export(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_export_dialog(sequel);
+}
+
+
+/* sequel_on_edit_export */
+static void _sequel_on_edit_export(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_export_dialog(sequel);
 }
 
 
