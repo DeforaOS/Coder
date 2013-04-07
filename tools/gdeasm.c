@@ -66,6 +66,9 @@ static char const _gdeasm_license[] =
 #ifndef LOCALEDIR
 # define LOCALEDIR	DATADIR "/locale"
 #endif
+#ifndef LIBDIR
+# define LIBDIR		PREFIX "/lib"
+#endif
 
 
 /* GDeasm */
@@ -116,6 +119,7 @@ static int _gdeasm_error(GDeasm * gdeasm, char const * message, int ret);
 
 static int _gdeasm_open(GDeasm * gdeasm, char const * arch, char const * format,
 		char const * filename);
+static int _gdeasm_open_dialog(GDeasm * gdeasm);
 
 static int _gdeasm_load_comments(GDeasm * gdeasm, char const * filename);
 static int _gdeasm_load_comments_dialog(GDeasm * gdeasm);
@@ -481,6 +485,8 @@ static int _gdeasm_open(GDeasm * gdeasm, char const * arch, char const * format,
 	AsmString * as;
 	size_t as_cnt;
 
+	if(filename == NULL)
+		return _gdeasm_open_dialog(gdeasm);
 	if(gdeasm->modified != FALSE)
 	{
 		res = _gdeasm_confirm(gdeasm, _("There are unsaved comments.\n"
@@ -656,6 +662,140 @@ static void _open_strings(GDeasm * gdeasm, AsmString * as, size_t as_cnt)
 		gtk_list_store_set(gdeasm->str_store, &iter,
 				GSC_STRING, as[i].name, -1);
 	}
+}
+
+
+/* gdeasm_open_dialog */
+static void _open_dialog_type(GtkWidget * combobox, char const * type);
+
+static int _gdeasm_open_dialog(GDeasm * gdeasm)
+{
+	int ret = 0;
+	GtkWidget * dialog;
+	GtkWidget * vbox;
+	GtkWidget * hbox;
+	GtkWidget * awidget;
+	GtkWidget * fwidget;
+	GtkWidget * widget;
+	GtkFileFilter * filter;
+	char * arch = NULL;
+	char * format = NULL;
+	char * filename = NULL;
+
+	dialog = gtk_file_chooser_dialog_new(_("Open file..."), NULL,
+			GTK_FILE_CHOOSER_ACTION_OPEN,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+#if GTK_CHECK_VERSION(2, 14, 0)
+	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+#else
+	vbox = GTK_DIALOG(dialog)->vbox;
+#endif
+	/* arch */
+	hbox = gtk_hbox_new(FALSE, 4);
+	awidget = gtk_combo_box_new_text();
+	gtk_combo_box_append_text(GTK_COMBO_BOX(awidget), _("Auto-detect"));
+	_open_dialog_type(awidget, "arch");
+	gtk_combo_box_set_active(GTK_COMBO_BOX(awidget), 0);
+	gtk_box_pack_end(GTK_BOX(hbox), awidget, FALSE, TRUE, 0);
+	widget = gtk_label_new(_("Architecture:"));
+	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	/* format */
+	hbox = gtk_hbox_new(FALSE, 4);
+	fwidget = gtk_combo_box_new_text();
+	gtk_combo_box_append_text(GTK_COMBO_BOX(fwidget), _("Auto-detect"));
+	_open_dialog_type(fwidget, "format");
+	gtk_combo_box_set_active(GTK_COMBO_BOX(fwidget), 0);
+	gtk_box_pack_end(GTK_BOX(hbox), fwidget, FALSE, TRUE, 0);
+	widget = gtk_label_new(_("File format:"));
+	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	gtk_widget_show_all(vbox);
+	/* executable files */
+	filter = gtk_file_filter_new();
+        gtk_file_filter_set_name(filter, _("Executable files"));
+        gtk_file_filter_add_mime_type(filter, "application/x-executable");
+        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+        gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(dialog), filter);
+	/* java classes */
+	filter = gtk_file_filter_new();
+        gtk_file_filter_set_name(filter, _("Java classes"));
+        gtk_file_filter_add_mime_type(filter, "application/x-java");
+        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	/* objects */
+	filter = gtk_file_filter_new();
+        gtk_file_filter_set_name(filter, _("Objects"));
+        gtk_file_filter_add_mime_type(filter, "application/x-object");
+        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	/* shared objects */
+	filter = gtk_file_filter_new();
+        gtk_file_filter_set_name(filter, _("Shared objects"));
+        gtk_file_filter_add_mime_type(filter, "application/x-sharedlib");
+        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	/* all files */
+	filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, _("All files"));
+	gtk_file_filter_add_pattern(filter, "*");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+	{
+		if(gtk_combo_box_get_active(GTK_COMBO_BOX(awidget)) == 0)
+			arch = NULL;
+		else
+			arch = gtk_combo_box_get_active_text(GTK_COMBO_BOX(
+						awidget));
+		if(gtk_combo_box_get_active(GTK_COMBO_BOX(fwidget)) == 0)
+			format = NULL;
+		else
+			format = gtk_combo_box_get_active_text(GTK_COMBO_BOX(
+						fwidget));
+		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(
+					dialog));
+	}
+	gtk_widget_destroy(dialog);
+	if(filename != NULL)
+		ret = _gdeasm_open(gdeasm, arch, format, filename);
+	g_free(arch);
+	g_free(format);
+	g_free(filename);
+	return ret;
+}
+
+static void _open_dialog_type(GtkWidget * combobox, char const * type)
+{
+	char * path;
+	DIR * dir;
+	struct dirent * de;
+#ifdef __APPLE__
+	char const ext[] = ".dylib";
+#else
+	char const ext[] = ".so";
+#endif
+	size_t len;
+
+	if((path = g_build_filename(LIBDIR, "Asm", type, NULL)) == NULL)
+		return;
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s(%s) \"%s\"\n", __func__, type, path);
+#endif
+	dir = opendir(path);
+	g_free(path);
+	if(dir == NULL)
+		return;
+	while((de = readdir(dir)) != NULL)
+	{
+		if(strcmp(de->d_name, ".") == 0
+				|| strcmp(de->d_name, "..") == 0)
+			continue;
+		if((len = strlen(de->d_name)) < sizeof(ext))
+			continue;
+		if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
+			continue;
+		de->d_name[len - sizeof(ext) + 1] = '\0';
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), de->d_name);
+	}
+	closedir(dir);
 }
 
 
@@ -876,135 +1016,11 @@ static void _gdeasm_on_load_comments(gpointer data)
 
 
 /* gdeasm_on_open */
-static void _plugins_list_type(GtkWidget * combobox, char const * type);
-
 static void _gdeasm_on_open(gpointer data)
 {
 	GDeasm * gdeasm = data;
-	GtkWidget * dialog;
-	GtkWidget * vbox;
-	GtkWidget * hbox;
-	GtkWidget * awidget;
-	GtkWidget * fwidget;
-	GtkWidget * widget;
-	GtkFileFilter * filter;
-	char * arch = NULL;
-	char * format = NULL;
-	char * filename = NULL;
 
-	dialog = gtk_file_chooser_dialog_new(_("Open file..."), NULL,
-			GTK_FILE_CHOOSER_ACTION_OPEN,
-			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
-#if GTK_CHECK_VERSION(2, 14, 0)
-	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-#else
-	vbox = GTK_DIALOG(dialog)->vbox;
-#endif
-	/* arch */
-	hbox = gtk_hbox_new(FALSE, 4);
-	awidget = gtk_combo_box_new_text();
-	gtk_combo_box_append_text(GTK_COMBO_BOX(awidget), _("Auto-detect"));
-	_plugins_list_type(awidget, "arch");
-	gtk_combo_box_set_active(GTK_COMBO_BOX(awidget), 0);
-	gtk_box_pack_end(GTK_BOX(hbox), awidget, FALSE, TRUE, 0);
-	widget = gtk_label_new(_("Architecture:"));
-	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
-	/* format */
-	hbox = gtk_hbox_new(FALSE, 4);
-	fwidget = gtk_combo_box_new_text();
-	gtk_combo_box_append_text(GTK_COMBO_BOX(fwidget), _("Auto-detect"));
-	_plugins_list_type(fwidget, "format");
-	gtk_combo_box_set_active(GTK_COMBO_BOX(fwidget), 0);
-	gtk_box_pack_end(GTK_BOX(hbox), fwidget, FALSE, TRUE, 0);
-	widget = gtk_label_new(_("File format:"));
-	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
-	gtk_widget_show_all(vbox);
-	/* executable files */
-	filter = gtk_file_filter_new();
-        gtk_file_filter_set_name(filter, _("Executable files"));
-        gtk_file_filter_add_mime_type(filter, "application/x-executable");
-        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
-        gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(dialog), filter);
-	/* java classes */
-	filter = gtk_file_filter_new();
-        gtk_file_filter_set_name(filter, _("Java classes"));
-        gtk_file_filter_add_mime_type(filter, "application/x-java");
-        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
-	/* objects */
-	filter = gtk_file_filter_new();
-        gtk_file_filter_set_name(filter, _("Objects"));
-        gtk_file_filter_add_mime_type(filter, "application/x-object");
-        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
-	/* shared objects */
-	filter = gtk_file_filter_new();
-        gtk_file_filter_set_name(filter, _("Shared objects"));
-        gtk_file_filter_add_mime_type(filter, "application/x-sharedlib");
-        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
-	/* all files */
-	filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, _("All files"));
-	gtk_file_filter_add_pattern(filter, "*");
-	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
-	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
-	{
-		if(gtk_combo_box_get_active(GTK_COMBO_BOX(awidget)) == 0)
-			arch = NULL;
-		else
-			arch = gtk_combo_box_get_active_text(GTK_COMBO_BOX(
-						awidget));
-		if(gtk_combo_box_get_active(GTK_COMBO_BOX(fwidget)) == 0)
-			format = NULL;
-		else
-			format = gtk_combo_box_get_active_text(GTK_COMBO_BOX(
-						fwidget));
-		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(
-					dialog));
-	}
-	gtk_widget_destroy(dialog);
-	if(filename != NULL)
-		_gdeasm_open(gdeasm, arch, format, filename);
-	g_free(arch);
-	g_free(format);
-	g_free(filename);
-}
-
-static void _plugins_list_type(GtkWidget * combobox, char const * type)
-{
-	char * path;
-	DIR * dir;
-	struct dirent * de;
-#ifdef __APPLE__
-	char const ext[] = ".dylib";
-#else
-	char const ext[] = ".so";
-#endif
-	size_t len;
-
-	if((path = g_build_filename(LIBDIR, "Asm", type, NULL)) == NULL)
-		return;
-#ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s(%s) \"%s\"\n", __func__, type, path);
-#endif
-	dir = opendir(path);
-	g_free(path);
-	if(dir == NULL)
-		return;
-	while((de = readdir(dir)) != NULL)
-	{
-		if(strcmp(de->d_name, ".") == 0
-				|| strcmp(de->d_name, "..") == 0)
-			continue;
-		if((len = strlen(de->d_name)) < sizeof(ext))
-			continue;
-		if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
-			continue;
-		de->d_name[len - sizeof(ext) + 1] = '\0';
-		gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), de->d_name);
-	}
-	closedir(dir);
+	_gdeasm_open_dialog(gdeasm);
 }
 
 
@@ -1021,7 +1037,7 @@ static void _gdeasm_on_save_comments(gpointer data)
 static int _usage(void)
 {
 	fputs(_("Usage: gdeasm [-C comments][-D][-a arch][-f format]"
-				" filename\n"),
+				" [filename]\n"),
 			stderr);
 	return 1;
 }
