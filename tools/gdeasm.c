@@ -106,12 +106,16 @@ typedef struct _GDeasm
 	GtkListStore * str_store;
 	GtkTreeStore * asm_store;
 	GtkWidget * asm_view;
+	GtkWidget * statusbar;
 } GDeasm;
 
 
 /* prototypes */
 static GDeasm * _gdeasm_new(void);
 static void _gdeasm_delete(GDeasm * gdeasm);
+
+/* accessors */
+static void _gdeasm_set_status(GDeasm * gdeasm, char const * status);
 
 /* useful */
 static int _gdeasm_confirm(GDeasm * gdeasm, char const * message, ...);
@@ -201,6 +205,7 @@ static GDeasm * _gdeasm_new(void)
 	GDeasm * gdeasm;
 	GtkAccelGroup * accel;
 	GtkWidget * vbox;
+	GtkWidget * hbox;
 	GtkWidget * menubar;
 	GtkWidget * toolbar;
 	GtkWidget * hpaned;
@@ -319,6 +324,11 @@ static GDeasm * _gdeasm_new(void)
 	gtk_container_add(GTK_CONTAINER(scrolled), treeview);
 	gtk_paned_add2(GTK_PANED(hpaned), scrolled);
 	gtk_box_pack_start(GTK_BOX(vbox), hpaned, TRUE, TRUE, 0);
+	/* statusbar */
+	hbox = gtk_hbox_new(FALSE, 4);
+	gdeasm->statusbar = gtk_statusbar_new();
+	gtk_box_pack_start(GTK_BOX(hbox), gdeasm->statusbar, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(gdeasm->window), vbox);
 	gtk_widget_show_all(gdeasm->window);
 	return gdeasm;
@@ -329,6 +339,18 @@ static GDeasm * _gdeasm_new(void)
 static void _gdeasm_delete(GDeasm * gdeasm)
 {
 	free(gdeasm);
+}
+
+
+/* accessors */
+static void _gdeasm_set_status(GDeasm * gdeasm, char const * status)
+{
+	GtkStatusbar * statusbar = GTK_STATUSBAR(gdeasm->statusbar);
+	guint id;
+
+	id = gtk_statusbar_get_context_id(statusbar, "");
+	gtk_statusbar_pop(statusbar, id);
+	gtk_statusbar_push(statusbar, id, status);
 }
 
 
@@ -508,6 +530,7 @@ static int _gdeasm_open(GDeasm * gdeasm, char const * arch, char const * format,
 	}
 	if((a = asm_new(arch, format)) == NULL)
 		return -_gdeasm_error(gdeasm, error_get(), 1);
+	_gdeasm_set_status(gdeasm, "");
 	if((code = asm_open_deassemble(a, filename, TRUE)) != NULL)
 	{
 		gtk_list_store_clear(gdeasm->func_store);
@@ -533,11 +556,24 @@ static int _open_code(GDeasm * gdeasm, AsmCode * code)
 	AsmSection * sections;
 	size_t sections_cnt;
 	size_t i;
+	char const * arch;
+	char const * format;
+	gchar * buf;
 
 	asmcode_get_sections(code, &sections, &sections_cnt);
 	for(i = 0; i < sections_cnt; i++)
 		if((ret = _open_code_section(gdeasm, code, &sections[i])) != 0)
 			break;
+	if(ret == 0)
+	{
+		/* update the status */
+		arch = asmcode_get_arch(code);
+		format = asmcode_get_format(code);
+		buf = g_strdup_printf("%s%s | %s%s", _("Architecture: "),
+				arch, _("Format: "), format);
+		_gdeasm_set_status(gdeasm, buf);
+		g_free(buf);
+	}
 	return ret;
 }
 
