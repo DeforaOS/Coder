@@ -599,11 +599,13 @@ static int _sequel_export(Sequel * sequel, char const * filename)
 	gint i;
 	GtkWidget * view;
 	GtkTreeModel * model;
+	GList * columns;
 	gboolean valid;
 	GtkTreeIter iter;
 	gchar * buf;
 	char const * sep = "";
 	size_t len;
+	GList * p;
 
 	if(filename == NULL)
 		return _sequel_export_dialog(sequel);
@@ -633,11 +635,14 @@ static int _sequel_export(Sequel * sequel, char const * filename)
 	model = GTK_TREE_MODEL(sequel->tabs[i].store);
 	if((fp = fopen(filename, "w")) == NULL)
 		return -sequel_error(sequel, strerror(errno), 1);
+	columns = gtk_tree_view_get_columns(GTK_TREE_VIEW(view));
 	for(valid = gtk_tree_model_get_iter_first(model, &iter);
 			valid; valid = gtk_tree_model_iter_next(model, &iter))
 	{
-		for(i = 0; i < COLUMN_CNT; i++)
+		for(p = columns, i = 0; p != NULL; p = p->next, i++)
 		{
+			if(gtk_tree_view_column_get_visible(p->data) != TRUE)
+				break;
 			gtk_tree_model_get(model, &iter, i, &buf, -1);
 			/* XXX buf may contain commas */
 			len = (buf != NULL) ? strlen(buf) : 0;
