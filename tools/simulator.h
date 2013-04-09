@@ -20,11 +20,12 @@
 
 
 /* Simulator */
-/* public */
+/* protected */
 /* types */
 typedef struct _Simulator Simulator;
 
 
+/* public */
 /* functions */
 /* essential */
 Simulator * simulator_new(char const * model, char const * title);

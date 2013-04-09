@@ -20,11 +20,12 @@
 
 
 /* Sequel */
-/* public */
+/* protected */
 /* types */
 typedef struct _Sequel Sequel;
 
 
+/* public */
 /* functions */
 /* essential */
 Sequel * sequel_new(void);
