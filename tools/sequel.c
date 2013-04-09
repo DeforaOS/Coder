@@ -760,6 +760,10 @@ static int _sequel_open_tab(Sequel * sequel)
 	gtk_widget_show_all(paned);
 	gtk_notebook_append_page(GTK_NOTEBOOK(sequel->notebook), paned,
 			p->label);
+#if GTK_CHECK_VERSION(2, 10, 0)
+	gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(sequel->notebook), paned,
+			TRUE);
+#endif
 	return 0;
 }
 
