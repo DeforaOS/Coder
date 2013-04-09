@@ -51,6 +51,7 @@ static char const _gdeasm_license[] =
 #include <System.h>
 #include <Devel/Asm.h>
 #include <Desktop.h>
+#include "gdeasm.h"
 #include "../config.h"
 #define _(string) gettext(string)
 #define N_(string) (string)
@@ -96,7 +97,7 @@ typedef enum _GDeasmStrColumn
 #define GSC_LAST GSC_STRING
 #define GSC_COUNT (GSC_LAST + 1)
 
-typedef struct _GDeasm
+struct _GDeasm
 {
 	gboolean modified;
 
@@ -107,28 +108,16 @@ typedef struct _GDeasm
 	GtkTreeStore * asm_store;
 	GtkWidget * asm_view;
 	GtkWidget * statusbar;
-} GDeasm;
+};
 
 
 /* prototypes */
-static GDeasm * _gdeasm_new(void);
-static void _gdeasm_delete(GDeasm * gdeasm);
-
 /* accessors */
 static void _gdeasm_set_status(GDeasm * gdeasm, char const * status);
 
 /* useful */
 static int _gdeasm_confirm(GDeasm * gdeasm, char const * message, ...);
 static int _gdeasm_error(GDeasm * gdeasm, char const * message, int ret);
-
-static int _gdeasm_open(GDeasm * gdeasm, char const * arch, char const * format,
-		char const * filename);
-static int _gdeasm_open_dialog(GDeasm * gdeasm);
-
-static int _gdeasm_load_comments(GDeasm * gdeasm, char const * filename);
-static int _gdeasm_load_comments_dialog(GDeasm * gdeasm);
-static int _gdeasm_save_comments(GDeasm * gdeasm, char const * filename);
-static int _gdeasm_save_comments_dialog(GDeasm * gdeasm);
 
 /* callbacks */
 static void _gdeasm_on_about(gpointer data);
@@ -141,8 +130,6 @@ static void _gdeasm_on_function_activated(GtkTreeView * view,
 static void _gdeasm_on_load_comments(gpointer data);
 static void _gdeasm_on_open(gpointer data);
 static void _gdeasm_on_save_comments(gpointer data);
-
-static int _usage(void);
 
 
 /* constants */
@@ -198,9 +185,10 @@ static DesktopToolbar _gdeasm_toolbar[] =
 };
 
 
+/* public */
 /* functions */
 /* gdeasm_new */
-static GDeasm * _gdeasm_new(void)
+GDeasm * gdeasm_new(void)
 {
 	GDeasm * gdeasm;
 	GtkAccelGroup * accel;
@@ -336,75 +324,15 @@ static GDeasm * _gdeasm_new(void)
 
 
 /* gdeasm_delete */
-static void _gdeasm_delete(GDeasm * gdeasm)
+void gdeasm_delete(GDeasm * gdeasm)
 {
 	free(gdeasm);
 }
 
 
-/* accessors */
-static void _gdeasm_set_status(GDeasm * gdeasm, char const * status)
-{
-	GtkStatusbar * statusbar = GTK_STATUSBAR(gdeasm->statusbar);
-	guint id;
-
-	id = gtk_statusbar_get_context_id(statusbar, "");
-	gtk_statusbar_pop(statusbar, id);
-	gtk_statusbar_push(statusbar, id, status);
-}
-
-
 /* useful */
-/* gdeasm_confirm */
-static int _gdeasm_confirm(GDeasm * gdeasm, char const * message, ...)
-{
-	GtkWidget * dialog;
-	va_list ap;
-	char const * action;
-	int res;
-
-	dialog = gtk_message_dialog_new(GTK_WINDOW(gdeasm->window),
-			GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_QUESTION,
-			GTK_BUTTONS_NONE,
-# if GTK_CHECK_VERSION(2, 6, 0)
-			"%s", _("Question"));
-	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
-# endif
-			"%s", message);
-	va_start(ap, message);
-	while((action = va_arg(ap, char const *)) != NULL)
-		gtk_dialog_add_button(GTK_DIALOG(dialog),
-				action, va_arg(ap, int));
-	va_end(ap);
-	gtk_window_set_title(GTK_WINDOW(dialog), _("Question"));
-	res = gtk_dialog_run(GTK_DIALOG(dialog));
-	gtk_widget_destroy(dialog);
-	return res;
-}
-
-
-/* gdeasm_error */
-static int _gdeasm_error(GDeasm * gdeasm, char const * message, int ret)
-{
-	GtkWidget * dialog;
-
-	dialog = gtk_message_dialog_new(GTK_WINDOW(gdeasm->window),
-			GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
-			GTK_BUTTONS_CLOSE,
-# if GTK_CHECK_VERSION(2, 6, 0)
-			"%s", _("Error"));
-	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
-# endif
-			"%s", message);
-	gtk_window_set_title(GTK_WINDOW(dialog), _("Error"));
-	gtk_dialog_run(GTK_DIALOG(dialog));
-	gtk_widget_destroy(dialog);
-	return ret;
-}
-
-
 /* gdeasm_load_comments */
-static int _gdeasm_load_comments(GDeasm * gdeasm, char const * filename)
+int gdeasm_load_comments(GDeasm * gdeasm, char const * filename)
 {
 	Config * config;
 	GtkTreeModel * model = GTK_TREE_MODEL(gdeasm->asm_store);
@@ -451,7 +379,7 @@ static int _gdeasm_load_comments(GDeasm * gdeasm, char const * filename)
 
 
 /* gdeasm_load_comments_dialog */
-static int _gdeasm_load_comments_dialog(GDeasm * gdeasm)
+int gdeasm_load_comments_dialog(GDeasm * gdeasm)
 {
 	int ret = -1;
 	GtkWidget * dialog;
@@ -476,7 +404,7 @@ static int _gdeasm_load_comments_dialog(GDeasm * gdeasm)
 					dialog));
 	gtk_widget_destroy(dialog);
 	if(filename != NULL)
-		ret = _gdeasm_load_comments(gdeasm, filename);
+		ret = gdeasm_load_comments(gdeasm, filename);
 	g_free(filename);
 	return ret;
 }
@@ -495,7 +423,7 @@ static void _open_parse_dregister2(char * buf, size_t size,
 static void _open_parse_immediate(char * buf, size_t size, AsmArchOperand * ao);
 static void _open_strings(GDeasm * gdeasm, AsmString * as, size_t as_cnt);
 
-static int _gdeasm_open(GDeasm * gdeasm, char const * arch, char const * format,
+int gdeasm_open(GDeasm * gdeasm, char const * arch, char const * format,
 		char const * filename)
 {
 	int ret = -1;
@@ -508,7 +436,7 @@ static int _gdeasm_open(GDeasm * gdeasm, char const * arch, char const * format,
 	size_t as_cnt;
 
 	if(filename == NULL)
-		return _gdeasm_open_dialog(gdeasm);
+		return gdeasm_open_dialog(gdeasm);
 	if(gdeasm->modified != FALSE)
 	{
 		res = _gdeasm_confirm(gdeasm, _("There are unsaved comments.\n"
@@ -522,7 +450,7 @@ static int _gdeasm_open(GDeasm * gdeasm, char const * arch, char const * format,
 				GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
 		if(res == GTK_RESPONSE_ACCEPT)
 		{
-			if(_gdeasm_save_comments_dialog(gdeasm) != 0)
+			if(gdeasm_save_comments_dialog(gdeasm) != 0)
 				return 0;
 		}
 		else if(res != GTK_RESPONSE_REJECT)
@@ -704,7 +632,7 @@ static void _open_strings(GDeasm * gdeasm, AsmString * as, size_t as_cnt)
 /* gdeasm_open_dialog */
 static void _open_dialog_type(GtkWidget * combobox, char const * type);
 
-static int _gdeasm_open_dialog(GDeasm * gdeasm)
+int gdeasm_open_dialog(GDeasm * gdeasm)
 {
 	int ret = 0;
 	GtkWidget * dialog;
@@ -791,7 +719,7 @@ static int _gdeasm_open_dialog(GDeasm * gdeasm)
 	}
 	gtk_widget_destroy(dialog);
 	if(filename != NULL)
-		ret = _gdeasm_open(gdeasm, arch, format, filename);
+		ret = gdeasm_open(gdeasm, arch, format, filename);
 	g_free(arch);
 	g_free(format);
 	g_free(filename);
@@ -845,7 +773,7 @@ struct _save_comments_foreach_args
 static gboolean _save_comments_foreach(GtkTreeModel * model, GtkTreePath * path,
 		GtkTreeIter * iter, gpointer data);
 
-static int _gdeasm_save_comments(GDeasm * gdeasm, char const * filename)
+int gdeasm_save_comments(GDeasm * gdeasm, char const * filename)
 {
 	struct _save_comments_foreach_args args;
 
@@ -889,7 +817,7 @@ static gboolean _save_comments_foreach(GtkTreeModel * model, GtkTreePath * path,
 
 
 /* gdeasm_save_comments_dialog */
-static int _gdeasm_save_comments_dialog(GDeasm * gdeasm)
+int gdeasm_save_comments_dialog(GDeasm * gdeasm)
 {
 	int ret = -1;
 	GtkWidget * dialog;
@@ -914,8 +842,70 @@ static int _gdeasm_save_comments_dialog(GDeasm * gdeasm)
 					dialog));
 	gtk_widget_destroy(dialog);
 	if(filename != NULL)
-		ret = _gdeasm_save_comments(gdeasm, filename);
+		ret = gdeasm_save_comments(gdeasm, filename);
 	g_free(filename);
+	return ret;
+}
+
+
+/* private */
+/* accessors */
+static void _gdeasm_set_status(GDeasm * gdeasm, char const * status)
+{
+	GtkStatusbar * statusbar = GTK_STATUSBAR(gdeasm->statusbar);
+	guint id;
+
+	id = gtk_statusbar_get_context_id(statusbar, "");
+	gtk_statusbar_pop(statusbar, id);
+	gtk_statusbar_push(statusbar, id, status);
+}
+
+
+/* useful */
+/* gdeasm_confirm */
+static int _gdeasm_confirm(GDeasm * gdeasm, char const * message, ...)
+{
+	GtkWidget * dialog;
+	va_list ap;
+	char const * action;
+	int res;
+
+	dialog = gtk_message_dialog_new(GTK_WINDOW(gdeasm->window),
+			GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_QUESTION,
+			GTK_BUTTONS_NONE,
+# if GTK_CHECK_VERSION(2, 6, 0)
+			"%s", _("Question"));
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
+# endif
+			"%s", message);
+	va_start(ap, message);
+	while((action = va_arg(ap, char const *)) != NULL)
+		gtk_dialog_add_button(GTK_DIALOG(dialog),
+				action, va_arg(ap, int));
+	va_end(ap);
+	gtk_window_set_title(GTK_WINDOW(dialog), _("Question"));
+	res = gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
+	return res;
+}
+
+
+/* gdeasm_error */
+static int _gdeasm_error(GDeasm * gdeasm, char const * message, int ret)
+{
+	GtkWidget * dialog;
+
+	dialog = gtk_message_dialog_new(GTK_WINDOW(gdeasm->window),
+			GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
+			GTK_BUTTONS_CLOSE,
+# if GTK_CHECK_VERSION(2, 6, 0)
+			"%s", _("Error"));
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
+# endif
+			"%s", message);
+	gtk_window_set_title(GTK_WINDOW(dialog), _("Error"));
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
 	return ret;
 }
 
@@ -960,7 +950,7 @@ static void _gdeasm_on_close(gpointer data)
 				NULL);
 		if(res == GTK_RESPONSE_ACCEPT)
 		{
-			if(_gdeasm_save_comments_dialog(gdeasm) != 0)
+			if(gdeasm_save_comments_dialog(gdeasm) != 0)
 				return;
 		}
 		else if(res != GTK_RESPONSE_CLOSE)
@@ -1047,7 +1037,7 @@ static void _gdeasm_on_load_comments(gpointer data)
 {
 	GDeasm * gdeasm = data;
 
-	_gdeasm_load_comments_dialog(gdeasm);
+	gdeasm_load_comments_dialog(gdeasm);
 }
 
 
@@ -1056,7 +1046,7 @@ static void _gdeasm_on_open(gpointer data)
 {
 	GDeasm * gdeasm = data;
 
-	_gdeasm_open_dialog(gdeasm);
+	gdeasm_open_dialog(gdeasm);
 }
 
 
@@ -1065,59 +1055,5 @@ static void _gdeasm_on_save_comments(gpointer data)
 {
 	GDeasm * gdeasm = data;
 
-	_gdeasm_save_comments_dialog(gdeasm);
-}
-
-
-/* usage */
-static int _usage(void)
-{
-	fputs(_("Usage: gdeasm [-C comments][-D][-a arch][-f format]"
-				" [filename]\n"),
-			stderr);
-	return 1;
-}
-
-
-/* public */
-/* functions */
-/* main */
-int main(int argc, char * argv[])
-{
-	int o;
-	GDeasm * gdeasm;
-	char const * arch = NULL;
-	char const * comments = NULL;
-	char const * format = NULL;
-
-	setlocale(LC_ALL, "");
-	bindtextdomain(PACKAGE, LOCALEDIR);
-	textdomain(PACKAGE);
-	gtk_init(&argc, &argv);
-	while((o = getopt(argc, argv, "C:a:f:")) != -1)
-		switch(o)
-		{
-			case 'C':
-				comments = optarg;
-				break;
-			case 'a':
-				arch = optarg;
-				break;
-			case 'f':
-				format = optarg;
-				break;
-			default:
-				return _usage();
-		}
-	if(optind != argc && optind + 1 != argc)
-		return _usage();
-	if((gdeasm = _gdeasm_new()) == NULL)
-		return 2;
-	if(optind + 1 == argc)
-		_gdeasm_open(gdeasm, arch, format, argv[optind]);
-	if(comments != NULL)
-		_gdeasm_load_comments(gdeasm, comments);
-	gtk_main();
-	_gdeasm_delete(gdeasm);
-	return 0;
+	gdeasm_save_comments_dialog(gdeasm);
 }

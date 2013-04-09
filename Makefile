@@ -47,11 +47,13 @@ dist:
 		$(PACKAGE)-$(VERSION)/src/project.h \
 		$(PACKAGE)-$(VERSION)/src/project.conf \
 		$(PACKAGE)-$(VERSION)/tools/gdeasm.c \
+		$(PACKAGE)-$(VERSION)/tools/gdeasm-main.c \
 		$(PACKAGE)-$(VERSION)/tools/sequel.c \
 		$(PACKAGE)-$(VERSION)/tools/sequel-main.c \
 		$(PACKAGE)-$(VERSION)/tools/simulator.c \
 		$(PACKAGE)-$(VERSION)/tools/simulator-main.c \
 		$(PACKAGE)-$(VERSION)/tools/Makefile \
+		$(PACKAGE)-$(VERSION)/tools/gdeasm.h \
 		$(PACKAGE)-$(VERSION)/tools/sequel.h \
 		$(PACKAGE)-$(VERSION)/tools/simulator.h \
 		$(PACKAGE)-$(VERSION)/tools/project.conf \

@@ -21,7 +21,7 @@ all: subdirs $(TARGETS)
 subdirs:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE)) || exit; done
 
-gdeasm_OBJS = gdeasm.o
+gdeasm_OBJS = gdeasm.o gdeasm-main.o
 gdeasm_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS) `pkg-config --cflags Asm`
 gdeasm_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs Asm`
 
@@ -44,6 +44,9 @@ simulator: $(simulator_OBJS)
 
 gdeasm.o: gdeasm.c ../config.h
 	$(CC) $(gdeasm_CFLAGS) -c gdeasm.c
+
+gdeasm-main.o: gdeasm-main.c
+	$(CC) $(gdeasm_CFLAGS) -c gdeasm-main.c
 
 sequel.o: sequel.c sequel.h
 	$(CC) $(sequel_CFLAGS) -c sequel.c
