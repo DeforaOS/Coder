@@ -18,6 +18,7 @@ static char const _license[] =
 
 
 #include <sys/stat.h>
+#include <dirent.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -363,6 +364,8 @@ static int _sequel_connect(Sequel * sequel, char const * engine,
 
 
 /* sequel_connect_dialog */
+static void _connect_dialog_engines(GtkWidget * combobox);
+
 static int _sequel_connect_dialog(Sequel * sequel)
 {
 	int ret;
@@ -400,7 +403,8 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 	gtk_size_group_add_widget(group, label);
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
-	entry1 = gtk_entry_new();
+	entry1 = gtk_combo_box_new_text();
+	_connect_dialog_engines(entry1);
 	gtk_box_pack_start(GTK_BOX(hbox), entry1, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* filename */
@@ -445,7 +449,7 @@ static int _sequel_connect_dialog(Sequel * sequel)
 		return 0;
 	}
 	gtk_widget_hide(dialog);
-	engine = gtk_entry_get_text(GTK_ENTRY(entry1));
+	engine = gtk_combo_box_get_active_text(GTK_COMBO_BOX(entry1));
 	filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(filesel));
 	section = gtk_entry_get_text(GTK_ENTRY(entry2));
 	if(filename == NULL)
@@ -456,6 +460,36 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	g_free(filename);
 	gtk_widget_destroy(dialog);
 	return ret;
+}
+
+static void _connect_dialog_engines(GtkWidget * combobox)
+{
+	char const path[] = LIBDIR "/Database/engine";
+	DIR * dir;
+	struct dirent * de;
+#ifdef __APPLE__
+	char const ext[] = ".dylib";
+#else
+	char const ext[] = ".so";
+#endif
+	size_t len;
+
+	if((dir = opendir(path)) == NULL)
+		return;
+	while((de = readdir(dir)) != NULL)
+	{
+		if(strcmp(de->d_name, ".") == 0
+				|| strcmp(de->d_name, "..") == 0)
+			continue;
+		if((len = strlen(de->d_name)) < sizeof(ext))
+			continue;
+		if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
+			continue;
+		de->d_name[len - sizeof(ext) + 1] = '\0';
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), de->d_name);
+		gtk_combo_box_set_active(GTK_COMBO_BOX(combobox), 0);
+	}
+	closedir(dir);
 }
 
 
