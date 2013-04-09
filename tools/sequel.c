@@ -539,6 +539,7 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 	GList * l;
 	GtkCellRenderer * renderer;
 	GtkTreeViewColumn * c;
+	GtkWidget * widget;
 	GList * p;
 	GtkTreeIter iter;
 
@@ -563,17 +564,23 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 				renderer = gtk_cell_renderer_text_new();
 				c = gtk_tree_view_column_new_with_attributes("",
 						renderer, "text", i, NULL);
+				/* use our own label as the column title */
+				widget = gtk_label_new(NULL);
+				gtk_widget_show(widget);
+				gtk_tree_view_column_set_widget(c, widget);
 				gtk_tree_view_column_set_resizable(c, TRUE);
 				gtk_tree_view_column_set_sort_column_id(c, i);
 				gtk_tree_view_append_column(view, c);
 			}
 			l = gtk_tree_view_get_columns(view);
 		}
-		/* set the visible columns */
+		/* set the visible columns (and their respective title) */
 		for(p = l, i = 0; p != NULL && i < MIN(argc, COLUMN_CNT);
 				p = p->next, i++)
 		{
 			gtk_tree_view_column_set_title(p->data, columns[i]);
+			widget = gtk_tree_view_column_get_widget(p->data);
+			gtk_label_set_text(GTK_LABEL(widget), columns[i]);
 			gtk_tree_view_column_set_visible(p->data, TRUE);
 		}
 		/* hide the remaining columns */
