@@ -97,6 +97,7 @@ static int _sequel_connect(Sequel * sequel, char const * engine,
 		char const * filename, char const * section);
 static int _sequel_connect_dialog(Sequel * sequel);
 
+static void _sequel_clear(Sequel * sequel);
 static int _sequel_execute(Sequel * sequel);
 
 static int _sequel_load(Sequel * sequel, char const * filename);
@@ -122,6 +123,7 @@ static void _sequel_on_file_close(gpointer data);
 static void _sequel_on_file_close_all(gpointer data);
 static void _sequel_on_file_connect(gpointer data);
 static void _sequel_on_file_new_tab(gpointer data);
+static void _sequel_on_query_clear(gpointer data);
 static void _sequel_on_query_execute(gpointer data);
 static void _sequel_on_query_export(gpointer data);
 static void _sequel_on_query_load(gpointer data);
@@ -156,6 +158,8 @@ static const DesktopMenu _sequel_file_menu[] =
 
 static const DesktopMenu _sequel_query_menu[] =
 {
+	{ N_("Clear"), G_CALLBACK(_sequel_on_query_clear),
+		GTK_STOCK_CLEAR, GDK_CONTROL_MASK, GDK_KEY_L },
 	{ N_("Execute"), G_CALLBACK(_sequel_on_query_execute),
 		GTK_STOCK_EXECUTE, GDK_CONTROL_MASK, GDK_KEY_Return },
 	{ "", NULL, NULL, 0, 0 },
@@ -363,6 +367,20 @@ static int _error_text(char const * message, int ret)
 
 /* private */
 /* functions */
+/* sequel_clear */
+static void _sequel_clear(Sequel * sequel)
+{
+	gint i;
+	GtkWidget * text;
+	GtkTextBuffer * tbuf;
+
+	i = gtk_notebook_get_current_page(GTK_NOTEBOOK(sequel->notebook));
+	text = sequel->tabs[i].text;
+	tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text));
+	gtk_text_buffer_set_text(tbuf, "", 0);
+}
+
+
 /* sequel_close_all */
 static void _sequel_close_all(Sequel * sequel)
 {
@@ -1201,6 +1219,15 @@ static void _sequel_on_new_tab(gpointer data)
 	Sequel * sequel = data;
 
 	_sequel_open_tab(sequel);
+}
+
+
+/* sequel_on_query_clear */
+static void _sequel_on_query_clear(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_clear(sequel);
 }
 
 
