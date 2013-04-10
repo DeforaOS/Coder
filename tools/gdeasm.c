@@ -224,6 +224,7 @@ GDeasm * gdeasm_new(void)
 	accel = gtk_accel_group_new();
 	gdeasm->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_add_accel_group(GTK_WINDOW(gdeasm->window), accel);
+	g_object_unref(accel);
 	gtk_window_set_default_size(GTK_WINDOW(gdeasm->window), 640, 480);
 #if GTK_CHECK_VERSION(2, 6, 0)
 	gtk_window_set_icon_name(GTK_WINDOW(gdeasm->window),

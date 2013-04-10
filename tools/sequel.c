@@ -243,7 +243,6 @@ Sequel * sequel_new(void)
 	gtk_window_set_icon_name(GTK_WINDOW(sequel->window),
 			"stock_insert-table");
 #endif
-	g_object_unref(group);
 	gtk_window_set_title(GTK_WINDOW(sequel->window), _("Sequel"));
 	g_signal_connect_swapped(sequel->window, "delete-event", G_CALLBACK(
 				_sequel_on_closex), sequel);
@@ -257,6 +256,7 @@ Sequel * sequel_new(void)
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* toolbar */
 	widget = desktop_toolbar_create(_sequel_toolbar, sequel, group);
+	g_object_unref(group);
 	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[4].widget), FALSE);
 	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[8].widget), FALSE);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);

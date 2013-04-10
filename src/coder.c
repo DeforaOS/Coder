@@ -185,6 +185,7 @@ Coder * coder_new(void)
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* toolbar */
 	widget = desktop_toolbar_create(_coder_toolbar, coder, group);
+	g_object_unref(group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(coder->tb_window), vbox);
 	/* files */

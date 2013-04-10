@@ -173,7 +173,6 @@ Simulator * simulator_new(char const * model, char const * title)
 		gtk_window_set_title(GTK_WINDOW(simulator->window), p);
 		free(p);
 	}
-	g_object_unref(group);
 	gtk_window_set_resizable(GTK_WINDOW(simulator->window), FALSE);
 	g_signal_connect_swapped(simulator->window, "delete-event", G_CALLBACK(
 				_simulator_on_closex), simulator);
@@ -184,6 +183,7 @@ Simulator * simulator_new(char const * model, char const * title)
 #endif
 	/* menubar */
 	widget = desktop_menubar_create(_simulator_menubar, simulator, group);
+	g_object_unref(group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* view */
 	simulator->socket = gtk_socket_new();
