@@ -99,6 +99,8 @@ static int _sequel_connect_dialog(Sequel * sequel);
 
 static int _sequel_execute(Sequel * sequel);
 
+static int _sequel_load(Sequel * sequel, char const * filename);
+static int _sequel_load_dialog(Sequel * sequel);
 static int _sequel_save_as(Sequel * sequel, char const * filename);
 static int _sequel_save_as_dialog(Sequel * sequel);
 
@@ -111,6 +113,7 @@ static gboolean _sequel_on_closex(gpointer data);
 static void _sequel_on_connect(gpointer data);
 static void _sequel_on_execute(gpointer data);
 static void _sequel_on_export(gpointer data);
+static void _sequel_on_load(gpointer data);
 static void _sequel_on_save_as(gpointer data);
 
 static void _sequel_on_new_tab(gpointer data);
@@ -121,6 +124,7 @@ static void _sequel_on_file_connect(gpointer data);
 static void _sequel_on_file_new_tab(gpointer data);
 static void _sequel_on_query_execute(gpointer data);
 static void _sequel_on_query_export(gpointer data);
+static void _sequel_on_query_load(gpointer data);
 static void _sequel_on_query_save_as(gpointer data);
 static void _sequel_on_help_about(gpointer data);
 static void _sequel_on_help_contents(gpointer data);
@@ -155,6 +159,8 @@ static const DesktopMenu _sequel_query_menu[] =
 	{ N_("Execute"), G_CALLBACK(_sequel_on_query_execute),
 		GTK_STOCK_EXECUTE, GDK_CONTROL_MASK, GDK_KEY_Return },
 	{ "", NULL, NULL, 0, 0 },
+	{ N_("Load..."), G_CALLBACK(_sequel_on_query_load),
+		GTK_STOCK_OPEN, GDK_CONTROL_MASK, GDK_KEY_O },
 	{ N_("Save as..."), G_CALLBACK(_sequel_on_query_save_as),
 		GTK_STOCK_SAVE_AS, GDK_CONTROL_MASK, GDK_KEY_S },
 	{ "", NULL, NULL, 0, 0 },
@@ -198,6 +204,8 @@ static DesktopToolbar _sequel_toolbar[] =
 	{ N_("Execute"), G_CALLBACK(_sequel_on_execute), GTK_STOCK_EXECUTE, 0,
 		0, NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
+	{ N_("Load..."), G_CALLBACK(_sequel_on_load), GTK_STOCK_OPEN, 0, 0,
+		NULL },
 	{ N_("Save as..."), G_CALLBACK(_sequel_on_save_as), GTK_STOCK_SAVE_AS,
 		0, 0, NULL },
 	{ N_("Export..."), G_CALLBACK(_sequel_on_export), "stock_insert-table",
@@ -246,7 +254,7 @@ Sequel * sequel_new(void)
 	/* toolbar */
 	widget = desktop_toolbar_create(_sequel_toolbar, sequel, group);
 	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[4].widget), FALSE);
-	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[7].widget), FALSE);
+	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[8].widget), FALSE);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 #if GTK_CHECK_VERSION(2, 18, 0)
 	/* infobar */
@@ -615,7 +623,7 @@ static int _sequel_execute(Sequel * sequel)
 	res = database_query(sequel->database, query, _execute_on_callback,
 			sequel);
 	g_free(query);
-	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[7].widget),
+	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[8].widget),
 			(sequel->tabs[i].store != NULL) ? TRUE : FALSE);
 	if(res != 0)
 		return -sequel_error(sequel, error_get(), 1);
@@ -805,6 +813,71 @@ static int _sequel_export_dialog(Sequel * sequel)
 	if(filename == NULL)
 		return FALSE;
 	ret = _sequel_export(sequel, filename);
+	g_free(filename);
+	return ret;
+}
+
+
+/* sequel_load */
+static int _sequel_load(Sequel * sequel, char const * filename)
+{
+	int ret = 0;
+	gint i;
+	GtkWidget * text;
+	GtkTextBuffer * tbuf;
+	FILE * fp;
+	char buf[BUFSIZ];
+	size_t size;
+	GtkTextIter iter;
+
+	if(filename == NULL)
+		return _sequel_load_dialog(sequel);
+	if((fp = fopen(filename, "r")) == NULL)
+		return -sequel_error(sequel, strerror(errno), 1);
+	i = gtk_notebook_get_current_page(GTK_NOTEBOOK(sequel->notebook));
+	text = sequel->tabs[i].text;
+	tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text));
+	gtk_text_buffer_set_text(tbuf, "", 0);
+	while((size = fread(buf, sizeof(*buf), sizeof(buf), fp)) > 0)
+	{
+		gtk_text_buffer_get_end_iter(tbuf, &iter);
+		gtk_text_buffer_insert(tbuf, &iter, buf, size);
+	}
+	if(ferror(fp))
+		ret = -sequel_error(sequel, strerror(errno), 1);
+	fclose(fp);
+	return ret;
+}
+
+
+/* sequel_load_dialog */
+static int _sequel_load_dialog(Sequel * sequel)
+{
+	int ret;
+	GtkWidget * dialog;
+	GtkFileFilter * filter;
+	gchar * filename = NULL;
+
+	dialog = gtk_file_chooser_dialog_new(_("Load query..."),
+			GTK_WINDOW(sequel->window),
+			GTK_FILE_CHOOSER_ACTION_OPEN,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+	filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, _("SQL files"));
+	gtk_file_filter_add_mime_type(filter, "text/x-sql");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, _("All files"));
+	gtk_file_filter_add_pattern(filter, "*");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(
+					dialog));
+	gtk_widget_destroy(dialog);
+	if(filename == NULL)
+		return FALSE;
+	ret = _sequel_load(sequel, filename);
 	g_free(filename);
 	return ret;
 }
@@ -1113,6 +1186,15 @@ static void _sequel_on_help_contents(gpointer data)
 }
 
 
+/* sequel_on_load */
+static void _sequel_on_load(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_load_dialog(sequel);
+}
+
+
 /* sequel_on_new_tab */
 static void _sequel_on_new_tab(gpointer data)
 {
@@ -1137,6 +1219,15 @@ static void _sequel_on_query_export(gpointer data)
 	Sequel * sequel = data;
 
 	_sequel_export_dialog(sequel);
+}
+
+
+/* sequel_on_query_load */
+static void _sequel_on_query_load(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_load_dialog(sequel);
 }
 
 
@@ -1215,5 +1306,5 @@ static void _sequel_on_tab_switched(GtkWidget * widget, GtkWidget * child,
 	fprintf(stderr, "DEBUG: %s(%u)\n", __func__, page);
 #endif
 	active = ((store = sequel->tabs[page].store) != NULL) ? TRUE : FALSE;
-	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[7].widget), active);
+	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[8].widget), active);
 }
