@@ -191,8 +191,8 @@ static DesktopToolbar _sequel_toolbar[] =
 	{ N_("Connect"), G_CALLBACK(_sequel_on_connect), GTK_STOCK_CONNECT, 0,
 		0, NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
-	{ N_("Execute"), G_CALLBACK(_sequel_on_execute), GTK_STOCK_EXECUTE, 0,
-		0, NULL },
+	{ N_("Execute"), G_CALLBACK(_sequel_on_execute), GTK_STOCK_EXECUTE,
+		GDK_CONTROL_MASK, GDK_KEY_Return, NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
 	{ N_("Save as..."), G_CALLBACK(_sequel_on_save_as), GTK_STOCK_SAVE_AS,
 		0, 0, NULL },
@@ -611,9 +611,10 @@ static int _sequel_execute(Sequel * sequel)
 	res = database_query(sequel->database, query, _execute_on_callback,
 			sequel);
 	g_free(query);
+	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[7].widget),
+			(sequel->tabs[i].store != NULL) ? TRUE : FALSE);
 	if(res != 0)
 		return -sequel_error(sequel, error_get(), 1);
-	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[7].widget), TRUE);
 	return 0;
 }
 
