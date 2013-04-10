@@ -60,6 +60,7 @@ struct _Sequel
 	GtkWidget * infobar_label;
 #endif
 	GtkWidget * notebook;
+	GtkWidget * statusbar;
 };
 
 struct _SequelTab
@@ -83,6 +84,11 @@ static char const * _authors[] =
 
 
 /* prototypes */
+/* accessors */
+static void _sequel_set_status(Sequel * sequel, char const * status);
+
+
+/* useful */
 static int _sequel_open_tab(Sequel * sequel);
 static void _sequel_close_all(Sequel * sequel);
 static void _sequel_close_tab(Sequel * sequel, unsigned int i);
@@ -260,7 +266,11 @@ Sequel * sequel_new(void)
 				_sequel_on_tab_reordered), sequel);
 #endif
 	gtk_box_pack_start(GTK_BOX(vbox), sequel->notebook, TRUE, TRUE, 0);
+	/* statusbar */
+	sequel->statusbar = gtk_statusbar_new();
+	gtk_box_pack_start(GTK_BOX(vbox), sequel->statusbar, FALSE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(sequel->window), vbox);
+	_sequel_set_status(sequel, _("Not connected"));
 	gtk_widget_show_all(vbox);
 	if(_sequel_open_tab(sequel) != 0)
 	{
@@ -283,6 +293,20 @@ void sequel_delete(Sequel * sequel)
 }
 
 
+/* accessors */
+/* sequel_set_status */
+static void _sequel_set_status(Sequel * sequel, char const * status)
+{
+	GtkStatusbar * statusbar = GTK_STATUSBAR(sequel->statusbar);
+	guint id;
+
+	id = gtk_statusbar_get_context_id(statusbar, "");
+	gtk_statusbar_pop(statusbar, id);
+	gtk_statusbar_push(statusbar, id, status);
+}
+
+
+/* useful */
 /* sequel_error */
 static int _error_text(char const * message, int ret);
 
@@ -374,6 +398,10 @@ static int _sequel_connect(Sequel * sequel, char const * engine,
 				: "", (section != NULL && strlen(section))
 				? section : "");
 		gtk_window_set_title(GTK_WINDOW(sequel->window), buf);
+		g_free(buf);
+		/* update the status */
+		buf = g_strdup_printf(_("Connected to %s"), engine);
+		_sequel_set_status(sequel, buf);
 		g_free(buf);
 	}
 	if(config != NULL)
