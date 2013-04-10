@@ -524,6 +524,7 @@ static void _connect_dialog_config_foreach(char const * section, void * data)
 	GtkWidget * entry2 = data;
 
 	gtk_combo_box_append_text(GTK_COMBO_BOX(entry2), section);
+	gtk_combo_box_set_active(GTK_COMBO_BOX(entry2), 0);
 }
 
 
