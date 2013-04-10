@@ -119,8 +119,9 @@ static void _sequel_on_file_close(gpointer data);
 static void _sequel_on_file_close_all(gpointer data);
 static void _sequel_on_file_connect(gpointer data);
 static void _sequel_on_file_new_tab(gpointer data);
-static void _sequel_on_file_save_as(gpointer data);
-static void _sequel_on_edit_export(gpointer data);
+static void _sequel_on_query_execute(gpointer data);
+static void _sequel_on_query_export(gpointer data);
+static void _sequel_on_query_save_as(gpointer data);
 static void _sequel_on_help_about(gpointer data);
 static void _sequel_on_help_contents(gpointer data);
 
@@ -142,9 +143,6 @@ static const DesktopMenu _sequel_file_menu[] =
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("C_onnect..."), G_CALLBACK(_sequel_on_file_connect), NULL, 0, 0 },
 	{ "", NULL, NULL, 0, 0 },
-	{ N_("Save as..."), G_CALLBACK(_sequel_on_file_save_as),
-		GTK_STOCK_SAVE_AS, GDK_CONTROL_MASK, GDK_KEY_S },
-	{ "", NULL, NULL, 0, 0 },
 	{ N_("_Close"), G_CALLBACK(_sequel_on_file_close), GTK_STOCK_CLOSE,
 		GDK_CONTROL_MASK, GDK_KEY_W },
 	{ N_("Close _all tabs"), G_CALLBACK(_sequel_on_file_close_all), NULL, 0,
@@ -152,9 +150,15 @@ static const DesktopMenu _sequel_file_menu[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
-static const DesktopMenu _sequel_edit_menu[] =
+static const DesktopMenu _sequel_query_menu[] =
 {
-	{ N_("Export..."), G_CALLBACK(_sequel_on_edit_export),
+	{ N_("Execute"), G_CALLBACK(_sequel_on_query_execute),
+		GTK_STOCK_EXECUTE, GDK_CONTROL_MASK, GDK_KEY_Return },
+	{ "", NULL, NULL, 0, 0 },
+	{ N_("Save as..."), G_CALLBACK(_sequel_on_query_save_as),
+		GTK_STOCK_SAVE_AS, GDK_CONTROL_MASK, GDK_KEY_S },
+	{ "", NULL, NULL, 0, 0 },
+	{ N_("Export..."), G_CALLBACK(_sequel_on_query_export),
 		"stock_insert-table", GDK_CONTROL_MASK, GDK_KEY_E },
 	{ NULL, NULL, NULL, 0, 0 }
 };
@@ -175,7 +179,7 @@ static const DesktopMenu _sequel_help_menu[] =
 static const DesktopMenubar _sequel_menubar[] =
 {
 	{ N_("_File"), _sequel_file_menu },
-	{ N_("_Edit"), _sequel_edit_menu },
+	{ N_("_Query"), _sequel_query_menu },
 	{ N_("_Help"), _sequel_help_menu },
 	{ NULL, NULL }
 };
@@ -191,8 +195,8 @@ static DesktopToolbar _sequel_toolbar[] =
 	{ N_("Connect"), G_CALLBACK(_sequel_on_connect), GTK_STOCK_CONNECT, 0,
 		0, NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
-	{ N_("Execute"), G_CALLBACK(_sequel_on_execute), GTK_STOCK_EXECUTE,
-		GDK_CONTROL_MASK, GDK_KEY_Return, NULL },
+	{ N_("Execute"), G_CALLBACK(_sequel_on_execute), GTK_STOCK_EXECUTE, 0,
+		0, NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
 	{ N_("Save as..."), G_CALLBACK(_sequel_on_save_as), GTK_STOCK_SAVE_AS,
 		0, 0, NULL },
@@ -1043,15 +1047,6 @@ static void _sequel_on_export(gpointer data)
 }
 
 
-/* sequel_on_edit_export */
-static void _sequel_on_edit_export(gpointer data)
-{
-	Sequel * sequel = data;
-
-	_sequel_export_dialog(sequel);
-}
-
-
 /* sequel_on_file_close */
 static void _sequel_on_file_close(gpointer data)
 {
@@ -1085,15 +1080,6 @@ static void _sequel_on_file_new_tab(gpointer data)
 	Sequel * sequel = data;
 
 	_sequel_on_new_tab(sequel);
-}
-
-
-/* sequel_on_file_save_as */
-static void _sequel_on_file_save_as(gpointer data)
-{
-	Sequel * sequel = data;
-
-	_sequel_save_as_dialog(sequel);
 }
 
 
@@ -1133,6 +1119,33 @@ static void _sequel_on_new_tab(gpointer data)
 	Sequel * sequel = data;
 
 	_sequel_open_tab(sequel);
+}
+
+
+/* sequel_on_query_execute */
+static void _sequel_on_query_execute(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_execute(sequel);
+}
+
+
+/* sequel_on_query_export */
+static void _sequel_on_query_export(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_export_dialog(sequel);
+}
+
+
+/* sequel_on_query_save_as */
+static void _sequel_on_query_save_as(gpointer data)
+{
+	Sequel * sequel = data;
+
+	_sequel_save_as_dialog(sequel);
 }
 
 
