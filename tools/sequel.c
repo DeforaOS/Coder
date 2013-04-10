@@ -129,6 +129,8 @@ static void _sequel_on_tab_close(GtkWidget * widget, gpointer data);
 static void _sequel_on_tab_reordered(GtkWidget * widget, GtkWidget * child,
 		guint page, gpointer data);
 #endif
+static void _sequel_on_tab_switched(GtkWidget * widget, GtkWidget * child,
+		guint page, gpointer data);
 
 
 /* constants */
@@ -240,6 +242,7 @@ Sequel * sequel_new(void)
 	/* toolbar */
 	widget = desktop_toolbar_create(_sequel_toolbar, sequel, group);
 	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[4].widget), FALSE);
+	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[7].widget), FALSE);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 #if GTK_CHECK_VERSION(2, 18, 0)
 	/* infobar */
@@ -265,6 +268,8 @@ Sequel * sequel_new(void)
 	g_signal_connect(sequel->notebook, "page-reordered", G_CALLBACK(
 				_sequel_on_tab_reordered), sequel);
 #endif
+	g_signal_connect(sequel->notebook, "switch-page", G_CALLBACK(
+				_sequel_on_tab_switched), sequel);
 	gtk_box_pack_start(GTK_BOX(vbox), sequel->notebook, TRUE, TRUE, 0);
 	/* statusbar */
 	sequel->statusbar = gtk_statusbar_new();
@@ -608,6 +613,7 @@ static int _sequel_execute(Sequel * sequel)
 	g_free(query);
 	if(res != 0)
 		return -sequel_error(sequel, error_get(), 1);
+	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[7].widget), TRUE);
 	return 0;
 }
 
@@ -1181,3 +1187,19 @@ static void _sequel_on_tab_reordered(GtkWidget * widget, GtkWidget * child,
 	memcpy(&sequel->tabs[page], &tab, sizeof(tab));
 }
 #endif
+
+
+/* sequel_on_tab_switched */
+static void _sequel_on_tab_switched(GtkWidget * widget, GtkWidget * child,
+		guint page, gpointer data)
+{
+	Sequel * sequel = data;
+	GtkListStore * store;
+	gboolean active;
+
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s(%u)\n", __func__, page);
+#endif
+	active = ((store = sequel->tabs[page].store) != NULL) ? TRUE : FALSE;
+	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[7].widget), active);
+}
