@@ -365,6 +365,8 @@ static int _sequel_connect(Sequel * sequel, char const * engine,
 
 /* sequel_connect_dialog */
 static void _connect_dialog_engines(GtkWidget * combobox);
+static void _connect_dialog_on_file_set(GtkWidget * widget, gpointer data);
+static void _connect_dialog_config_foreach(char const * section, void * data);
 
 static int _sequel_connect_dialog(Sequel * sequel)
 {
@@ -439,10 +441,12 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 	gtk_size_group_add_widget(group, label);
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
-	entry2 = gtk_entry_new();
+	entry2 = gtk_combo_box_new_text();
 	gtk_box_pack_start(GTK_BOX(hbox), entry2, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
+	g_signal_connect(filesel, "file-set", G_CALLBACK(
+				_connect_dialog_on_file_set), entry2);
 	if(gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_ACCEPT)
 	{
 		gtk_widget_destroy(dialog);
@@ -451,7 +455,7 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	gtk_widget_hide(dialog);
 	engine = gtk_combo_box_get_active_text(GTK_COMBO_BOX(entry1));
 	filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(filesel));
-	section = gtk_entry_get_text(GTK_ENTRY(entry2));
+	section = gtk_combo_box_get_active_text(GTK_COMBO_BOX(entry2));
 	if(filename == NULL)
 		/* FIXME report error */
 		ret = -1;
@@ -490,6 +494,36 @@ static void _connect_dialog_engines(GtkWidget * combobox)
 		gtk_combo_box_set_active(GTK_COMBO_BOX(combobox), 0);
 	}
 	closedir(dir);
+}
+
+static void _connect_dialog_on_file_set(GtkWidget * widget, gpointer data)
+{
+	GtkWidget * entry2 = data;
+	GtkTreeModel * model;
+	GtkListStore * store;
+	gchar * filename;
+	Config * config;
+
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(entry2));
+	store = GTK_LIST_STORE(model);
+	gtk_list_store_clear(store);
+	if((filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(widget)))
+			== NULL)
+		return;
+	if((config = config_new()) != NULL)
+		config_load(config, filename);
+	g_free(filename);
+	if(config == NULL)
+		return;
+	config_foreach(config, _connect_dialog_config_foreach, entry2);
+	config_delete(config);
+}
+
+static void _connect_dialog_config_foreach(char const * section, void * data)
+{
+	GtkWidget * entry2 = data;
+
+	gtk_combo_box_append_text(GTK_COMBO_BOX(entry2), section);
 }
 
 
