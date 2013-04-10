@@ -346,6 +346,7 @@ static int _sequel_connect(Sequel * sequel, char const * engine,
 		char const * filename, char const * section)
 {
 	Config * config;
+	gchar * buf;
 
 	if(engine == NULL || filename == NULL)
 		return _sequel_connect_dialog(sequel);
@@ -364,8 +365,17 @@ static int _sequel_connect(Sequel * sequel, char const * engine,
 				FALSE);
 	}
 	else
+	{
 		gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[4].widget),
 				TRUE);
+		/* update the title */
+		buf = g_strdup_printf("%s - %s%s%s", _("Sequel"), filename,
+				(section != NULL && strlen(section)) ? " - "
+				: "", (section != NULL && strlen(section))
+				? section : "");
+		gtk_window_set_title(GTK_WINDOW(sequel->window), buf);
+		g_free(buf);
+	}
 	if(config != NULL)
 		config_delete(config);
 	return (sequel->database != NULL) ? 0 : -1;
