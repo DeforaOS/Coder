@@ -65,6 +65,7 @@ struct _Sequel
 struct _SequelTab
 {
 	GtkWidget * label;
+	GtkWidget * page;
 	GtkWidget * text;
 	GtkListStore * store;
 	GtkWidget * view;
@@ -118,6 +119,10 @@ static void _sequel_on_help_about(gpointer data);
 static void _sequel_on_help_contents(gpointer data);
 
 static void _sequel_on_tab_close(GtkWidget * widget, gpointer data);
+#if GTK_CHECK_VERSION(2, 10, 0)
+static void _sequel_on_tab_reordered(GtkWidget * widget, GtkWidget * child,
+		guint page, gpointer data);
+#endif
 
 
 /* constants */
@@ -250,6 +255,10 @@ Sequel * sequel_new(void)
 #endif
 	/* view */
 	sequel->notebook = gtk_notebook_new();
+#if GTK_CHECK_VERSION(2, 10, 0)
+	g_signal_connect(sequel->notebook, "page-reordered", G_CALLBACK(
+				_sequel_on_tab_reordered), sequel);
+#endif
 	gtk_box_pack_start(GTK_BOX(vbox), sequel->notebook, TRUE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(sequel->window), vbox);
 	gtk_widget_show_all(vbox);
@@ -783,6 +792,7 @@ static int _sequel_open_tab(Sequel * sequel)
 	gtk_box_pack_start(GTK_BOX(p->label), widget, FALSE, TRUE, 0);
 	gtk_widget_show_all(p->label);
 	paned = gtk_vpaned_new();
+	p->page = paned;
 	/* text area */
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
@@ -1105,3 +1115,31 @@ static void _sequel_on_tab_close(GtkWidget * widget, gpointer data)
 		return;
 	_sequel_close_tab(sequel, i);
 }
+
+
+#if GTK_CHECK_VERSION(2, 10, 0)
+/* sequel_on_tab_reordered */
+static void _sequel_on_tab_reordered(GtkWidget * widget, GtkWidget * child,
+		guint page, gpointer data)
+{
+	Sequel * sequel = data;
+	SequelTab tab;
+	guint old = 0;
+	size_t i;
+
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s(%u)\n", __func__, page);
+#endif
+	for(i = 0; i < sequel->tabs_cnt; i++)
+		if(sequel->tabs[i].page == child)
+		{
+			old = i;
+			break;
+		}
+	if(i == sequel->tabs_cnt)
+		return;
+	memcpy(&tab, &sequel->tabs[old], sizeof(tab));
+	memcpy(&sequel->tabs[old], &sequel->tabs[page], sizeof(tab));
+	memcpy(&sequel->tabs[page], &tab, sizeof(tab));
+}
+#endif
