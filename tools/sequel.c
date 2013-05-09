@@ -705,6 +705,7 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 		/* hide the remaining columns */
 		for(; p != NULL && i < COLUMN_CNT; p = p->next, i++)
 			gtk_tree_view_column_set_visible(p->data, FALSE);
+		gtk_tree_view_columns_autosize(view);
 		g_list_free(l);
 	}
 	gtk_list_store_append(store, &iter);
