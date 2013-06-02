@@ -287,6 +287,8 @@ void coder_about(Coder * coder)
 	desktop_about_dialog_set_license(coder->ab_window, _license);
 	desktop_about_dialog_set_name(coder->ab_window, PACKAGE);
 	desktop_about_dialog_set_version(coder->ab_window, VERSION);
+	desktop_about_dialog_set_website(coder->ab_window,
+			"http://www.defora.org/");
 	g_signal_connect_swapped(G_OBJECT(coder->ab_window), "delete-event",
 			G_CALLBACK(_about_on_closex), coder);
 	gtk_widget_show(coder->ab_window);
