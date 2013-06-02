@@ -926,6 +926,8 @@ static void _gdeasm_on_about(gpointer data)
 	gtk_window_set_transient_for(GTK_WINDOW(dialog), GTK_WINDOW(
 				gdeasm->window));
 	desktop_about_dialog_set_authors(dialog, _gdeasm_authors);
+	desktop_about_dialog_set_comments(dialog,
+			_("Disassembler for the DeforaOS desktop"));
 	desktop_about_dialog_set_copyright(dialog, _gdeasm_copyright);
 	desktop_about_dialog_set_logo_icon_name(dialog,
 			"applications-development");
