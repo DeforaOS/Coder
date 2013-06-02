@@ -177,8 +177,8 @@ Coder * coder_new(void)
 #endif
 	gtk_window_set_title(GTK_WINDOW(coder->tb_window), _("Coder"));
 	gtk_window_set_resizable(GTK_WINDOW(coder->tb_window), FALSE);
-	g_signal_connect_swapped(G_OBJECT(coder->tb_window), "delete-event",
-			G_CALLBACK(on_closex), coder);
+	g_signal_connect_swapped(coder->tb_window, "delete-event", G_CALLBACK(
+				on_closex), coder);
 	vbox = gtk_vbox_new(FALSE, 0);
 	/* menubar */
 	widget = desktop_menubar_create(_coder_menubar, coder, group);
@@ -289,8 +289,8 @@ void coder_about(Coder * coder)
 	desktop_about_dialog_set_version(coder->ab_window, VERSION);
 	desktop_about_dialog_set_website(coder->ab_window,
 			"http://www.defora.org/");
-	g_signal_connect_swapped(G_OBJECT(coder->ab_window), "delete-event",
-			G_CALLBACK(_about_on_closex), coder);
+	g_signal_connect_swapped(coder->ab_window, "delete-event", G_CALLBACK(
+				_about_on_closex), coder);
 	gtk_widget_show(coder->ab_window);
 }
 
@@ -519,8 +519,8 @@ static void _show_preferences_window(Coder * coder)
 	coder->pr_window = gtk_window_new(GTK_WINDOW_TOPLEVEL); /* XXX dialog */
 	gtk_container_set_border_width(GTK_CONTAINER(coder->pr_window), 4);
 	gtk_window_set_title(GTK_WINDOW(coder->pr_window), _("Preferences"));
-	g_signal_connect_swapped(G_OBJECT(coder->pr_window), "delete-event",
-			G_CALLBACK(_on_preferences_closex), coder);
+	g_signal_connect_swapped(coder->pr_window, "delete-event", G_CALLBACK(
+				_on_preferences_closex), coder);
 	vbox = gtk_vbox_new(FALSE, 4);
 	nb = gtk_notebook_new();
 	/* notebook page editor */
@@ -548,15 +548,15 @@ static void _show_preferences_window(Coder * coder)
 	/* buttons */
 	hbox = gtk_hbox_new(TRUE, 4);
 	b_ok = gtk_button_new_from_stock(GTK_STOCK_OK);
-	g_signal_connect_swapped(G_OBJECT(b_ok), "clicked", G_CALLBACK(
+	g_signal_connect_swapped(b_ok, "clicked", G_CALLBACK(
 				_on_preferences_ok), coder);
 	gtk_box_pack_end(GTK_BOX(hbox), b_ok, FALSE, TRUE, 0);
 	b_apply = gtk_button_new_from_stock(GTK_STOCK_APPLY);
-	g_signal_connect_swapped(G_OBJECT(b_apply), "clicked", G_CALLBACK(
+	g_signal_connect_swapped(b_apply, "clicked", G_CALLBACK(
 				_on_preferences_apply), coder);
 	gtk_box_pack_end(GTK_BOX(hbox), b_apply, FALSE, TRUE, 0);
 	b_cancel = gtk_button_new_from_stock(GTK_STOCK_CANCEL);
-	g_signal_connect_swapped(G_OBJECT(b_cancel), "clicked", G_CALLBACK(
+	g_signal_connect_swapped(b_cancel, "clicked", G_CALLBACK(
 				_on_preferences_cancel), coder);
 	gtk_box_pack_end(GTK_BOX(hbox), b_cancel, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
