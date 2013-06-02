@@ -260,6 +260,10 @@ GDeasm * gdeasm_new(void)
 				_(headers1[i]), renderer, "text", i, NULL);
 		if(i == 1)
 			g_object_set(renderer, "family", "Monospace", NULL);
+#if GTK_CHECK_VERSION(2, 4, 0)
+		gtk_tree_view_column_set_expand(column, TRUE);
+#endif
+		gtk_tree_view_column_set_resizable(column, TRUE);
 		gtk_tree_view_column_set_sort_column_id(column, i);
 		gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
 	}
