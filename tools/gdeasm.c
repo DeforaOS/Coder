@@ -106,6 +106,7 @@ struct _GDeasm
 	GtkListStore * func_store;
 	GtkListStore * str_store;
 	GtkTreeStore * asm_store;
+	GtkListStore * ins_store;
 	GtkWidget * asm_view;
 	GtkWidget * statusbar;
 };
@@ -221,6 +222,7 @@ GDeasm * gdeasm_new(void)
 			G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
 			G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
 			G_TYPE_STRING, G_TYPE_INT, G_TYPE_INT);
+	gdeasm->ins_store = gtk_list_store_new(1, G_TYPE_STRING);
 	accel = gtk_accel_group_new();
 	gdeasm->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_add_accel_group(GTK_WINDOW(gdeasm->window), accel);
@@ -299,7 +301,15 @@ GDeasm * gdeasm_new(void)
 	gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(treeview), TRUE);
 	for(i = 0; i < sizeof(headers3) / sizeof(*headers3); i++)
 	{
-		renderer = gtk_cell_renderer_text_new();
+		if(i == 1)
+		{
+			renderer = gtk_cell_renderer_combo_new();
+			g_object_set(renderer, "editable", TRUE,
+					"model", gdeasm->ins_store,
+					"text-column", 0, NULL);
+		}
+		else
+			renderer = gtk_cell_renderer_text_new();
 		column = gtk_tree_view_column_new_with_attributes(
 				_(headers3[i]), renderer, "text", i, NULL);
 		if(i == 0)
@@ -331,6 +341,10 @@ GDeasm * gdeasm_new(void)
 /* gdeasm_delete */
 void gdeasm_delete(GDeasm * gdeasm)
 {
+	g_object_unref(gdeasm->ins_store);
+	g_object_unref(gdeasm->asm_store);
+	g_object_unref(gdeasm->str_store);
+	g_object_unref(gdeasm->func_store);
 	free(gdeasm);
 }
 
@@ -492,11 +506,15 @@ static int _open_code(GDeasm * gdeasm, AsmCode * code)
 	char const * arch;
 	char const * format;
 	gchar * buf;
+	AsmArchInstruction const * ai;
+	GtkTreeIter iter;
+	char const * p;
 
 	asmcode_get_sections(code, &sections, &sections_cnt);
 	for(i = 0; i < sections_cnt; i++)
 		if((ret = _open_code_section(gdeasm, code, &sections[i])) != 0)
 			break;
+	gtk_list_store_clear(gdeasm->ins_store);
 	if(ret == 0)
 	{
 		/* update the status */
@@ -506,6 +524,23 @@ static int _open_code(GDeasm * gdeasm, AsmCode * code)
 				arch, _("Format: "), format);
 		_gdeasm_set_status(gdeasm, buf);
 		g_free(buf);
+		p = NULL;
+		/* update the instructions list */
+		for(ai = asmcode_get_arch_instructions(code);
+				ai != NULL && ai->name != NULL; ai++)
+		{
+			if(p != NULL && strcmp(p, ai->name) == 0)
+				continue;
+#if GTK_CHECK_VERSION(2, 6, 0)
+			gtk_list_store_insert_with_values(gdeasm->ins_store,
+					&iter, -1,
+#else
+			gtk_list_store_append(gdeasm->ins_store, &iter);
+			gtk_list_store_set(gdeasm->ins_store, &iter,
+#endif
+					0, ai->name, -1);
+			p = ai->name;
+		}
 	}
 	return ret;
 }
