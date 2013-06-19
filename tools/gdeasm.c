@@ -575,8 +575,12 @@ static void _open_functions(GDeasm * gdeasm, AsmFunction * af, size_t af_cnt)
 			snprintf(buf, sizeof(buf), "%08lx", af[i].offset);
 		else
 			buf[0] = '\0';
+#if GTK_CHECK_VERSION(2, 6, 0)
+		gtk_list_store_insert_with_values(gdeasm->func_store, &iter, -1,
+#else
 		gtk_list_store_append(gdeasm->func_store, &iter);
 		gtk_list_store_set(gdeasm->func_store, &iter,
+#endif
 				GFC_NAME, af[i].name, GFC_OFFSET_DISPLAY, buf,
 				GFC_OFFSET, af[i].offset, -1);
 	}
@@ -662,8 +666,12 @@ static void _open_strings(GDeasm * gdeasm, AsmString * as, size_t as_cnt)
 
 	for(i = 0; i < as_cnt; i++)
 	{
+#if GTK_CHECK_VERSION(2, 6, 0)
+		gtk_list_store_insert_with_values(gdeasm->str_store, &iter, -1,
+#else
 		gtk_list_store_append(gdeasm->str_store, &iter);
 		gtk_list_store_set(gdeasm->str_store, &iter,
+#endif
 				GSC_STRING, as[i].name, -1);
 	}
 }
