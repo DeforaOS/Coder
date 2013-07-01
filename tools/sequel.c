@@ -54,6 +54,7 @@ struct _Sequel
 	Database * database;
 
 	/* widgets */
+	PangoFontDescription * font;
 	GtkWidget * window;
 #if GTK_CHECK_VERSION(2, 18, 0)
 	GtkWidget * infobar;
@@ -232,10 +233,13 @@ Sequel * sequel_new(void)
 		return NULL;
 	sequel->tabs = NULL;
 	sequel->tabs_cnt = 0;
+	sequel->font = NULL;
 	sequel->window = NULL;
 	sequel->database = NULL;
 	/* widgets */
 	group = gtk_accel_group_new();
+	sequel->font = pango_font_description_new();
+	pango_font_description_set_family(sequel->font, "Monospace");
 	sequel->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_add_accel_group(GTK_WINDOW(sequel->window), group);
 	gtk_window_set_default_size(GTK_WINDOW(sequel->window), 640, 480);
@@ -310,6 +314,8 @@ void sequel_delete(Sequel * sequel)
 		database_delete(sequel->database);
 	if(sequel->window != NULL)
 		gtk_widget_destroy(sequel->window);
+	if(sequel->font != NULL)
+		pango_font_description_free(sequel->font);
 	object_delete(sequel);
 }
 
@@ -939,6 +945,7 @@ static int _sequel_open_tab(Sequel * sequel)
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	p->text = gtk_text_view_new();
+	gtk_widget_modify_font(p->text, sequel->font);
 	gtk_container_add(GTK_CONTAINER(widget), p->text);
 	gtk_paned_add1(GTK_PANED(paned), widget);
 	/* results area */
