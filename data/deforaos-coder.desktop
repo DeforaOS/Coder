@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=Coder IDE
 Comment=An Integrated Development Environment (IDE)
+TryExec=coder
 Exec=coder
 Icon=applications-development
 Type=Application

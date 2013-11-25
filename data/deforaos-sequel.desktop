@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=Sequel
 Comment=SQL console
+TryExec=sequel
 Exec=sequel
 Icon=stock_insert-table
 Type=Application

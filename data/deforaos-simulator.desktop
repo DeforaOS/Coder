@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=Simulator
 Comment=A simulator for embedded devices
+TryExec=simulator
 Exec=simulator
 Icon=stock_cell-phone
 Type=Application
