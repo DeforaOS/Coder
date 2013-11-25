@@ -22,9 +22,9 @@ dist:
 	$(LN) -s -- . $(PACKAGE)-$(VERSION)
 	@$(TAR) $(PACKAGE)-$(VERSION).tar.gz -- \
 		$(PACKAGE)-$(VERSION)/data/Makefile \
-		$(PACKAGE)-$(VERSION)/data/coder.desktop \
-		$(PACKAGE)-$(VERSION)/data/sequel.desktop \
-		$(PACKAGE)-$(VERSION)/data/simulator.desktop \
+		$(PACKAGE)-$(VERSION)/data/deforaos-coder.desktop \
+		$(PACKAGE)-$(VERSION)/data/deforaos-sequel.desktop \
+		$(PACKAGE)-$(VERSION)/data/deforaos-simulator.desktop \
 		$(PACKAGE)-$(VERSION)/data/project.conf \
 		$(PACKAGE)-$(VERSION)/doc/Makefile \
 		$(PACKAGE)-$(VERSION)/doc/docbook.sh \

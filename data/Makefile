@@ -13,15 +13,15 @@ distclean: clean
 
 install:
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/applications
-	$(INSTALL) -m 0644 coder.desktop $(DESTDIR)$(PREFIX)/share/applications/coder.desktop
+	$(INSTALL) -m 0644 deforaos-coder.desktop $(DESTDIR)$(PREFIX)/share/applications/deforaos-coder.desktop
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/applications
-	$(INSTALL) -m 0644 sequel.desktop $(DESTDIR)$(PREFIX)/share/applications/sequel.desktop
+	$(INSTALL) -m 0644 deforaos-sequel.desktop $(DESTDIR)$(PREFIX)/share/applications/deforaos-sequel.desktop
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/applications
-	$(INSTALL) -m 0644 simulator.desktop $(DESTDIR)$(PREFIX)/share/applications/simulator.desktop
+	$(INSTALL) -m 0644 deforaos-simulator.desktop $(DESTDIR)$(PREFIX)/share/applications/deforaos-simulator.desktop
 
 uninstall:
-	$(RM) -- $(DESTDIR)$(PREFIX)/share/applications/coder.desktop
-	$(RM) -- $(DESTDIR)$(PREFIX)/share/applications/sequel.desktop
-	$(RM) -- $(DESTDIR)$(PREFIX)/share/applications/simulator.desktop
+	$(RM) -- $(DESTDIR)$(PREFIX)/share/applications/deforaos-coder.desktop
+	$(RM) -- $(DESTDIR)$(PREFIX)/share/applications/deforaos-sequel.desktop
+	$(RM) -- $(DESTDIR)$(PREFIX)/share/applications/deforaos-simulator.desktop
 
 .PHONY: all clean distclean install uninstall
