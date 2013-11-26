@@ -403,6 +403,7 @@ static int _error_text(char const * message, int ret)
 /* sequel_show_console */
 static void _console_window(Sequel * sequel);
 /* callbacks */
+static void _console_on_clear(gpointer data);
 static gboolean _console_on_closex(gpointer data);
 
 void sequel_show_console(Sequel * sequel, gboolean show)
@@ -417,7 +418,9 @@ void sequel_show_console(Sequel * sequel, gboolean show)
 
 static void _console_window(Sequel * sequel)
 {
+	GtkWidget * vbox;
 	GtkWidget * widget;
+	GtkToolItem * toolitem;
 	GtkCellRenderer * renderer;
 	GtkTreeViewColumn * column;
 
@@ -429,6 +432,15 @@ static void _console_window(Sequel * sequel)
 	gtk_window_set_title(GTK_WINDOW(sequel->lo_window), _("Log console"));
 	g_signal_connect_swapped(sequel->lo_window, "delete-event", G_CALLBACK(
 				_console_on_closex), sequel);
+	vbox = gtk_vbox_new(FALSE, 0);
+	/* toolbar */
+	widget = gtk_toolbar_new();
+	toolitem = gtk_tool_button_new_from_stock(GTK_STOCK_CLEAR);
+	g_signal_connect_swapped(toolitem, "clicked", G_CALLBACK(
+				_console_on_clear), sequel);
+	gtk_toolbar_insert(GTK_TOOLBAR(widget), toolitem, -1);
+	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+	/* view */
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -446,8 +458,16 @@ static void _console_window(Sequel * sequel)
 	gtk_tree_view_column_set_sort_column_id(column, 2);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(sequel->lo_view), column);
 	gtk_container_add(GTK_CONTAINER(widget), sequel->lo_view);
-	gtk_widget_show_all(widget);
-	gtk_container_add(GTK_CONTAINER(sequel->lo_window), widget);
+	gtk_box_pack_start(GTK_BOX(vbox), widget, TRUE, TRUE, 0);
+	gtk_widget_show_all(vbox);
+	gtk_container_add(GTK_CONTAINER(sequel->lo_window), vbox);
+}
+
+static void _console_on_clear(gpointer data)
+{
+	Sequel * sequel = data;
+
+	gtk_list_store_clear(sequel->lo_store);
 }
 
 static gboolean _console_on_closex(gpointer data)
