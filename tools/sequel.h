@@ -34,4 +34,6 @@ void sequel_delete(Sequel * sequel);
 /* useful */
 int sequel_error(Sequel * sequel, char const * message, int ret);
 
+void sequel_show_console(Sequel * sequel, gboolean show);
+
 #endif /* !CODER_SEQUEL_H */
