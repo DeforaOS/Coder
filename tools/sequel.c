@@ -62,6 +62,10 @@ struct _Sequel
 #endif
 	GtkWidget * notebook;
 	GtkWidget * statusbar;
+	/* log console */
+	GtkWidget * lo_window;
+	GtkListStore * lo_store;
+	GtkWidget * lo_view;
 };
 
 struct _SequelTab
@@ -129,6 +133,7 @@ static void _sequel_on_query_execute(gpointer data);
 static void _sequel_on_query_export(gpointer data);
 static void _sequel_on_query_load(gpointer data);
 static void _sequel_on_query_save_as(gpointer data);
+static void _sequel_on_view_error_console(gpointer data);
 static void _sequel_on_help_about(gpointer data);
 static void _sequel_on_help_contents(gpointer data);
 
@@ -174,6 +179,13 @@ static const DesktopMenu _sequel_query_menu[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
+static const DesktopMenu _sequel_view_menu[] =
+{
+	{ N_("_Error console"), G_CALLBACK(_sequel_on_view_error_console),
+		NULL, 0, 0 },
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
 static const DesktopMenu _sequel_help_menu[] =
 {
 	{ N_("_Contents"), G_CALLBACK(_sequel_on_help_contents),
@@ -191,6 +203,7 @@ static const DesktopMenubar _sequel_menubar[] =
 {
 	{ N_("_File"), _sequel_file_menu },
 	{ N_("_Query"), _sequel_query_menu },
+	{ N_("_View"), _sequel_view_menu },
 	{ N_("_Help"), _sequel_help_menu },
 	{ NULL, NULL }
 };
@@ -297,6 +310,10 @@ Sequel * sequel_new(void)
 	gtk_container_add(GTK_CONTAINER(sequel->window), vbox);
 	_sequel_set_status(sequel, _("Not connected"));
 	gtk_widget_show_all(vbox);
+	/* error console */
+	sequel->lo_window = NULL;
+	sequel->lo_store = gtk_list_store_new(3, G_TYPE_UINT, G_TYPE_STRING,
+			G_TYPE_STRING);
 	if(_sequel_open_tab(sequel) != 0)
 	{
 		sequel_delete(sequel);
@@ -310,6 +327,8 @@ Sequel * sequel_new(void)
 /* sequel_delete */
 void sequel_delete(Sequel * sequel)
 {
+	if(sequel->lo_window != NULL)
+		gtk_widget_destroy(sequel->lo_window);
 	if(sequel->database != NULL)
 		database_delete(sequel->database);
 	if(sequel->window != NULL)
@@ -342,6 +361,10 @@ int sequel_error(Sequel * sequel, char const * message, int ret)
 #if !GTK_CHECK_VERSION(2, 18, 0)
 	GtkWidget * dialog;
 #endif
+	GtkTreeIter iter;
+	time_t date;
+	struct tm t;
+	char buf[32];
 
 	if(sequel == NULL)
 		return _error_text(message, ret);
@@ -361,6 +384,12 @@ int sequel_error(Sequel * sequel, char const * message, int ret)
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
 #endif
+	gtk_list_store_append(sequel->lo_store, &iter);
+	date = time(NULL);
+	localtime_r(&date, &t);
+	strftime(buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", &t);
+	gtk_list_store_set(sequel->lo_store, &iter, 0, date, 1, buf, 2, message,
+			-1);
 	return ret;
 }
 
@@ -368,6 +397,65 @@ static int _error_text(char const * message, int ret)
 {
 	fprintf(stderr, "%s: %s\n", "sequel", message);
 	return ret;
+}
+
+
+/* sequel_show_console */
+static void _console_window(Sequel * sequel);
+/* callbacks */
+static gboolean _console_on_closex(gpointer data);
+
+void sequel_show_console(Sequel * sequel, gboolean show)
+{
+	if(sequel->lo_window == NULL)
+		_console_window(sequel);
+	if(show)
+		gtk_window_present(GTK_WINDOW(sequel->lo_window));
+	else
+		gtk_widget_hide(sequel->lo_window);
+}
+
+static void _console_window(Sequel * sequel)
+{
+	GtkWidget * widget;
+	GtkCellRenderer * renderer;
+	GtkTreeViewColumn * column;
+
+	sequel->lo_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_default_size(GTK_WINDOW(sequel->lo_window), 400, 300);
+#if GTK_CHECK_VERSION(2, 6, 0)
+	gtk_window_set_icon_name(GTK_WINDOW(sequel->lo_window), "logviewer");
+#endif
+	gtk_window_set_title(GTK_WINDOW(sequel->lo_window), _("Log console"));
+	g_signal_connect_swapped(sequel->lo_window, "delete-event", G_CALLBACK(
+				_console_on_closex), sequel);
+	widget = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
+			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	sequel->lo_view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(
+				sequel->lo_store));
+	/* columns */
+	renderer = gtk_cell_renderer_text_new();
+	column = gtk_tree_view_column_new_with_attributes(_("Timestamp"),
+			renderer, "text", 1, NULL);
+	gtk_tree_view_column_set_sort_column_id(column, 0);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(sequel->lo_view), column);
+	renderer = gtk_cell_renderer_text_new();
+	column = gtk_tree_view_column_new_with_attributes(_("Message"),
+			renderer, "text", 2, NULL);
+	gtk_tree_view_column_set_sort_column_id(column, 2);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(sequel->lo_view), column);
+	gtk_container_add(GTK_CONTAINER(widget), sequel->lo_view);
+	gtk_widget_show_all(widget);
+	gtk_container_add(GTK_CONTAINER(sequel->lo_window), widget);
+}
+
+static gboolean _console_on_closex(gpointer data)
+{
+	Sequel * sequel = data;
+
+	gtk_widget_hide(sequel->lo_window);
+	return TRUE;
 }
 
 
@@ -1342,4 +1430,13 @@ static void _sequel_on_tab_switched(GtkWidget * widget, GtkWidget * child,
 #endif
 	active = ((store = sequel->tabs[page].store) != NULL) ? TRUE : FALSE;
 	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[8].widget), active);
+}
+
+
+/* sequel_on_view_error_console */
+static void _sequel_on_view_error_console(gpointer data)
+{
+	Sequel * sequel = data;
+
+	sequel_show_console(sequel, TRUE);
 }
