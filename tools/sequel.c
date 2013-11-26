@@ -94,6 +94,8 @@ static void _sequel_set_status(Sequel * sequel, char const * status);
 
 
 /* useful */
+static void _sequel_log(Sequel * sequel, char const * message);
+
 static int _sequel_open_tab(Sequel * sequel);
 static void _sequel_close_all(Sequel * sequel);
 static void _sequel_close_tab(Sequel * sequel, unsigned int i);
@@ -181,8 +183,8 @@ static const DesktopMenu _sequel_query_menu[] =
 
 static const DesktopMenu _sequel_view_menu[] =
 {
-	{ N_("_Error console"), G_CALLBACK(_sequel_on_view_error_console),
-		NULL, 0, 0 },
+	{ N_("_Log console"), G_CALLBACK(_sequel_on_view_error_console), NULL,
+		0, 0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
@@ -308,12 +310,12 @@ Sequel * sequel_new(void)
 	sequel->statusbar = gtk_statusbar_new();
 	gtk_box_pack_start(GTK_BOX(vbox), sequel->statusbar, FALSE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(sequel->window), vbox);
-	_sequel_set_status(sequel, _("Not connected"));
-	gtk_widget_show_all(vbox);
 	/* error console */
 	sequel->lo_window = NULL;
 	sequel->lo_store = gtk_list_store_new(3, G_TYPE_UINT, G_TYPE_STRING,
 			G_TYPE_STRING);
+	_sequel_set_status(sequel, _("Not connected"));
+	gtk_widget_show_all(vbox);
 	if(_sequel_open_tab(sequel) != 0)
 	{
 		sequel_delete(sequel);
@@ -349,6 +351,7 @@ static void _sequel_set_status(Sequel * sequel, char const * status)
 	id = gtk_statusbar_get_context_id(statusbar, "");
 	gtk_statusbar_pop(statusbar, id);
 	gtk_statusbar_push(statusbar, id, status);
+	_sequel_log(sequel, status);
 }
 
 
@@ -361,10 +364,6 @@ int sequel_error(Sequel * sequel, char const * message, int ret)
 #if !GTK_CHECK_VERSION(2, 18, 0)
 	GtkWidget * dialog;
 #endif
-	GtkTreeIter iter;
-	time_t date;
-	struct tm t;
-	char buf[32];
 
 	if(sequel == NULL)
 		return _error_text(message, ret);
@@ -384,12 +383,7 @@ int sequel_error(Sequel * sequel, char const * message, int ret)
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
 #endif
-	gtk_list_store_append(sequel->lo_store, &iter);
-	date = time(NULL);
-	localtime_r(&date, &t);
-	strftime(buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", &t);
-	gtk_list_store_set(sequel->lo_store, &iter, 0, date, 1, buf, 2, message,
-			-1);
+	_sequel_log(sequel, message);
 	return ret;
 }
 
@@ -1013,6 +1007,23 @@ static int _sequel_load_dialog(Sequel * sequel)
 	ret = _sequel_load(sequel, filename);
 	g_free(filename);
 	return ret;
+}
+
+
+/* sequel_log */
+static void _sequel_log(Sequel * sequel, char const * message)
+{
+	GtkTreeIter iter;
+	time_t date;
+	struct tm t;
+	char buf[32];
+
+	gtk_list_store_append(sequel->lo_store, &iter);
+	date = time(NULL);
+	localtime_r(&date, &t);
+	strftime(buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", &t);
+	gtk_list_store_set(sequel->lo_store, &iter, 0, date, 1, buf, 2, message,
+			-1);
 }
 
 
