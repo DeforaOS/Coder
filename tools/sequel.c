@@ -322,8 +322,9 @@ Sequel * sequel_new(void)
 	gtk_container_add(GTK_CONTAINER(sequel->window), vbox);
 	/* error console */
 	sequel->lo_window = NULL;
-	sequel->lo_store = gtk_list_store_new(4, G_TYPE_UINT, GDK_TYPE_PIXBUF,
-			G_TYPE_STRING, G_TYPE_STRING);
+	sequel->lo_store = gtk_list_store_new(5, G_TYPE_UINT, G_TYPE_STRING,
+			G_TYPE_UINT, GDK_TYPE_PIXBUF, G_TYPE_STRING,
+			G_TYPE_STRING);
 	_sequel_set_status(sequel, _("Not connected"));
 	gtk_widget_show_all(vbox);
 	if(_sequel_open_tab(sequel) != 0)
@@ -453,17 +454,18 @@ static void _console_window(Sequel * sequel)
 	/* columns */
 	renderer = gtk_cell_renderer_pixbuf_new();
 	column = gtk_tree_view_column_new_with_attributes("", renderer,
-			"pixbuf", 1, NULL);
+			"pixbuf", 3, NULL);
+	gtk_tree_view_column_set_sort_column_id(column, 2);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(sequel->lo_view), column);
 	renderer = gtk_cell_renderer_text_new();
 	column = gtk_tree_view_column_new_with_attributes(_("Timestamp"),
-			renderer, "text", 2, NULL);
+			renderer, "text", 1, NULL);
 	gtk_tree_view_column_set_sort_column_id(column, 0);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(sequel->lo_view), column);
 	renderer = gtk_cell_renderer_text_new();
 	column = gtk_tree_view_column_new_with_attributes(_("Message"),
-			renderer, "text", 3, NULL);
-	gtk_tree_view_column_set_sort_column_id(column, 3);
+			renderer, "text", 4, NULL);
+	gtk_tree_view_column_set_sort_column_id(column, 4);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(sequel->lo_view), column);
 	gtk_container_add(GTK_CONTAINER(widget), sequel->lo_view);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, TRUE, TRUE, 0);
@@ -1044,8 +1046,8 @@ static void _sequel_log(Sequel * sequel, SequelLogType type,
 	icontheme = gtk_icon_theme_get_default();
 	pixbuf = gtk_icon_theme_load_icon(icontheme, icons[type],
 			GTK_ICON_SIZE_BUTTON, 0, NULL);
-	gtk_list_store_set(sequel->lo_store, &iter, 0, date, 1, pixbuf, 2, buf,
-			3, message, -1);
+	gtk_list_store_set(sequel->lo_store, &iter, 0, date, 1, buf, 2, type,
+			3, pixbuf, 4, message, -1);
 	g_object_unref(pixbuf);
 }
 
