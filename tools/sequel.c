@@ -43,6 +43,15 @@ static char const _license[] =
 /* Sequel */
 /* private */
 /* types */
+typedef enum _SequelLogType
+{
+	SLT_INFO = 0,
+	SLT_ERROR,
+	SLT_WARNING
+} SequelLogType;
+#define SLT_LAST SLT_WARNING
+#define SLT_COUNT (SLT_LAST + 1)
+
 typedef struct _SequelTab SequelTab;
 
 struct _Sequel
@@ -94,7 +103,8 @@ static void _sequel_set_status(Sequel * sequel, char const * status);
 
 
 /* useful */
-static void _sequel_log(Sequel * sequel, char const * message);
+static void _sequel_log(Sequel * sequel, SequelLogType type,
+		char const * message);
 
 static int _sequel_open_tab(Sequel * sequel);
 static void _sequel_close_all(Sequel * sequel);
@@ -312,8 +322,8 @@ Sequel * sequel_new(void)
 	gtk_container_add(GTK_CONTAINER(sequel->window), vbox);
 	/* error console */
 	sequel->lo_window = NULL;
-	sequel->lo_store = gtk_list_store_new(3, G_TYPE_UINT, G_TYPE_STRING,
-			G_TYPE_STRING);
+	sequel->lo_store = gtk_list_store_new(4, G_TYPE_UINT, GDK_TYPE_PIXBUF,
+			G_TYPE_STRING, G_TYPE_STRING);
 	_sequel_set_status(sequel, _("Not connected"));
 	gtk_widget_show_all(vbox);
 	if(_sequel_open_tab(sequel) != 0)
@@ -351,7 +361,7 @@ static void _sequel_set_status(Sequel * sequel, char const * status)
 	id = gtk_statusbar_get_context_id(statusbar, "");
 	gtk_statusbar_pop(statusbar, id);
 	gtk_statusbar_push(statusbar, id, status);
-	_sequel_log(sequel, status);
+	_sequel_log(sequel, SLT_INFO, status);
 }
 
 
@@ -383,7 +393,7 @@ int sequel_error(Sequel * sequel, char const * message, int ret)
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
 #endif
-	_sequel_log(sequel, message);
+	_sequel_log(sequel, SLT_ERROR, message);
 	return ret;
 }
 
@@ -441,15 +451,19 @@ static void _console_window(Sequel * sequel)
 	sequel->lo_view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(
 				sequel->lo_store));
 	/* columns */
+	renderer = gtk_cell_renderer_pixbuf_new();
+	column = gtk_tree_view_column_new_with_attributes("", renderer,
+			"pixbuf", 1, NULL);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(sequel->lo_view), column);
 	renderer = gtk_cell_renderer_text_new();
 	column = gtk_tree_view_column_new_with_attributes(_("Timestamp"),
-			renderer, "text", 1, NULL);
+			renderer, "text", 2, NULL);
 	gtk_tree_view_column_set_sort_column_id(column, 0);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(sequel->lo_view), column);
 	renderer = gtk_cell_renderer_text_new();
 	column = gtk_tree_view_column_new_with_attributes(_("Message"),
-			renderer, "text", 2, NULL);
-	gtk_tree_view_column_set_sort_column_id(column, 2);
+			renderer, "text", 3, NULL);
+	gtk_tree_view_column_set_sort_column_id(column, 3);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(sequel->lo_view), column);
 	gtk_container_add(GTK_CONTAINER(widget), sequel->lo_view);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, TRUE, TRUE, 0);
@@ -1011,19 +1025,28 @@ static int _sequel_load_dialog(Sequel * sequel)
 
 
 /* sequel_log */
-static void _sequel_log(Sequel * sequel, char const * message)
+static void _sequel_log(Sequel * sequel, SequelLogType type,
+		char const * message)
 {
 	GtkTreeIter iter;
 	time_t date;
 	struct tm t;
 	char buf[32];
+	const char * icons[SLT_COUNT] = { GTK_STOCK_DIALOG_INFO,
+		GTK_STOCK_DIALOG_WARNING, GTK_STOCK_DIALOG_ERROR };
+	GtkIconTheme * icontheme;
+	GdkPixbuf * pixbuf;
 
 	gtk_list_store_append(sequel->lo_store, &iter);
 	date = time(NULL);
 	localtime_r(&date, &t);
 	strftime(buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", &t);
-	gtk_list_store_set(sequel->lo_store, &iter, 0, date, 1, buf, 2, message,
-			-1);
+	icontheme = gtk_icon_theme_get_default();
+	pixbuf = gtk_icon_theme_load_icon(icontheme, icons[type],
+			GTK_ICON_SIZE_BUTTON, 0, NULL);
+	gtk_list_store_set(sequel->lo_store, &iter, 0, date, 1, pixbuf, 2, buf,
+			3, message, -1);
+	g_object_unref(pixbuf);
 }
 
 
