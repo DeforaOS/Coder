@@ -234,6 +234,7 @@ static int _new_chooser(Simulator * simulator)
 	GtkWidget * dialog;
 	GtkWidget * vbox;
 	GtkWidget * hbox;
+	GtkWidget * combobox;
 	GtkWidget * dpi;
 	GtkWidget * width;
 	GtkWidget * height;
@@ -247,6 +248,22 @@ static int _new_chooser(Simulator * simulator)
 #else
 	vbox = GTK_DIALOG(dialog)->vbox;
 #endif
+	gtk_box_set_spacing(GTK_BOX(vbox), 4);
+	/* profile */
+	hbox = gtk_hbox_new(FALSE, 4);
+	widget = gtk_label_new(_("Profile: "));
+	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+#if GTK_CHECK_VERSION(2, 24, 0)
+	combobox = gtk_combo_box_text_new();
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(combobox),
+			_("Custom profile"));
+#else
+	combobox = gtk_combo_box_new_text();
+	gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), _("Custom profile"));
+#endif
+	gtk_combo_box_set_active(GTK_COMBO_BOX(combobox), 0);
+	gtk_box_pack_end(GTK_BOX(hbox), combobox, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* dpi */
 	hbox = gtk_hbox_new(FALSE, 4);
 	widget = gtk_label_new(_("Resolution: "));
