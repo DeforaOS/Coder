@@ -171,6 +171,10 @@ Simulator * simulator_new(SimulatorPrefs * prefs)
 	simulator->pid = -1;
 	simulator->source = 0;
 	simulator->window = NULL;
+	/* set default values */
+	simulator->dpi = 96;
+	simulator->width = 640;
+	simulator->height = 480;
 	if(prefs != NULL && prefs->chooser != 0)
 	{
 		if(_new_chooser(simulator) != 0)
@@ -248,7 +252,7 @@ static int _new_chooser(Simulator * simulator)
 	widget = gtk_label_new("Resolution: ");
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	dpi = gtk_spin_button_new_with_range(48.0, 300.0, 1.0);
-	gtk_spin_button_set_value(GTK_SPIN_BUTTON(dpi), 96.0);
+	gtk_spin_button_set_value(GTK_SPIN_BUTTON(dpi), simulator->dpi);
 	gtk_box_pack_end(GTK_BOX(hbox), dpi, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* width */
@@ -256,7 +260,7 @@ static int _new_chooser(Simulator * simulator)
 	widget = gtk_label_new("Width: ");
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	width = gtk_spin_button_new_with_range(120, 1600, 1.0);
-	gtk_spin_button_set_value(GTK_SPIN_BUTTON(width), 640.0);
+	gtk_spin_button_set_value(GTK_SPIN_BUTTON(width), simulator->width);
 	gtk_box_pack_end(GTK_BOX(hbox), width, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* height */
@@ -264,7 +268,7 @@ static int _new_chooser(Simulator * simulator)
 	widget = gtk_label_new("Height: ");
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	height = gtk_spin_button_new_with_range(120, 1600, 1.0);
-	gtk_spin_button_set_value(GTK_SPIN_BUTTON(height), 480.0);
+	gtk_spin_button_set_value(GTK_SPIN_BUTTON(height), simulator->height);
 	gtk_box_pack_end(GTK_BOX(hbox), height, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
@@ -294,10 +298,6 @@ static int _new_load(Simulator * simulator)
 	char const * q;
 	long l;
 
-	/* set default values */
-	simulator->dpi = 96;
-	simulator->width = 640;
-	simulator->height = 480;
 	/* load the selected model */
 	config = config_new();
 	p = string_new_append(DATADIR "/" PACKAGE "/Simulator/models/", model,
