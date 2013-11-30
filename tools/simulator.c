@@ -149,7 +149,8 @@ Simulator * simulator_new(char const * model, char const * title)
 	simulator->source = 0;
 	simulator->window = NULL;
 	/* check for errors */
-	if(model != NULL && simulator->model == NULL)
+	if((model != NULL && simulator->model == NULL)
+			|| (title != NULL && simulator->title == NULL))
 	{
 		simulator_delete(simulator);
 		return NULL;
