@@ -131,6 +131,7 @@ static const DesktopMenubar _simulator_menubar[] =
 /* public */
 /* functions */
 /* simulator_new */
+static int _new_chooser(Simulator * simulator);
 static int _new_load(Simulator * simulator);
 /* callbacks */
 static gboolean _new_xephyr(gpointer data);
@@ -170,9 +171,18 @@ Simulator * simulator_new(SimulatorPrefs * prefs)
 	simulator->pid = -1;
 	simulator->source = 0;
 	simulator->window = NULL;
-	/* load the configuration */
-	/* XXX no longer ignore errors */
-	_new_load(simulator);
+	if(prefs != NULL && prefs->chooser != 0)
+	{
+		if(_new_chooser(simulator) != 0)
+		{
+			simulator_delete(simulator);
+			return NULL;
+		}
+	}
+	else
+		/* load the configuration */
+		/* XXX no longer ignore errors */
+		_new_load(simulator);
 	/* widgets */
 	group = gtk_accel_group_new();
 	simulator->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -213,6 +223,65 @@ Simulator * simulator_new(SimulatorPrefs * prefs)
 	gtk_widget_show_all(simulator->window);
 	simulator->source = g_idle_add(_new_xephyr, simulator);
 	return simulator;
+}
+
+static int _new_chooser(Simulator * simulator)
+{
+	GtkWidget * dialog;
+	GtkWidget * vbox;
+	GtkWidget * hbox;
+	GtkWidget * dpi;
+	GtkWidget * width;
+	GtkWidget * height;
+	GtkWidget * widget;
+
+	dialog = gtk_dialog_new_with_buttons(_("Simulator properties"),
+			NULL, 0, GTK_STOCK_QUIT, GTK_RESPONSE_CLOSE,
+			GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+#if GTK_CHECK_VERSION(2, 14, 0)
+	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+#else
+	vbox = GTK_DIALOG(dialog)->vbox;
+#endif
+	/* dpi */
+	hbox = gtk_hbox_new(FALSE, 4);
+	widget = gtk_label_new("Resolution: ");
+	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	dpi = gtk_spin_button_new_with_range(48.0, 300.0, 1.0);
+	gtk_spin_button_set_value(GTK_SPIN_BUTTON(dpi), 96.0);
+	gtk_box_pack_end(GTK_BOX(hbox), dpi, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	/* width */
+	hbox = gtk_hbox_new(FALSE, 4);
+	widget = gtk_label_new("Width: ");
+	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	width = gtk_spin_button_new_with_range(120, 1600, 1.0);
+	gtk_spin_button_set_value(GTK_SPIN_BUTTON(width), 640.0);
+	gtk_box_pack_end(GTK_BOX(hbox), width, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	/* height */
+	hbox = gtk_hbox_new(FALSE, 4);
+	widget = gtk_label_new("Height: ");
+	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	height = gtk_spin_button_new_with_range(120, 1600, 1.0);
+	gtk_spin_button_set_value(GTK_SPIN_BUTTON(height), 480.0);
+	gtk_box_pack_end(GTK_BOX(hbox), height, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	gtk_widget_show_all(vbox);
+	if(gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK)
+	{
+		gtk_widget_destroy(dialog);
+		return -1;
+	}
+	gtk_widget_hide(dialog);
+	/* apply the values */
+	simulator->width = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(
+				width));
+	simulator->height = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(
+				height));
+	simulator->dpi = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(dpi));
+	gtk_widget_destroy(dialog);
+	return 0;
 }
 
 static int _new_load(Simulator * simulator)
