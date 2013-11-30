@@ -113,8 +113,8 @@ static int _error(char const * message, int ret)
 /* usage */
 static int _usage(void)
 {
-	fputs(_("Usage: " PROGNAME " [-n][-m model][-t title] [command]\n"
-"       " PROGNAME " -l\n"), stderr);
+	fprintf(stderr, _("Usage: %s [-n][-m model][-t title] [command]\n"
+"       %s -l\n"), PROGNAME, PROGNAME);
 	return 1;
 }
 
