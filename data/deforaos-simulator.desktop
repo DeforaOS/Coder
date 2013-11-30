@@ -2,7 +2,7 @@
 Name=Simulator
 Comment=A simulator for embedded devices
 TryExec=simulator
-Exec=simulator
+Exec=simulator -n
 Icon=stock_cell-phone
 Type=Application
 Categories=Development;IDE;GTK;
