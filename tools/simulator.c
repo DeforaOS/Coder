@@ -374,12 +374,16 @@ static void _simulator_on_file_quit(gpointer data)
 
 
 /* simulator_on_file_run */
+static void _run_on_choose_response(GtkWidget * widget, gint arg1,
+		gpointer data);
+
 static void _simulator_on_file_run(gpointer data)
 {
 	Simulator * simulator = data;
 	GtkWidget * dialog;
 	GtkWidget * vbox;
 	GtkWidget * hbox;
+	GtkWidget * entry;
 	GtkWidget * widget;
 	char const * command;
 	int res;
@@ -405,9 +409,18 @@ static void _simulator_on_file_run(gpointer data)
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);
 	widget = gtk_label_new("Command:");
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
-	widget = gtk_entry_new();
-	gtk_entry_set_activates_default(GTK_ENTRY(widget), TRUE);
-	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
+	entry = gtk_entry_new();
+	gtk_entry_set_activates_default(GTK_ENTRY(entry), TRUE);
+	gtk_box_pack_start(GTK_BOX(hbox), entry, TRUE, TRUE, 0);
+	widget = gtk_file_chooser_dialog_new("Run program...",
+			GTK_WINDOW(dialog),
+			GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL,
+			GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN,
+			GTK_RESPONSE_ACCEPT, NULL);
+	g_signal_connect(widget, "response", G_CALLBACK(
+				_run_on_choose_response), entry);
+	widget = gtk_file_chooser_button_new_with_dialog(widget);
+	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
 	res = gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_hide(dialog);
@@ -416,7 +429,7 @@ static void _simulator_on_file_run(gpointer data)
 		gtk_widget_destroy(dialog);
 		return;
 	}
-	command = gtk_entry_get_text(GTK_ENTRY(widget));
+	command = gtk_entry_get_text(GTK_ENTRY(entry));
 	if((argv[3] = strdup(command)) == NULL)
 		simulator_error(simulator, strerror(errno), 1);
 	else if(g_spawn_async(NULL, argv, envp, flags, NULL, NULL, NULL,
@@ -427,6 +440,17 @@ static void _simulator_on_file_run(gpointer data)
 	}
 	free(argv[3]);
 	gtk_widget_destroy(dialog);
+}
+
+static void _run_on_choose_response(GtkWidget * widget, gint arg1,
+		gpointer data)
+{
+	GtkWidget * entry = data;
+
+	if(arg1 != GTK_RESPONSE_ACCEPT)
+		return;
+	gtk_entry_set_text(GTK_ENTRY(entry), gtk_file_chooser_get_filename(
+				GTK_FILE_CHOOSER(widget)));
 }
 
 
