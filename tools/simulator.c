@@ -38,6 +38,9 @@ static char const _license[] =
 #define N_(string) (string)
 
 /* constants */
+#ifndef PROGNAME
+# define PROGNAME	"simulator"
+#endif
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
 #endif
@@ -311,7 +314,7 @@ int simulator_error(Simulator * simulator, char const * message, int ret)
 
 static int _error_text(char const * message, int ret)
 {
-	fprintf(stderr, "%s: %s\n", "simulator", message);
+	fprintf(stderr, PROGNAME ": %s\n", message);
 	return ret;
 }
 
@@ -502,5 +505,5 @@ static void _simulator_on_help_about(gpointer data)
 /* simulator_on_help_contents */
 static void _simulator_on_help_contents(gpointer data)
 {
-	desktop_help_contents(PACKAGE, "simulator");
+	desktop_help_contents(PACKAGE, PROGNAME);
 }

@@ -28,6 +28,9 @@
 #define _(string) gettext(string)
 
 /* constants */
+#ifndef PROGNAME
+# define PROGNAME	"simulator"
+#endif
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
 #endif
@@ -55,7 +58,7 @@ static int _simulator(char const * model, char const * title)
 	Simulator * simulator;
 
 	if((simulator = simulator_new(model, title)) == NULL)
-		return error_print("simulator");
+		return error_print(PROGNAME);
 	gtk_main();
 	simulator_delete(simulator);
 	return 0;
@@ -101,7 +104,7 @@ static int _simulator_list(void)
 /* error */
 static int _error(char const * message, int ret)
 {
-	fputs("simulator: ", stderr);
+	fputs(PROGNAME ": ", stderr);
 	perror(message);
 	return ret;
 }
@@ -110,8 +113,8 @@ static int _error(char const * message, int ret)
 /* usage */
 static int _usage(void)
 {
-	fputs(_("Usage: simulator [-m model][-t title]\n"
-"       simulator -l\n"), stderr);
+	fputs(_("Usage: " PROGNAME " [-m model][-t title]\n"
+"       " PROGNAME " -l\n"), stderr);
 	return 1;
 }
 
@@ -126,7 +129,8 @@ int main(int argc, char * argv[])
 	char const * model = NULL;
 	char const * title = NULL;
 
-	setlocale(LC_ALL, "");
+	if(setlocale(LC_ALL, "") == NULL)
+		_error("setlocale", 1);
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
