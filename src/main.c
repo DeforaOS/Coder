@@ -24,6 +24,9 @@
 #define _(string) gettext(string)
 
 /* constants */
+#ifndef PROGNAME
+# define PROGNAME	"coder"
+#endif
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
 #endif
@@ -35,11 +38,25 @@
 #endif
 
 
+/* prototypes */
+static int _error(char const * message, int ret);
+static int _usage(void);
+
+
 /* functions */
+/* error */
+static int _error(char const * message, int ret)
+{
+	fprintf(stderr, "%s: ", PROGNAME);
+	perror(message);
+	return ret;
+}
+
+
 /* usage */
 static int _usage(void)
 {
-	fputs(_("Usage: coder\n"), stderr);
+	fprintf(stderr, _("Usage: %s\n"), PROGNAME);
 	return 1;
 }
 
@@ -52,7 +69,8 @@ int main(int argc, char * argv[])
 	int o;
 	Coder * coder;
 
-	setlocale(LC_ALL, "");
+	if(setlocale(LC_ALL, "") == NULL)
+		_error("setlocale", 1);
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
@@ -62,6 +80,8 @@ int main(int argc, char * argv[])
 			default:
 				return _usage();
 		}
+	if(optind != argc)
+		return _usage();
 	if((coder = coder_new()) == NULL)
 		return 2;
 	gtk_main();
