@@ -249,7 +249,7 @@ static int _new_chooser(Simulator * simulator)
 #endif
 	/* dpi */
 	hbox = gtk_hbox_new(FALSE, 4);
-	widget = gtk_label_new("Resolution: ");
+	widget = gtk_label_new(_("Resolution: "));
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	dpi = gtk_spin_button_new_with_range(48.0, 300.0, 1.0);
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(dpi), simulator->dpi);
@@ -257,7 +257,7 @@ static int _new_chooser(Simulator * simulator)
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* width */
 	hbox = gtk_hbox_new(FALSE, 4);
-	widget = gtk_label_new("Width: ");
+	widget = gtk_label_new(_("Width: "));
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	width = gtk_spin_button_new_with_range(120, 1600, 1.0);
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(width), simulator->width);
@@ -265,7 +265,7 @@ static int _new_chooser(Simulator * simulator)
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* height */
 	hbox = gtk_hbox_new(FALSE, 4);
-	widget = gtk_label_new("Height: ");
+	widget = gtk_label_new(_("Height: "));
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	height = gtk_spin_button_new_with_range(120, 1600, 1.0);
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(height), simulator->height);
