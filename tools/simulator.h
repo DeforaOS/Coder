@@ -28,10 +28,13 @@ typedef struct _Simulator Simulator;
 /* public */
 /* functions */
 /* essential */
-Simulator * simulator_new(char const * model, char const * title);
+Simulator * simulator_new(char const * model, char const * title,
+		char const * command);
 void simulator_delete(Simulator * simulator);
 
 /* useful */
 int simulator_error(Simulator * simulator, char const * message, int ret);
+
+int simulator_run(Simulator * simulator, char const * command);
 
 #endif /* !CODER_SIMULATOR_H */

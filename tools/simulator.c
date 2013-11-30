@@ -59,6 +59,7 @@ struct _Simulator
 {
 	char * model;
 	char * title;
+	char * command;
 
 	int dpi;
 	int width;
@@ -86,6 +87,7 @@ static char const * _authors[] =
 static void _simulator_on_child_watch(GPid pid, gint status, gpointer data);
 static void _simulator_on_close(gpointer data);
 static gboolean _simulator_on_closex(gpointer data);
+static void _simulator_on_plug_added(gpointer data);
 
 static void _simulator_on_file_quit(gpointer data);
 static void _simulator_on_file_run(gpointer data);
@@ -133,7 +135,8 @@ static int _new_load(Simulator * simulator);
 /* callbacks */
 static gboolean _new_xephyr(gpointer data);
 
-Simulator * simulator_new(char const * model, char const * title)
+Simulator * simulator_new(char const * model, char const * title,
+		char const * command)
 {
 	Simulator * simulator;
 	GtkAccelGroup * group;
@@ -145,12 +148,14 @@ Simulator * simulator_new(char const * model, char const * title)
 		return NULL;
 	simulator->model = (model != NULL) ? strdup(model) : NULL;
 	simulator->title = (title != NULL) ? strdup(title) : NULL;
+	simulator->command = (command != NULL) ? strdup(command) : NULL;
 	simulator->pid = -1;
 	simulator->source = 0;
 	simulator->window = NULL;
 	/* check for errors */
 	if((model != NULL && simulator->model == NULL)
-			|| (title != NULL && simulator->title == NULL))
+			|| (title != NULL && simulator->title == NULL)
+			|| (command != NULL && simulator->command == NULL))
 	{
 		simulator_delete(simulator);
 		return NULL;
@@ -191,6 +196,8 @@ Simulator * simulator_new(char const * model, char const * title)
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* view */
 	simulator->socket = gtk_socket_new();
+	g_signal_connect_swapped(simulator->socket, "plug-added", G_CALLBACK(
+				_simulator_on_plug_added), simulator);
 	gtk_box_pack_start(GTK_BOX(vbox), simulator->socket, TRUE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(simulator->window), vbox);
 	gtk_widget_show_all(simulator->window);
@@ -285,6 +292,8 @@ void simulator_delete(Simulator * simulator)
 	}
 	if(simulator->window != NULL)
 		gtk_widget_destroy(simulator->window);
+	free(simulator->command);
+	free(simulator->title);
 	free(simulator->model);
 	object_delete(simulator);
 }
@@ -317,6 +326,57 @@ static int _error_text(char const * message, int ret)
 {
 	fprintf(stderr, PROGNAME ": %s\n", message);
 	return ret;
+}
+
+
+/* simulator_run */
+int simulator_run(Simulator * simulator, char const * command)
+{
+	char const display[] = "DISPLAY=";
+	char const display1[] = "DISPLAY=:1.0"; /* XXX may be wrong */
+	char * argv[] = { "/bin/sh", "run", "-c", NULL, NULL };
+	char ** envp = NULL;
+	size_t i;
+	char ** p;
+	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO | G_SPAWN_SEARCH_PATH;
+	GError * error = NULL;
+
+	/* prepare the arguments */
+	if((argv[3] = strdup(command)) == NULL)
+		return -simulator_error(simulator, strerror(errno), 1);
+	/* prepare the environment */
+	for(i = 0; environ[i] != NULL; i++)
+	{
+		if((p = realloc(envp, sizeof(*p) * (i + 2))) == NULL)
+			break;
+		envp = p;
+		envp[i + 1] = NULL;
+		if(strncmp(environ[i], display, sizeof(display) - 1) == 0)
+			envp[i] = strdup(display1);
+		else
+			envp[i] = strdup(environ[i]);
+		if(envp[i] == NULL)
+			break;
+	}
+	if(environ[i] != NULL)
+	{
+		for(i = 0; envp[i] != NULL; i++)
+			free(envp[i]);
+		free(envp);
+		free(argv[3]);
+		return -simulator_error(simulator, strerror(errno), 1);
+	}
+	if(g_spawn_async(NULL, argv, envp, flags, NULL, NULL, NULL,
+				&error) == FALSE)
+	{
+		simulator_error(simulator, error->message, 1);
+		g_error_free(error);
+	}
+	for(i = 0; envp[i] != NULL; i++)
+		free(envp[i]);
+	free(envp);
+	free(argv[3]);
+	return 0;
 }
 
 
@@ -383,8 +443,6 @@ static void _run_on_choose_response(GtkWidget * widget, gint arg1,
 
 static void _simulator_on_file_run(gpointer data)
 {
-	char const display[] = "DISPLAY=";
-	char const display1[] = "DISPLAY=:1.0"; /* XXX may be wrong */
 	Simulator * simulator = data;
 	GtkWidget * dialog;
 	GtkWidget * vbox;
@@ -392,14 +450,8 @@ static void _simulator_on_file_run(gpointer data)
 	GtkWidget * entry;
 	GtkWidget * widget;
 	GtkFileFilter * filter;
-	char const * command;
 	int res;
-	char * argv[] = { "/bin/sh", "run", "-c", NULL, NULL };
-	char ** envp = NULL;
-	size_t i;
-	char ** p;
-	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO | G_SPAWN_SEARCH_PATH;
-	GError * error = NULL;
+	char const * command;
 
 	dialog = gtk_dialog_new_with_buttons("Run...",
 			GTK_WINDOW(simulator->window),
@@ -416,16 +468,20 @@ static void _simulator_on_file_run(gpointer data)
 #endif
 	hbox = gtk_hbox_new(FALSE, 4);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);
+	/* label */
 	widget = gtk_label_new("Command:");
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	/* entry */
 	entry = gtk_entry_new();
 	gtk_entry_set_activates_default(GTK_ENTRY(entry), TRUE);
 	gtk_box_pack_start(GTK_BOX(hbox), entry, TRUE, TRUE, 0);
+	/* file chooser */
 	widget = gtk_file_chooser_dialog_new("Run program...",
 			GTK_WINDOW(dialog),
 			GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL,
 			GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN,
 			GTK_RESPONSE_ACCEPT, NULL);
+	/* file chooser: file filters */
 	filter = gtk_file_filter_new();
 	gtk_file_filter_set_name(filter, "Executable files");
 	gtk_file_filter_add_mime_type(filter, "application/x-executable");
@@ -452,55 +508,14 @@ static void _simulator_on_file_run(gpointer data)
 	widget = gtk_file_chooser_button_new_with_dialog(widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
+	/* run the dialog */
 	res = gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_hide(dialog);
-	if(res != GTK_RESPONSE_ACCEPT)
+	if(res == GTK_RESPONSE_ACCEPT)
 	{
-		gtk_widget_destroy(dialog);
-		return;
+		command = gtk_entry_get_text(GTK_ENTRY(entry));
+		simulator_run(simulator, command);
 	}
-	/* prepare the arguments */
-	command = gtk_entry_get_text(GTK_ENTRY(entry));
-	if((argv[3] = strdup(command)) == NULL)
-	{
-		simulator_error(simulator, strerror(errno), 1);
-		gtk_widget_destroy(dialog);
-		return;
-	}
-	/* prepare the environment */
-	for(i = 0; environ[i] != NULL; i++)
-	{
-		if((p = realloc(envp, sizeof(*p) * (i + 2))) == NULL)
-			break;
-		envp = p;
-		envp[i + 1] = NULL;
-		if(strncmp(environ[i], display, sizeof(display) - 1) == 0)
-			envp[i] = strdup(display1);
-		else
-			envp[i] = strdup(environ[i]);
-		if(envp[i] == NULL)
-			break;
-	}
-	if(environ[i] != NULL)
-	{
-		for(i = 0; envp[i] != NULL; i++)
-			free(envp[i]);
-		free(envp);
-		free(argv[3]);
-		simulator_error(simulator, strerror(errno), 1);
-		gtk_widget_destroy(dialog);
-		return;
-	}
-	if(g_spawn_async(NULL, argv, envp, flags, NULL, NULL, NULL,
-				&error) == FALSE)
-	{
-		simulator_error(simulator, error->message, 1);
-		g_error_free(error);
-	}
-	for(i = 0; envp[i] != NULL; i++)
-		free(envp[i]);
-	free(envp);
-	free(argv[3]);
 	gtk_widget_destroy(dialog);
 }
 
@@ -543,4 +558,14 @@ static void _simulator_on_help_about(gpointer data)
 static void _simulator_on_help_contents(gpointer data)
 {
 	desktop_help_contents(PACKAGE, PROGNAME);
+}
+
+
+/* simulator_on_plug_added */
+static void _simulator_on_plug_added(gpointer data)
+{
+	Simulator * simulator = data;
+
+	if(simulator->command != NULL)
+		simulator_run(simulator, simulator->command);
 }

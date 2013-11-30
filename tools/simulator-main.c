@@ -44,7 +44,8 @@
 
 /* private */
 /* prototypes */
-static int _simulator(char const * model, char const * title);
+static int _simulator(char const * model, char const * title,
+		char const * command);
 static int _simulator_list(void);
 
 static int _error(char const * message, int ret);
@@ -53,11 +54,12 @@ static int _usage(void);
 
 /* functions */
 /* simulator */
-static int _simulator(char const * model, char const * title)
+static int _simulator(char const * model, char const * title,
+		char const * command)
 {
 	Simulator * simulator;
 
-	if((simulator = simulator_new(model, title)) == NULL)
+	if((simulator = simulator_new(model, title, command)) == NULL)
 		return error_print(PROGNAME);
 	gtk_main();
 	simulator_delete(simulator);
@@ -113,7 +115,7 @@ static int _error(char const * message, int ret)
 /* usage */
 static int _usage(void)
 {
-	fputs(_("Usage: " PROGNAME " [-m model][-t title]\n"
+	fputs(_("Usage: " PROGNAME " [-m model][-t title] [command]\n"
 "       " PROGNAME " -l\n"), stderr);
 	return 1;
 }
@@ -128,6 +130,7 @@ int main(int argc, char * argv[])
 	int list = 0;
 	char const * model = NULL;
 	char const * title = NULL;
+	char const * command = NULL;
 
 	if(setlocale(LC_ALL, "") == NULL)
 		_error("setlocale", 1);
@@ -149,9 +152,11 @@ int main(int argc, char * argv[])
 			default:
 				return _usage();
 		}
-	if(optind != argc)
+	if(optind + 1 == argc)
+		command = argv[optind];
+	else if(optind != argc)
 		return _usage();
 	if(list != 0)
 		return (_simulator_list() == 0) ? 0 : 2;
-	return (_simulator(model, title) == 0) ? 0 : 2;
+	return (_simulator(model, title, command) == 0) ? 0 : 2;
 }
