@@ -165,7 +165,8 @@ static const DesktopMenu _sequel_file_menu[] =
 	{ N_("New _tab"), G_CALLBACK(_sequel_on_file_new_tab), "tab-new",
 		GDK_CONTROL_MASK, GDK_KEY_T },
 	{ "", NULL, NULL, 0, 0 },
-	{ N_("C_onnect..."), G_CALLBACK(_sequel_on_file_connect), NULL, 0, 0 },
+	{ N_("C_onnect..."), G_CALLBACK(_sequel_on_file_connect), NULL,
+		GDK_CONTROL_MASK, GDK_KEY_O },
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("_Close"), G_CALLBACK(_sequel_on_file_close), GTK_STOCK_CLOSE,
 		GDK_CONTROL_MASK, GDK_KEY_W },
@@ -182,12 +183,14 @@ static const DesktopMenu _sequel_query_menu[] =
 		GTK_STOCK_EXECUTE, GDK_CONTROL_MASK, GDK_KEY_Return },
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("Load..."), G_CALLBACK(_sequel_on_query_load),
-		GTK_STOCK_OPEN, GDK_CONTROL_MASK, GDK_KEY_O },
+		GTK_STOCK_OPEN, GDK_CONTROL_MASK | GDK_SHIFT_MASK, GDK_KEY_O },
 	{ N_("Save as..."), G_CALLBACK(_sequel_on_query_save_as),
-		GTK_STOCK_SAVE_AS, GDK_CONTROL_MASK, GDK_KEY_S },
+		GTK_STOCK_SAVE_AS, GDK_CONTROL_MASK | GDK_SHIFT_MASK,
+		GDK_KEY_S },
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("Export..."), G_CALLBACK(_sequel_on_query_export),
-		"stock_insert-table", GDK_CONTROL_MASK, GDK_KEY_E },
+		"stock_insert-table", GDK_CONTROL_MASK | GDK_SHIFT_MASK,
+		GDK_KEY_E },
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
