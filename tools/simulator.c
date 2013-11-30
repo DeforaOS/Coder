@@ -14,8 +14,6 @@ static char const _license[] =
 "\n"
 "You should have received a copy of the GNU General Public License\n"
 "along with this program.  If not, see <http://www.gnu.org/licenses/>.";
-/* FIXME:
- * - add an interface to run commands within the underlying display */
 
 
 
