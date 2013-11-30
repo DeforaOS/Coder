@@ -24,12 +24,19 @@
 /* types */
 typedef struct _Simulator Simulator;
 
+typedef struct _SimulatorPrefs
+{
+	int chooser;
+	char const * model;
+	char const * title;
+	char const * command;
+} SimulatorPrefs;
+
 
 /* public */
 /* functions */
 /* essential */
-Simulator * simulator_new(char const * model, char const * title,
-		char const * command);
+Simulator * simulator_new(SimulatorPrefs * prefs);
 void simulator_delete(Simulator * simulator);
 
 /* useful */

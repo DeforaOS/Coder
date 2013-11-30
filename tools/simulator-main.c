@@ -44,8 +44,7 @@
 
 /* private */
 /* prototypes */
-static int _simulator(char const * model, char const * title,
-		char const * command);
+static int _simulator(SimulatorPrefs * prefs);
 static int _simulator_list(void);
 
 static int _error(char const * message, int ret);
@@ -54,12 +53,11 @@ static int _usage(void);
 
 /* functions */
 /* simulator */
-static int _simulator(char const * model, char const * title,
-		char const * command)
+static int _simulator(SimulatorPrefs * prefs)
 {
 	Simulator * simulator;
 
-	if((simulator = simulator_new(model, title, command)) == NULL)
+	if((simulator = simulator_new(prefs)) == NULL)
 		return error_print(PROGNAME);
 	gtk_main();
 	simulator_delete(simulator);
@@ -128,15 +126,17 @@ int main(int argc, char * argv[])
 {
 	int o;
 	int list = 0;
-	char const * model = NULL;
-	char const * title = NULL;
-	char const * command = NULL;
+	SimulatorPrefs prefs;
 
 	if(setlocale(LC_ALL, "") == NULL)
 		_error("setlocale", 1);
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
+	prefs.chooser = 0;
+	prefs.model = NULL;
+	prefs.title = NULL;
+	prefs.command = NULL;
 	while((o = getopt(argc, argv, "lm:t:")) != -1)
 		switch(o)
 		{
@@ -144,19 +144,19 @@ int main(int argc, char * argv[])
 				list = 1;
 				break;
 			case 'm':
-				model = optarg;
+				prefs.model = optarg;
 				break;
 			case 't':
-				title = optarg;
+				prefs.title = optarg;
 				break;
 			default:
 				return _usage();
 		}
 	if(optind + 1 == argc)
-		command = argv[optind];
+		prefs.command = argv[optind];
 	else if(optind != argc)
 		return _usage();
 	if(list != 0)
 		return (_simulator_list() == 0) ? 0 : 2;
-	return (_simulator(model, title, command) == 0) ? 0 : 2;
+	return (_simulator(&prefs) == 0) ? 0 : 2;
 }

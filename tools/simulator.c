@@ -135,8 +135,7 @@ static int _new_load(Simulator * simulator);
 /* callbacks */
 static gboolean _new_xephyr(gpointer data);
 
-Simulator * simulator_new(char const * model, char const * title,
-		char const * command)
+Simulator * simulator_new(SimulatorPrefs * prefs)
 {
 	Simulator * simulator;
 	GtkAccelGroup * group;
@@ -146,20 +145,31 @@ Simulator * simulator_new(char const * model, char const * title,
 
 	if((simulator = object_new(sizeof(*simulator))) == NULL)
 		return NULL;
-	simulator->model = (model != NULL) ? strdup(model) : NULL;
-	simulator->title = (title != NULL) ? strdup(title) : NULL;
-	simulator->command = (command != NULL) ? strdup(command) : NULL;
+	simulator->model = NULL;
+	simulator->title = NULL;
+	simulator->command = NULL;
+	if(prefs != NULL)
+	{
+		simulator->model = (prefs->model != NULL)
+			? strdup(prefs->model) : NULL;
+		simulator->title = (prefs->title != NULL)
+			? strdup(prefs->title) : NULL;
+		simulator->command = (prefs->command != NULL)
+			? strdup(prefs->command) : NULL;
+		/* check for errors */
+		if((prefs->model != NULL && simulator->model == NULL)
+				|| (prefs->title != NULL
+					&& simulator->title == NULL)
+				|| (prefs->command != NULL
+					&& simulator->command == NULL))
+		{
+			simulator_delete(simulator);
+			return NULL;
+		}
+	}
 	simulator->pid = -1;
 	simulator->source = 0;
 	simulator->window = NULL;
-	/* check for errors */
-	if((model != NULL && simulator->model == NULL)
-			|| (title != NULL && simulator->title == NULL)
-			|| (command != NULL && simulator->command == NULL))
-	{
-		simulator_delete(simulator);
-		return NULL;
-	}
 	/* load the configuration */
 	/* XXX no longer ignore errors */
 	_new_load(simulator);
