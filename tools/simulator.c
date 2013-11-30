@@ -18,6 +18,7 @@ static char const _license[] =
 
 
 #include <sys/wait.h>
+#include <dirent.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -132,6 +133,7 @@ static const DesktopMenubar _simulator_menubar[] =
 /* functions */
 /* simulator_new */
 static int _new_chooser(Simulator * simulator);
+static void _new_chooser_list(GtkWidget * widget);
 static int _new_load(Simulator * simulator);
 /* callbacks */
 static gboolean _new_xephyr(gpointer data);
@@ -262,6 +264,7 @@ static int _new_chooser(Simulator * simulator)
 	gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), _("Custom profile"));
 #endif
 	gtk_combo_box_set_active(GTK_COMBO_BOX(combobox), 0);
+	_new_chooser_list(combobox);
 	gtk_box_pack_end(GTK_BOX(hbox), combobox, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* dpi */
@@ -303,6 +306,36 @@ static int _new_chooser(Simulator * simulator)
 	simulator->dpi = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(dpi));
 	gtk_widget_destroy(dialog);
 	return 0;
+}
+
+static void _new_chooser_list(GtkWidget * widget)
+{
+	/* FIXME code duplicated from _simulator_list() */
+	char const models[] = DATADIR "/" PACKAGE "/Simulator/models";
+	char const ext[] = ".conf";
+	DIR * dir;
+	struct dirent * de;
+	size_t len;
+
+	if((dir = opendir(models)) == NULL)
+		return;
+	while((de = readdir(dir)) != NULL)
+	{
+		if(de->d_name[0] == '.')
+			continue;
+		if((len = strlen(de->d_name)) <= sizeof(ext))
+			continue;
+		if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
+			continue;
+		de->d_name[len - sizeof(ext) + 1] = '\0';
+#if GTK_CHECK_VERSION(2, 24, 0)
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(widget),
+				de->d_name);
+#else
+		gtk_combo_box_append_text(GTK_COMBO_BOX(widget), de->d_name);
+#endif
+	}
+	closedir(dir);
 }
 
 static int _new_load(Simulator * simulator)
