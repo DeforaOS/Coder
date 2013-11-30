@@ -51,6 +51,8 @@ static char const _license[] =
 # define DATADIR	PREFIX "/share"
 #endif
 
+extern char ** environ;
+
 
 /* Simulator */
 /* private */
@@ -383,6 +385,8 @@ static void _run_on_choose_response(GtkWidget * widget, gint arg1,
 
 static void _simulator_on_file_run(gpointer data)
 {
+	char const display[] = "DISPLAY=";
+	char const display1[] = "DISPLAY=:1.0"; /* XXX may be wrong */
 	Simulator * simulator = data;
 	GtkWidget * dialog;
 	GtkWidget * vbox;
@@ -393,7 +397,9 @@ static void _simulator_on_file_run(gpointer data)
 	char const * command;
 	int res;
 	char * argv[] = { "/bin/sh", "run", "-c", NULL, NULL };
-	char * envp[] = { "DISPLAY=:1.0", NULL };
+	char ** envp = NULL;
+	size_t i;
+	char ** p;
 	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO | G_SPAWN_SEARCH_PATH;
 	GError * error = NULL;
 
@@ -455,15 +461,47 @@ static void _simulator_on_file_run(gpointer data)
 		gtk_widget_destroy(dialog);
 		return;
 	}
+	/* prepare the arguments */
 	command = gtk_entry_get_text(GTK_ENTRY(entry));
 	if((argv[3] = strdup(command)) == NULL)
+	{
 		simulator_error(simulator, strerror(errno), 1);
-	else if(g_spawn_async(NULL, argv, envp, flags, NULL, NULL, NULL,
+		gtk_widget_destroy(dialog);
+		return;
+	}
+	/* prepare the environment */
+	for(i = 0; environ[i] != NULL; i++)
+	{
+		if((p = realloc(envp, sizeof(*p) * (i + 2))) == NULL)
+			break;
+		envp = p;
+		envp[i + 1] = NULL;
+		if(strncmp(environ[i], display, sizeof(display) - 1) == 0)
+			envp[i] = strdup(display1);
+		else
+			envp[i] = strdup(environ[i]);
+		if(envp[i] == NULL)
+			break;
+	}
+	if(environ[i] != NULL)
+	{
+		for(i = 0; envp[i] != NULL; i++)
+			free(envp[i]);
+		free(envp);
+		free(argv[3]);
+		simulator_error(simulator, strerror(errno), 1);
+		gtk_widget_destroy(dialog);
+		return;
+	}
+	if(g_spawn_async(NULL, argv, envp, flags, NULL, NULL, NULL,
 				&error) == FALSE)
 	{
 		simulator_error(simulator, error->message, 1);
 		g_error_free(error);
 	}
+	for(i = 0; envp[i] != NULL; i++)
+		free(envp[i]);
+	free(envp);
 	free(argv[3]);
 	gtk_widget_destroy(dialog);
 }
