@@ -155,7 +155,7 @@ void on_project_save_as(gpointer data)
 void on_tools_simulator(gpointer data)
 {
 	Coder * coder = data;
-	char * argv[] = { BINDIR "/simulator", "simulator", NULL };
+	char * argv[] = { BINDIR "/simulator", "simulator", "-n", NULL };
 	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO;
 	GError * error = NULL;
 
