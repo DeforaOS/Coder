@@ -113,7 +113,7 @@ static int _error(char const * message, int ret)
 /* usage */
 static int _usage(void)
 {
-	fputs(_("Usage: " PROGNAME " [-m model][-t title] [command]\n"
+	fputs(_("Usage: " PROGNAME " [-n][-m model][-t title] [command]\n"
 "       " PROGNAME " -l\n"), stderr);
 	return 1;
 }
@@ -137,7 +137,7 @@ int main(int argc, char * argv[])
 	prefs.model = NULL;
 	prefs.title = NULL;
 	prefs.command = NULL;
-	while((o = getopt(argc, argv, "lm:t:")) != -1)
+	while((o = getopt(argc, argv, "lm:nt:")) != -1)
 		switch(o)
 		{
 			case 'l':
@@ -145,6 +145,9 @@ int main(int argc, char * argv[])
 				break;
 			case 'm':
 				prefs.model = optarg;
+				break;
+			case 'n':
+				prefs.chooser = 1;
 				break;
 			case 't':
 				prefs.title = optarg;
