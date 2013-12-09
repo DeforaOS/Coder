@@ -34,6 +34,11 @@ static char const _license[] =
 #define _(string) gettext(string)
 #define N_(string) (string)
 
+/* constants */
+#ifndef PROGNAME
+# define PROGNAME	"sequel"
+#endif
+
 /* macros */
 #ifndef MIN
 # define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -403,7 +408,7 @@ int sequel_error(Sequel * sequel, char const * message, int ret)
 
 static int _error_text(char const * message, int ret)
 {
-	fprintf(stderr, "%s: %s\n", "sequel", message);
+	fprintf(stderr, PROGNAME ": %s\n", message);
 	return ret;
 }
 
@@ -1355,7 +1360,7 @@ static void _sequel_on_help_about(gpointer data)
 /* sequel_on_help_contents */
 static void _sequel_on_help_contents(gpointer data)
 {
-	desktop_help_contents(PACKAGE, "sequel");
+	desktop_help_contents(PACKAGE, PROGNAME);
 }
 
 
