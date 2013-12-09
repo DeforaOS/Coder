@@ -627,7 +627,7 @@ static void _simulator_on_file_run(gpointer data)
 	int res;
 	char const * command;
 
-	dialog = gtk_dialog_new_with_buttons("Run...",
+	dialog = gtk_dialog_new_with_buttons(_("Run..."),
 			GTK_WINDOW(simulator->window),
 			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
@@ -643,38 +643,38 @@ static void _simulator_on_file_run(gpointer data)
 	hbox = gtk_hbox_new(FALSE, 4);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);
 	/* label */
-	widget = gtk_label_new("Command:");
+	widget = gtk_label_new(_("Command:"));
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	/* entry */
 	entry = gtk_entry_new();
 	gtk_entry_set_activates_default(GTK_ENTRY(entry), TRUE);
 	gtk_box_pack_start(GTK_BOX(hbox), entry, TRUE, TRUE, 0);
 	/* file chooser */
-	widget = gtk_file_chooser_dialog_new("Run program...",
+	widget = gtk_file_chooser_dialog_new(_("Run program..."),
 			GTK_WINDOW(dialog),
 			GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL,
 			GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN,
 			GTK_RESPONSE_ACCEPT, NULL);
 	/* file chooser: file filters */
 	filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, "Executable files");
+	gtk_file_filter_set_name(filter, _("Executable files"));
 	gtk_file_filter_add_mime_type(filter, "application/x-executable");
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(widget), filter);
 	gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(widget), filter);
 	filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, "Perl scripts");
+	gtk_file_filter_set_name(filter, _("Perl scripts"));
 	gtk_file_filter_add_mime_type(filter, "application/x-perl");
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(widget), filter);
 	filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, "Python scripts");
+	gtk_file_filter_set_name(filter, _("Python scripts"));
 	gtk_file_filter_add_mime_type(filter, "text/x-python");
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(widget), filter);
 	filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, "Shell scripts");
+	gtk_file_filter_set_name(filter, _("Shell scripts"));
 	gtk_file_filter_add_mime_type(filter, "application/x-shellscript");
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(widget), filter);
 	filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, "All files");
+	gtk_file_filter_set_name(filter, _("All files"));
 	gtk_file_filter_add_pattern(filter, "*");
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(widget), filter);
 	g_signal_connect(widget, "response", G_CALLBACK(
