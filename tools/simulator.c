@@ -49,6 +49,9 @@ static char const _license[] =
 #ifndef DATADIR
 # define DATADIR	PREFIX "/share"
 #endif
+#ifndef MODELDIR
+# define MODELDIR	DATADIR "/" PACKAGE "/Simulator/models"
+#endif
 
 extern char ** environ;
 
@@ -322,7 +325,7 @@ static int _new_chooser(Simulator * simulator)
 static void _new_chooser_list(Simulator * simulator, GtkWidget * widget)
 {
 	/* FIXME code duplicated from _simulator_list() */
-	char const models[] = DATADIR "/" PACKAGE "/Simulator/models";
+	char const models[] = MODELDIR;
 	char const ext[] = ".conf";
 	DIR * dir;
 	struct dirent * de;
@@ -392,8 +395,7 @@ static int _new_load(Simulator * simulator, char const * model)
 		model = "default";
 	/* load the selected model */
 	config = config_new();
-	p = string_new_append(DATADIR "/" PACKAGE "/Simulator/models/", model,
-			".conf", NULL);
+	p = string_new_append(MODELDIR "/", model, ".conf", NULL);
 	if(config != NULL && p != NULL)
 		ret = config_load(config, p);
 	free(p);
@@ -411,10 +413,11 @@ static int _new_load(Simulator * simulator, char const * model)
 				&& (l = strtol(q, &p, 10)) > 0
 				&& q[0] != '\0' && *p == '\0')
 			simulator->height = l;
-		if(simulator->title == NULL
-				&& (q = config_get(config, NULL, "title"))
-				!= NULL)
+		free(simulator->title);
+		if((q = config_get(config, NULL, "title")) != NULL)
 			simulator->title = strdup(q);
+		else
+			simulator->title = NULL;
 	}
 	if(config != NULL)
 		config_delete(config);
@@ -564,14 +567,14 @@ static void _simulator_on_child_watch(GPid pid, gint status, gpointer data)
 	if(WIFEXITED(status))
 	{
 		if(WEXITSTATUS(status) != 0)
-			fprintf(stderr, "%s: %s%u\n", "Simulator",
+			fprintf(stderr, "%s: %s%u\n", PROGNAME,
 					_("Xephyr exited with status "),
 					WEXITSTATUS(status));
 		gtk_main_quit();
 	}
 	else if(WIFSIGNALED(status))
 	{
-		fprintf(stderr, "%s: %s%u\n", "Simulator",
+		fprintf(stderr, "%s: %s%u\n", PROGNAME,
 				_("Xephyr exited with signal "),
 				WTERMSIG(status));
 		gtk_main_quit();
