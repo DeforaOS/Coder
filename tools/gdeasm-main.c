@@ -36,6 +36,9 @@
 #define N_(string) (string)
 
 /* constants */
+#ifndef PROGNAME
+# define PROGNAME	"gdeasm"
+#endif
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
 #endif
@@ -51,6 +54,7 @@
 static int _gdeasm(char const * arch, char const * format,
 		char const * filename, char const * comments);
 
+static int _error(char const * message, int ret);
 static int _usage(void);
 
 
@@ -75,12 +79,20 @@ static int _gdeasm(char const * arch, char const * format,
 }
 
 
+/* error */
+static int _error(char const * message, int ret)
+{
+	fputs(PROGNAME ": ", stderr);
+	perror(message);
+	return ret;
+}
+
+
 /* usage */
 static int _usage(void)
 {
-	fputs(_("Usage: gdeasm [-C comments][-D][-a arch][-f format]"
-				" [filename]\n"),
-			stderr);
+	fprintf(stderr, _("Usage: %s [-C comments][-D][-a arch][-f format]"
+				" [filename]\n"), PROGNAME);
 	return 1;
 }
 
@@ -95,7 +107,8 @@ int main(int argc, char * argv[])
 	char const * comments = NULL;
 	char const * format = NULL;
 
-	setlocale(LC_ALL, "");
+	if(setlocale(LC_ALL, "") == NULL)
+		_error("setlocale", 1);
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
