@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Disassembler
+Comment=Assembly and disassembly application
+TryExec=gdeasm
+Exec=gdeasm %f
+Icon=applications-development
+Type=Application
+Categories=Development;IDE;GTK;
+StartupNotify=true

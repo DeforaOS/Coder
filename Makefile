@@ -23,6 +23,7 @@ dist:
 	@$(TAR) $(PACKAGE)-$(VERSION).tar.gz -- \
 		$(PACKAGE)-$(VERSION)/data/Makefile \
 		$(PACKAGE)-$(VERSION)/data/deforaos-coder.desktop \
+		$(PACKAGE)-$(VERSION)/data/deforaos-gdeasm.desktop \
 		$(PACKAGE)-$(VERSION)/data/deforaos-sequel.desktop \
 		$(PACKAGE)-$(VERSION)/data/deforaos-simulator.desktop \
 		$(PACKAGE)-$(VERSION)/data/project.conf \
