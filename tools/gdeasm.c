@@ -25,6 +25,7 @@ static char const _gdeasm_license[] =
 "OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF\n"
 "SUCH DAMAGE.";
 /* TODO:
+ * - implement the help contents (and assembly reference)
  * - (optionally) show a column with the hexadecimal disassembly
  * - allow new files to be created
  * - list registers available (combo box, on the fly)
