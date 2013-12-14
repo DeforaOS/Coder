@@ -146,9 +146,10 @@ static const DesktopMenubar _simulator_menubar[] =
 /* functions */
 /* simulator_new */
 static int _new_chooser(Simulator * simulator);
-static void _new_chooser_list(Simulator * simulator, GtkWidget * widget);
+static void _new_chooser_list(Simulator * simulator, GtkListStore * store);
 static void _new_chooser_on_changed(GtkWidget * widget, gpointer data);
 static int _new_load(Simulator * simulator, char const * model);
+static Config * _new_load_config(Simulator * simulator, char const * model);
 /* callbacks */
 static gboolean _new_xephyr(gpointer data);
 
@@ -253,7 +254,10 @@ static int _new_chooser(Simulator * simulator)
 	GtkWidget * dialog;
 	GtkWidget * vbox;
 	GtkWidget * hbox;
+	GtkListStore * store;
 	GtkWidget * combobox;
+	GtkTreeIter iter;
+	GtkCellRenderer * renderer;
 	GtkWidget * widget;
 	struct
 	{
@@ -277,16 +281,21 @@ static int _new_chooser(Simulator * simulator)
 	hbox = gtk_hbox_new(FALSE, 4);
 	widget = gtk_label_new(_("Profile: "));
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
-#if GTK_CHECK_VERSION(2, 24, 0)
-	combobox = gtk_combo_box_text_new();
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(combobox),
-			_("Custom profile"));
-#else
-	combobox = gtk_combo_box_new_text();
-	gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), _("Custom profile"));
-#endif
+	store = gtk_list_store_new(3, G_TYPE_STRING, GDK_TYPE_PIXBUF,
+			G_TYPE_STRING);
+	gtk_list_store_append(store, &iter);
+	gtk_list_store_set(store, &iter, 0, NULL, 2, _("Custom profile"), -1);
+	_new_chooser_list(simulator, store);
+	combobox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(store));
+	renderer = gtk_cell_renderer_pixbuf_new();
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(combobox), renderer, FALSE);
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(combobox), renderer,
+			"pixbuf", 1, NULL);
+	renderer = gtk_cell_renderer_text_new();
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(combobox), renderer, TRUE);
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(combobox), renderer,
+			"text", 2, NULL);
 	gtk_combo_box_set_active(GTK_COMBO_BOX(combobox), 0);
-	_new_chooser_list(simulator, combobox);
 	g_signal_connect(combobox, "changed", G_CALLBACK(
 				_new_chooser_on_changed), &data);
 	gtk_box_pack_end(GTK_BOX(hbox), combobox, FALSE, TRUE, 0);
@@ -335,9 +344,10 @@ static int _new_chooser(Simulator * simulator)
 	return 0;
 }
 
-static void _new_chooser_list(Simulator * simulator, GtkWidget * widget)
+static void _new_chooser_list(Simulator * simulator, GtkListStore * store)
 {
 	/* FIXME code duplicated from _simulator_list() */
+	GtkTreeIter iter;
 	char const models[] = MODELDIR;
 	char const ext[] = ".conf";
 	DIR * dir;
@@ -354,13 +364,11 @@ static void _new_chooser_list(Simulator * simulator, GtkWidget * widget)
 			continue;
 		if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
 			continue;
+		gtk_list_store_append(store, &iter);
 		de->d_name[len - sizeof(ext) + 1] = '\0';
-#if GTK_CHECK_VERSION(2, 24, 0)
-		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(widget),
-				de->d_name);
-#else
-		gtk_combo_box_append_text(GTK_COMBO_BOX(widget), de->d_name);
-#endif
+		_new_load(simulator, de->d_name);
+		gtk_list_store_set(store, &iter, 0, de->d_name, -1);
+		gtk_list_store_set(store, &iter, 2, simulator->title, -1);
 	}
 	closedir(dir);
 }
@@ -374,17 +382,15 @@ static void _new_chooser_on_changed(GtkWidget * widget, gpointer data)
 		GtkWidget * width;
 		GtkWidget * height;
 	} * d = data;
-	int active;
-	gchar * text;
+	GtkTreeIter iter;
+	GtkTreeModel * model;
+	gchar * name;
 
-	if((active = gtk_combo_box_get_active(GTK_COMBO_BOX(widget))) <= 0)
+	if(gtk_combo_box_get_active_iter(GTK_COMBO_BOX(widget), &iter) == FALSE)
 		return;
-#if GTK_CHECK_VERSION(2, 24, 0)
-	text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget));
-#else
-	text = gtk_combo_box_get_active_text(GTK_COMBO_BOX(widget));
-#endif
-	if(_new_load(d->simulator, text) == 0)
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(widget));
+	gtk_tree_model_get(model, &iter, 0, &name, -1);
+	if(_new_load(d->simulator, name) == 0)
 	{
 		gtk_spin_button_set_value(GTK_SPIN_BUTTON(d->dpi),
 				d->simulator->dpi);
@@ -393,48 +399,60 @@ static void _new_chooser_on_changed(GtkWidget * widget, gpointer data)
 		gtk_spin_button_set_value(GTK_SPIN_BUTTON(d->height),
 				d->simulator->height);
 	}
-	g_free(text);
+	g_free(name);
 }
 
 static int _new_load(Simulator * simulator, char const * model)
 {
-	int ret = -1;
+	Config * config;
+	char const * p;
+	char * q;
+	long l;
+
+	if((config = _new_load_config(simulator, model)) == NULL)
+		return -1;
+	if((p = config_get(config, NULL, "dpi")) != NULL
+			&& (l = strtol(p, &q, 10)) > 0
+			&& p[0] != '\0' && *q == '\0')
+		simulator->dpi = l;
+	if((p = config_get(config, NULL, "width")) != NULL
+			&& (l = strtol(p, &q, 10)) > 0
+			&& p[0] != '\0' && *q == '\0')
+		simulator->width = l;
+	if((p = config_get(config, NULL, "height")) != NULL
+			&& (l = strtol(p, &q, 10)) > 0
+			&& p[0] != '\0' && *q == '\0')
+		simulator->height = l;
+	free(simulator->title);
+	if((p = config_get(config, NULL, "title")) != NULL)
+		simulator->title = strdup(p);
+	else
+		simulator->title = NULL;
+	config_delete(config);
+	return 0;
+}
+
+static Config * _new_load_config(Simulator * simulator, char const * model)
+{
 	Config * config;
 	char * p;
-	char const * q;
-	long l;
+	int res = -1;
 
 	if(model == NULL)
 		model = "default";
 	/* load the selected model */
-	config = config_new();
+	if((config = config_new()) == NULL)
+		return NULL;
 	p = string_new_append(MODELDIR "/", model, ".conf", NULL);
-	if(config != NULL && p != NULL)
-		ret = config_load(config, p);
+	if(p != NULL)
+		res = config_load(config, p);
 	free(p);
-	if(ret == 0)
+	if(res != 0)
 	{
-		if((q = config_get(config, NULL, "dpi")) != NULL
-				&& (l = strtol(q, &p, 10)) > 0
-				&& q[0] != '\0' && *p == '\0')
-			simulator->dpi = l;
-		if((q = config_get(config, NULL, "width")) != NULL
-				&& (l = strtol(q, &p, 10)) > 0
-				&& q[0] != '\0' && *p == '\0')
-			simulator->width = l;
-		if((q = config_get(config, NULL, "height")) != NULL
-				&& (l = strtol(q, &p, 10)) > 0
-				&& q[0] != '\0' && *p == '\0')
-			simulator->height = l;
-		free(simulator->title);
-		if((q = config_get(config, NULL, "title")) != NULL)
-			simulator->title = strdup(q);
-		else
-			simulator->title = NULL;
-	}
-	if(config != NULL)
 		config_delete(config);
-	return ret;
+		return NULL;
+	}
+	return config;
 }
 
 static gboolean _new_xephyr(gpointer data)
