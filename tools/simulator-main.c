@@ -37,6 +37,9 @@
 #ifndef DATADIR
 # define DATADIR	PREFIX "/share"
 #endif
+#ifndef MODELDIR
+# define MODELDIR	DATADIR "/" PACKAGE "/Simulator/models"
+#endif
 #ifndef LOCALEDIR
 # define LOCALEDIR	DATADIR "/locale"
 #endif
@@ -69,7 +72,7 @@ static int _simulator(SimulatorPrefs * prefs)
 static int _simulator_list(void)
 {
 	int ret = 0;
-	char const models[] = DATADIR "/" PACKAGE "/Simulator/models";
+	char const models[] = MODELDIR;
 	char const ext[] = ".conf";
 	DIR * dir;
 	struct dirent * de;
