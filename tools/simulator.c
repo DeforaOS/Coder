@@ -59,6 +59,12 @@ extern char ** environ;
 /* Simulator */
 /* private */
 /* types */
+typedef struct _SimulatorChild
+{
+	unsigned int source;
+	GPid pid;
+} SimulatorChild;
+
 struct _Simulator
 {
 	char * model;
@@ -70,7 +76,10 @@ struct _Simulator
 	int height;
 
 	unsigned int source;
-	GPid pid;
+
+	SimulatorChild xephyr;
+	SimulatorChild * children;
+	size_t children_cnt;
 
 	/* widgets */
 	GtkWidget * window;
@@ -89,6 +98,7 @@ static char const * _authors[] =
 /* prototypes */
 /* callbacks */
 static void _simulator_on_child_watch(GPid pid, gint status, gpointer data);
+static void _simulator_on_children_watch(GPid pid, gint status, gpointer data);
 static void _simulator_on_close(gpointer data);
 static gboolean _simulator_on_closex(gpointer data);
 static void _simulator_on_plug_added(gpointer data);
@@ -174,7 +184,10 @@ Simulator * simulator_new(SimulatorPrefs * prefs)
 			return NULL;
 		}
 	}
-	simulator->pid = -1;
+	simulator->xephyr.source = 0;
+	simulator->xephyr.pid = -1;
+	simulator->children = NULL;
+	simulator->children_cnt = 0;
 	simulator->source = 0;
 	simulator->window = NULL;
 	/* set default values */
@@ -442,14 +455,15 @@ static gboolean _new_xephyr(gpointer data)
 	snprintf(dpi, sizeof(dpi), "%u", simulator->dpi);
 	argv[5] = dpi;
 	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL,
-				&simulator->pid, &error) == FALSE)
+				&simulator->xephyr.pid, &error) == FALSE)
 	{
 		simulator_error(simulator, error->message, 1);
 		g_error_free(error);
 	}
 	else
-		g_child_watch_add(simulator->pid, _simulator_on_child_watch,
-				simulator);
+		simulator->xephyr.source = g_child_watch_add(
+				simulator->xephyr.pid,
+				_simulator_on_child_watch, simulator);
 	return FALSE;
 }
 
@@ -457,12 +471,21 @@ static gboolean _new_xephyr(gpointer data)
 /* simulator_delete */
 void simulator_delete(Simulator * simulator)
 {
+	size_t i;
+
+	for(i = 0; i < simulator->children_cnt; i++)
+	{
+		g_source_remove(simulator->children[i].source);
+		g_spawn_close_pid(simulator->children[i].pid);
+	}
+	free(simulator->children);
 	if(simulator->source > 0)
 		g_source_remove(simulator->source);
-	if(simulator->pid > 0)
+	if(simulator->xephyr.pid > 0)
 	{
-		kill(simulator->pid, SIGTERM);
-		g_spawn_close_pid(simulator->pid);
+		kill(simulator->xephyr.pid, SIGTERM);
+		g_source_remove(simulator->xephyr.source);
+		g_spawn_close_pid(simulator->xephyr.pid);
 	}
 	if(simulator->window != NULL)
 		gtk_widget_destroy(simulator->window);
@@ -512,8 +535,11 @@ int simulator_run(Simulator * simulator, char const * command)
 	char ** envp = NULL;
 	size_t i;
 	char ** p;
-	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO | G_SPAWN_SEARCH_PATH;
+	GSpawnFlags flags = G_SPAWN_DO_NOT_REAP_CHILD
+		| G_SPAWN_SEARCH_PATH | G_SPAWN_FILE_AND_ARGV_ZERO;
+	GPid pid;
 	GError * error = NULL;
+	SimulatorChild * sc;
 
 	/* prepare the arguments */
 	if((argv[3] = strdup(command)) == NULL)
@@ -540,12 +566,24 @@ int simulator_run(Simulator * simulator, char const * command)
 		free(argv[3]);
 		return -simulator_error(simulator, strerror(errno), 1);
 	}
-	if(g_spawn_async(NULL, argv, envp, flags, NULL, NULL, NULL,
+	if(g_spawn_async(NULL, argv, envp, flags, NULL, NULL, &pid,
 				&error) == FALSE)
 	{
 		simulator_error(simulator, error->message, 1);
 		g_error_free(error);
 	}
+	else if((sc = realloc(simulator->children, sizeof(*sc)
+					* (simulator->children_cnt + 1)))
+			!= NULL)
+	{
+		simulator->children = sc;
+		sc = &simulator->children[simulator->children_cnt++];
+		sc->source = g_child_watch_add(pid,
+				_simulator_on_children_watch, simulator);
+		sc->pid = pid;
+	}
+	else
+		g_spawn_close_pid(pid);
 	for(i = 0; envp[i] != NULL; i++)
 		free(envp[i]);
 	free(envp);
@@ -561,23 +599,40 @@ int simulator_run(Simulator * simulator, char const * command)
 static void _simulator_on_child_watch(GPid pid, gint status, gpointer data)
 {
 	Simulator * simulator = data;
+	GError * error = NULL;
 
-	if(simulator->pid != pid)
+	if(simulator->xephyr.pid != pid)
 		return;
-	if(WIFEXITED(status))
+	if(g_spawn_check_exit_status(status, &error) == FALSE)
 	{
-		if(WEXITSTATUS(status) != 0)
-			fprintf(stderr, "%s: %s%u\n", PROGNAME,
-					_("Xephyr exited with status "),
-					WEXITSTATUS(status));
-		gtk_main_quit();
+		simulator_error(simulator, error->message, 1);
+		g_error_free(error);
 	}
-	else if(WIFSIGNALED(status))
+	g_spawn_close_pid(pid);
+}
+
+
+/* simulator_on_children_watch */
+static void _simulator_on_children_watch(GPid pid, gint status, gpointer data)
+{
+	Simulator * simulator = data;
+	GError * error = NULL;
+	size_t i;
+	size_t s = sizeof(*simulator->children);
+
+	if(g_spawn_check_exit_status(status, &error) == FALSE)
 	{
-		fprintf(stderr, "%s: %s%u\n", PROGNAME,
-				_("Xephyr exited with signal "),
-				WTERMSIG(status));
-		gtk_main_quit();
+		simulator_error(simulator, error->message, 1);
+		g_error_free(error);
+	}
+	g_spawn_close_pid(pid);
+	for(i = 0; i < simulator->children_cnt; i++)
+	{
+		if(simulator->children[i].pid != pid)
+			continue;
+		memmove(&simulator->children[i], &simulator->children[i + 1],
+				s * (--simulator->children_cnt - i));
+		break;
 	}
 }
 
