@@ -105,6 +105,7 @@ static void _simulator_on_plug_added(gpointer data);
 
 static void _simulator_on_file_quit(gpointer data);
 static void _simulator_on_file_run(gpointer data);
+static void _simulator_on_view_toggle_debugging_mode(gpointer data);
 static void _simulator_on_help_about(gpointer data);
 static void _simulator_on_help_contents(gpointer data);
 
@@ -118,6 +119,13 @@ static const DesktopMenu _simulator_file_menu[] =
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("_Close"), G_CALLBACK(_simulator_on_file_quit), GTK_STOCK_QUIT,
 		GDK_CONTROL_MASK, GDK_KEY_Q },
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
+static const DesktopMenu _simulator_view_menu[] =
+{
+	{ N_("_Rotate"), G_CALLBACK(_simulator_on_view_toggle_debugging_mode),
+		NULL, 0, 0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
@@ -137,6 +145,7 @@ static const DesktopMenu _simulator_help_menu[] =
 static const DesktopMenubar _simulator_menubar[] =
 {
 	{ N_("_File"), _simulator_file_menu },
+	{ N_("_View"), _simulator_view_menu },
 	{ N_("_Help"), _simulator_help_menu },
 	{ NULL, NULL }
 };
@@ -793,6 +802,15 @@ static void _run_on_choose_response(GtkWidget * widget, gint arg1,
 		return;
 	gtk_entry_set_text(GTK_ENTRY(entry), gtk_file_chooser_get_filename(
 				GTK_FILE_CHOOSER(widget)));
+}
+
+
+/* simulator_on_view_toggle_debugging_mode */
+static void _simulator_on_view_toggle_debugging_mode(gpointer data)
+{
+	Simulator * simulator = data;
+
+	kill(simulator->xephyr.pid, SIGUSR1);
 }
 
 
