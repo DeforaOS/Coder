@@ -353,6 +353,8 @@ static void _new_chooser_list(Simulator * simulator, GtkListStore * store)
 	DIR * dir;
 	struct dirent * de;
 	size_t len;
+	Config * config;
+	char const * title;
 
 	if((dir = opendir(models)) == NULL)
 		return;
@@ -364,11 +366,14 @@ static void _new_chooser_list(Simulator * simulator, GtkListStore * store)
 			continue;
 		if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
 			continue;
-		gtk_list_store_append(store, &iter);
 		de->d_name[len - sizeof(ext) + 1] = '\0';
-		_new_load(simulator, de->d_name);
-		gtk_list_store_set(store, &iter, 0, de->d_name, -1);
-		gtk_list_store_set(store, &iter, 2, simulator->title, -1);
+		if((config = _new_load_config(simulator, de->d_name)) == NULL)
+			continue;
+		if((title = config_get(config, NULL, "title")) == NULL)
+			title = de->d_name;
+		gtk_list_store_append(store, &iter);
+		gtk_list_store_set(store, &iter, 0, de->d_name, 2, title, -1);
+		config_delete(config);
 	}
 	closedir(dir);
 }
