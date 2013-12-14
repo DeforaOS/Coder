@@ -346,7 +346,7 @@ static int _new_chooser(Simulator * simulator)
 
 static void _new_chooser_list(Simulator * simulator, GtkListStore * store)
 {
-	/* FIXME code duplicated from _simulator_list() */
+	GtkIconTheme * icontheme;
 	GtkTreeIter iter;
 	char const models[] = MODELDIR;
 	char const ext[] = ".conf";
@@ -354,10 +354,12 @@ static void _new_chooser_list(Simulator * simulator, GtkListStore * store)
 	struct dirent * de;
 	size_t len;
 	Config * config;
-	char const * title;
+	char const * p;
+	GdkPixbuf * pixbuf = NULL;
 
 	if((dir = opendir(models)) == NULL)
 		return;
+	icontheme = gtk_icon_theme_get_default();
 	while((de = readdir(dir)) != NULL)
 	{
 		if(de->d_name[0] == '.')
@@ -369,10 +371,19 @@ static void _new_chooser_list(Simulator * simulator, GtkListStore * store)
 		de->d_name[len - sizeof(ext) + 1] = '\0';
 		if((config = _new_load_config(simulator, de->d_name)) == NULL)
 			continue;
-		if((title = config_get(config, NULL, "title")) == NULL)
-			title = de->d_name;
+		if((p = config_get(config, NULL, "icon")) != NULL)
+			pixbuf = gtk_icon_theme_load_icon(icontheme, p, 16, 0,
+					NULL);
+		if((p = config_get(config, NULL, "title")) == NULL)
+			p = de->d_name;
 		gtk_list_store_append(store, &iter);
-		gtk_list_store_set(store, &iter, 0, de->d_name, 2, title, -1);
+		gtk_list_store_set(store, &iter, 0, de->d_name, 1, pixbuf,
+				2, p, -1);
+		if(pixbuf != NULL)
+		{
+			g_object_unref(pixbuf);
+			pixbuf = NULL;
+		}
 		config_delete(config);
 	}
 	closedir(dir);
