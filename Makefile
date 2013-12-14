@@ -59,6 +59,7 @@ dist:
 		$(PACKAGE)-$(VERSION)/tools/simulator.h \
 		$(PACKAGE)-$(VERSION)/tools/project.conf \
 		$(PACKAGE)-$(VERSION)/tools/models/Makefile \
+		$(PACKAGE)-$(VERSION)/tools/models/htc-touchpro.conf \
 		$(PACKAGE)-$(VERSION)/tools/models/nokia-n800.conf \
 		$(PACKAGE)-$(VERSION)/tools/models/nokia-n9.conf \
 		$(PACKAGE)-$(VERSION)/tools/models/nokia-n900.conf \
