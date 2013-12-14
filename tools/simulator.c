@@ -348,6 +348,7 @@ static void _new_chooser_list(Simulator * simulator, GtkListStore * store)
 {
 	GtkIconTheme * icontheme;
 	GtkTreeIter iter;
+	int size = 16;
 	char const models[] = MODELDIR;
 	char const ext[] = ".conf";
 	DIR * dir;
@@ -360,6 +361,7 @@ static void _new_chooser_list(Simulator * simulator, GtkListStore * store)
 	if((dir = opendir(models)) == NULL)
 		return;
 	icontheme = gtk_icon_theme_get_default();
+	gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &size, &size);
 	while((de = readdir(dir)) != NULL)
 	{
 		if(de->d_name[0] == '.')
@@ -372,7 +374,7 @@ static void _new_chooser_list(Simulator * simulator, GtkListStore * store)
 		if((config = _new_load_config(simulator, de->d_name)) == NULL)
 			continue;
 		if((p = config_get(config, NULL, "icon")) != NULL)
-			pixbuf = gtk_icon_theme_load_icon(icontheme, p, 16, 0,
+			pixbuf = gtk_icon_theme_load_icon(icontheme, p, size, 0,
 					NULL);
 		if((p = config_get(config, NULL, "title")) == NULL)
 			p = de->d_name;
