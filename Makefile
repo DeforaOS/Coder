@@ -66,6 +66,22 @@ dist:
 		$(PACKAGE)-$(VERSION)/tools/models/openmoko-gta01.conf \
 		$(PACKAGE)-$(VERSION)/tools/models/openmoko-gta02.conf \
 		$(PACKAGE)-$(VERSION)/tools/models/project.conf \
+		$(PACKAGE)-$(VERSION)/tools/models/16x16/Makefile \
+		$(PACKAGE)-$(VERSION)/tools/models/16x16/simulator-nokia-n9.png \
+		$(PACKAGE)-$(VERSION)/tools/models/16x16/simulator-nokia-n900.png \
+		$(PACKAGE)-$(VERSION)/tools/models/16x16/project.conf \
+		$(PACKAGE)-$(VERSION)/tools/models/24x24/Makefile \
+		$(PACKAGE)-$(VERSION)/tools/models/24x24/simulator-nokia-n9.png \
+		$(PACKAGE)-$(VERSION)/tools/models/24x24/simulator-nokia-n900.png \
+		$(PACKAGE)-$(VERSION)/tools/models/24x24/project.conf \
+		$(PACKAGE)-$(VERSION)/tools/models/32x32/Makefile \
+		$(PACKAGE)-$(VERSION)/tools/models/32x32/simulator-nokia-n9.png \
+		$(PACKAGE)-$(VERSION)/tools/models/32x32/simulator-nokia-n900.png \
+		$(PACKAGE)-$(VERSION)/tools/models/32x32/project.conf \
+		$(PACKAGE)-$(VERSION)/tools/models/48x48/Makefile \
+		$(PACKAGE)-$(VERSION)/tools/models/48x48/simulator-nokia-n9.png \
+		$(PACKAGE)-$(VERSION)/tools/models/48x48/simulator-nokia-n900.png \
+		$(PACKAGE)-$(VERSION)/tools/models/48x48/project.conf \
 		$(PACKAGE)-$(VERSION)/Makefile \
 		$(PACKAGE)-$(VERSION)/COPYING \
 		$(PACKAGE)-$(VERSION)/config.h \
