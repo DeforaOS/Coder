@@ -16,9 +16,12 @@ install:
 	$(INSTALL) -m 0644 simulator-nokia-n9.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/simulator-nokia-n9.png
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps
 	$(INSTALL) -m 0644 simulator-nokia-n900.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/simulator-nokia-n900.png
+	$(MKDIR) $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps
+	$(INSTALL) -m 0644 simulator-openmoko-freerunner.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/simulator-openmoko-freerunner.png
 
 uninstall:
 	$(RM) -- $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/simulator-nokia-n9.png
 	$(RM) -- $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/simulator-nokia-n900.png
+	$(RM) -- $(DESTDIR)$(PREFIX)/share/icons/hicolor/32x32/apps/simulator-openmoko-freerunner.png
 
 .PHONY: all clean distclean install uninstall
