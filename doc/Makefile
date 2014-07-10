@@ -12,19 +12,19 @@ all: $(TARGETS)
 coder.1: coder.xml
 	./docbook.sh -P "$(PREFIX)" -- "coder.1"
 
-coder.html: coder.xml
+coder.html: coder.css.xml coder.xml manual.css.xml
 	./docbook.sh -P "$(PREFIX)" -- "coder.html"
 
 sequel.1: sequel.xml
 	./docbook.sh -P "$(PREFIX)" -- "sequel.1"
 
-sequel.html: sequel.xml
+sequel.html: manual.css.xml sequel.css.xml sequel.xml
 	./docbook.sh -P "$(PREFIX)" -- "sequel.html"
 
 simulator.1: simulator.xml
 	./docbook.sh -P "$(PREFIX)" -- "simulator.1"
 
-simulator.html: simulator.xml
+simulator.html: manual.css.xml simulator.css.xml simulator.xml
 	./docbook.sh -P "$(PREFIX)" -- "simulator.html"
 
 clean:
