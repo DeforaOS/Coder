@@ -101,7 +101,7 @@ static const DesktopMenu _coder_menu_project[] =
 		0, 0 },
 	{ N_("_Save project"), G_CALLBACK(on_project_save), GTK_STOCK_SAVE,
 		GDK_CONTROL_MASK, GDK_KEY_S },
-	{ N_("Save project _as..."), G_CALLBACK(on_project_save_as),
+	{ N_("Save project _As..."), G_CALLBACK(on_project_save_as),
 		GTK_STOCK_SAVE_AS, 0, 0 },
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("_Properties..."), G_CALLBACK(on_project_properties),

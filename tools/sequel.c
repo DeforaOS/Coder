@@ -175,7 +175,7 @@ static const DesktopMenu _sequel_file_menu[] =
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("_Close"), G_CALLBACK(_sequel_on_file_close), GTK_STOCK_CLOSE,
 		GDK_CONTROL_MASK, GDK_KEY_W },
-	{ N_("Close _all tabs"), G_CALLBACK(_sequel_on_file_close_all), NULL, 0,
+	{ N_("Close _All tabs"), G_CALLBACK(_sequel_on_file_close_all), NULL, 0,
 		0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
