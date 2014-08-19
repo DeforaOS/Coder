@@ -554,8 +554,13 @@ static int _open_code_section(GDeasm * gdeasm, AsmCode * code,
 	size_t calls_cnt = 0;
 	size_t i;
 
+#if GTK_CHECK_VERSION(2, 10, 0)
+	gtk_tree_store_insert_with_values(gdeasm->asm_store, &iter, NULL, -1,
+#else
 	gtk_tree_store_append(gdeasm->asm_store, &iter, NULL);
-	gtk_tree_store_set(gdeasm->asm_store, &iter, 1, section->name, -1);
+	gtk_tree_store_set(gdeasm->asm_store, &iter,
+#endif
+			1, section->name, -1);
 	if(asmcode_decode_section(code, section, &calls, &calls_cnt) != 0)
 		return -1;
 	for(i = 0; i < calls_cnt; i++)
@@ -596,11 +601,15 @@ static void _open_instruction(GDeasm * gdeasm, GtkTreeIter * parent,
 	AsmArchOperand * ao;
 	char const * name;
 
-	gtk_tree_store_append(gdeasm->asm_store, &iter, parent);
 	snprintf(buf, sizeof(buf), "%08lx", call->base);
-	gtk_tree_store_set(gdeasm->asm_store, &iter, GAC_ADDRESS, buf,
-			GAC_NAME, call->name, GAC_OFFSET, call->offset,
-			GAC_BASE, call->base, -1);
+#if GTK_CHECK_VERSION(2, 10, 0)
+	gtk_tree_store_insert_with_values(gdeasm->asm_store, &iter, parent, -1,
+#else
+	gtk_tree_store_append(gdeasm->asm_store, &iter, parent);
+	gtk_tree_store_set(gdeasm->asm_store, &iter,
+#endif
+			GAC_ADDRESS, buf, GAC_NAME, call->name,
+			GAC_OFFSET, call->offset, GAC_BASE, call->base, -1);
 	for(i = 0; i < call->operands_cnt; i++)
 	{
 		ao = &call->operands[i];
