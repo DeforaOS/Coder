@@ -841,9 +841,10 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 		g_list_free(l);
 	}
 	gtk_list_store_append(store, &iter);
-	for(i = 0; i < MIN(argc, COLUMN_CNT); i++)
-		/* XXX the data may not be valid UTF-8 */
-		gtk_list_store_set(store, &iter, i, argv[i], -1);
+	if(argv != NULL)
+		for(i = 0; i < MIN(argc, COLUMN_CNT); i++)
+			/* XXX the data may not be valid UTF-8 */
+			gtk_list_store_set(store, &iter, i, argv[i], -1);
 	return 0;
 }
 
