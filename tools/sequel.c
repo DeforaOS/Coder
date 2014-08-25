@@ -745,6 +745,8 @@ static void _connect_dialog_config_foreach(char const * section, void * data)
 /* sequel_execute */
 static int _execute_on_callback(void * data, int argc, char ** argv,
 		char ** columns);
+static GtkListStore * _execute_on_callback_store(GtkTreeView * view, int argc,
+		char ** columns);
 
 static int _sequel_execute(Sequel * sequel)
 {
@@ -785,60 +787,17 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 {
 	Sequel * sequel = data;
 	gint i;
-	GtkTreeView * view;
 	GtkListStore * store;
-	GList * l;
-	GtkCellRenderer * renderer;
-	GtkTreeViewColumn * c;
-	GtkWidget * widget;
-	GList * p;
+	GtkTreeView * view;
 	GtkTreeIter iter;
 
 	i = gtk_notebook_get_current_page(GTK_NOTEBOOK(sequel->notebook));
-	view = GTK_TREE_VIEW(sequel->tabs[i].view);
 	if((store = sequel->tabs[i].store) == NULL)
 	{
-		/* create the current store */
-		/* XXX no longer hard-code the number of columns */
-		sequel->tabs[i].store = gtk_list_store_new(COLUMN_CNT,
-				G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
-				G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
-				G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
-				G_TYPE_STRING);
+		view = GTK_TREE_VIEW(sequel->tabs[i].view);
+		sequel->tabs[i].store = _execute_on_callback_store(view, argc,
+				columns);
 		store = sequel->tabs[i].store;
-		gtk_tree_view_set_model(view, GTK_TREE_MODEL(store));
-		if((l = gtk_tree_view_get_columns(view)) == NULL)
-		{
-			/* create the rendering columns */
-			for(i = 0; i < COLUMN_CNT; i++)
-			{
-				renderer = gtk_cell_renderer_text_new();
-				c = gtk_tree_view_column_new_with_attributes("",
-						renderer, "text", i, NULL);
-				/* use our own label as the column title */
-				widget = gtk_label_new(NULL);
-				gtk_widget_show(widget);
-				gtk_tree_view_column_set_widget(c, widget);
-				gtk_tree_view_column_set_resizable(c, TRUE);
-				gtk_tree_view_column_set_sort_column_id(c, i);
-				gtk_tree_view_append_column(view, c);
-			}
-			l = gtk_tree_view_get_columns(view);
-		}
-		/* set the visible columns (and their respective title) */
-		for(p = l, i = 0; p != NULL && i < MIN(argc, COLUMN_CNT);
-				p = p->next, i++)
-		{
-			gtk_tree_view_column_set_title(p->data, columns[i]);
-			widget = gtk_tree_view_column_get_widget(p->data);
-			gtk_label_set_text(GTK_LABEL(widget), columns[i]);
-			gtk_tree_view_column_set_visible(p->data, TRUE);
-		}
-		/* hide the remaining columns */
-		for(; p != NULL && i < COLUMN_CNT; p = p->next, i++)
-			gtk_tree_view_column_set_visible(p->data, FALSE);
-		gtk_tree_view_columns_autosize(view);
-		g_list_free(l);
 	}
 	gtk_list_store_append(store, &iter);
 	if(argv != NULL)
@@ -846,6 +805,60 @@ static int _execute_on_callback(void * data, int argc, char ** argv,
 			/* XXX the data may not be valid UTF-8 */
 			gtk_list_store_set(store, &iter, i, argv[i], -1);
 	return 0;
+}
+
+static GtkListStore * _execute_on_callback_store(GtkTreeView * view, int argc,
+		char ** columns)
+{
+	GtkListStore * store;
+	GList * l;
+	GtkCellRenderer * renderer;
+	GtkTreeViewColumn * c;
+	GtkWidget * widget;
+	GList * p;
+	gint i;
+
+	/* create the current store */
+	/* XXX no longer hard-code the number of columns */
+	store = gtk_list_store_new(COLUMN_CNT,
+			G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
+			G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
+			G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
+			G_TYPE_STRING);
+	gtk_tree_view_set_model(view, GTK_TREE_MODEL(store));
+	if((l = gtk_tree_view_get_columns(view)) == NULL)
+	{
+		/* create the rendering columns */
+		for(i = 0; i < COLUMN_CNT; i++)
+		{
+			renderer = gtk_cell_renderer_text_new();
+			c = gtk_tree_view_column_new_with_attributes("",
+					renderer, "text", i, NULL);
+			/* use our own label as the column title */
+			widget = gtk_label_new(NULL);
+			gtk_widget_show(widget);
+			gtk_tree_view_column_set_widget(c, widget);
+			gtk_tree_view_column_set_resizable(c, TRUE);
+			gtk_tree_view_column_set_sort_column_id(c, i);
+			gtk_tree_view_append_column(view, c);
+		}
+		l = gtk_tree_view_get_columns(view);
+	}
+	/* set the visible columns (and their respective title) */
+	for(p = l, i = 0; p != NULL && i < MIN(argc, COLUMN_CNT);
+			p = p->next, i++)
+	{
+		gtk_tree_view_column_set_title(p->data, columns[i]);
+		widget = gtk_tree_view_column_get_widget(p->data);
+		gtk_label_set_text(GTK_LABEL(widget), columns[i]);
+		gtk_tree_view_column_set_visible(p->data, TRUE);
+	}
+	/* hide the remaining columns */
+	for(; p != NULL && i < COLUMN_CNT; p = p->next, i++)
+		gtk_tree_view_column_set_visible(p->data, FALSE);
+	gtk_tree_view_columns_autosize(view);
+	g_list_free(l);
+	return store;
 }
 
 
