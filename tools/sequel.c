@@ -1048,15 +1048,19 @@ static void _sequel_log(Sequel * sequel, SequelLogType type,
 	GtkIconTheme * icontheme;
 	GdkPixbuf * pixbuf;
 
-	gtk_list_store_append(sequel->lo_store, &iter);
 	date = time(NULL);
 	localtime_r(&date, &t);
 	strftime(buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", &t);
 	icontheme = gtk_icon_theme_get_default();
 	pixbuf = gtk_icon_theme_load_icon(icontheme, icons[type],
 			GTK_ICON_SIZE_BUTTON, 0, NULL);
-	gtk_list_store_set(sequel->lo_store, &iter, 0, date, 1, buf, 2, type,
-			3, pixbuf, 4, message, -1);
+#if GTK_CHECK_VERSION(2, 6, 0)
+	gtk_list_store_insert_with_values(sequel->lo_store, &iter, -1,
+#else
+	gtk_list_store_append(sequel->lo_store, &iter);
+	gtk_list_store_set(sequel->lo_store, &iter,
+#endif
+			0, date, 1, buf, 2, type, 3, pixbuf, 4, message, -1);
 	g_object_unref(pixbuf);
 }
 
