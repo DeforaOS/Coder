@@ -17,6 +17,7 @@ fr.mo: Coder.pot fr.po
 
 clean:
 	$(RM) -- $(Coder.pot_OBJS) $(fr.mo_OBJS)
+	./gettext.sh -c -P "$(PREFIX)" -- "Coder.pot"
 	./gettext.sh -c -P "$(PREFIX)" -- "fr.mo"
 
 distclean: clean

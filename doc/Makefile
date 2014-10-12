@@ -29,6 +29,11 @@ simulator.html: manual.css.xml simulator.css.xml simulator.xml
 
 clean:
 	$(RM) -- $(coder.1_OBJS) $(coder.html_OBJS) $(sequel.1_OBJS) $(sequel.html_OBJS) $(simulator.1_OBJS) $(simulator.html_OBJS)
+	./docbook.sh -c -P "$(PREFIX)" -- "coder.1"
+	./docbook.sh -c -P "$(PREFIX)" -- "coder.html"
+	./docbook.sh -c -P "$(PREFIX)" -- "sequel.1"
+	./docbook.sh -c -P "$(PREFIX)" -- "sequel.html"
+	./docbook.sh -c -P "$(PREFIX)" -- "simulator.1"
 	./docbook.sh -c -P "$(PREFIX)" -- "simulator.html"
 
 distclean: clean
