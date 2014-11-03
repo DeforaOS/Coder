@@ -1,4 +1,5 @@
-TARGETS	= coder.1 coder.html sequel.1 sequel.html simulator.1 simulator.html
+TARGETS	= $(OBJDIR)coder.1 $(OBJDIR)coder.html $(OBJDIR)sequel.1 $(OBJDIR)sequel.html $(OBJDIR)simulator.1 $(OBJDIR)simulator.html
+OBJDIR	=
 PREFIX	= /usr/local
 DESTDIR	=
 RM	= rm -f
@@ -9,23 +10,23 @@ INSTALL	= install
 
 all: $(TARGETS)
 
-coder.1: coder.xml
-	./docbook.sh -P "$(PREFIX)" -- "coder.1"
+$(OBJDIR)coder.1: coder.xml
+	./docbook.sh -P "$(PREFIX)" -- "$(OBJDIR)coder.1"
 
-coder.html: coder.css.xml coder.xml manual.css.xml
-	./docbook.sh -P "$(PREFIX)" -- "coder.html"
+$(OBJDIR)coder.html: coder.css.xml coder.xml manual.css.xml
+	./docbook.sh -P "$(PREFIX)" -- "$(OBJDIR)coder.html"
 
-sequel.1: sequel.xml
-	./docbook.sh -P "$(PREFIX)" -- "sequel.1"
+$(OBJDIR)sequel.1: sequel.xml
+	./docbook.sh -P "$(PREFIX)" -- "$(OBJDIR)sequel.1"
 
-sequel.html: manual.css.xml sequel.css.xml sequel.xml
-	./docbook.sh -P "$(PREFIX)" -- "sequel.html"
+$(OBJDIR)sequel.html: manual.css.xml sequel.css.xml sequel.xml
+	./docbook.sh -P "$(PREFIX)" -- "$(OBJDIR)sequel.html"
 
-simulator.1: simulator.xml
-	./docbook.sh -P "$(PREFIX)" -- "simulator.1"
+$(OBJDIR)simulator.1: simulator.xml
+	./docbook.sh -P "$(PREFIX)" -- "$(OBJDIR)simulator.1"
 
-simulator.html: manual.css.xml simulator.css.xml simulator.xml
-	./docbook.sh -P "$(PREFIX)" -- "simulator.html"
+$(OBJDIR)simulator.html: manual.css.xml simulator.css.xml simulator.xml
+	./docbook.sh -P "$(PREFIX)" -- "$(OBJDIR)simulator.html"
 
 clean:
 	$(RM) -- $(coder.1_OBJS) $(coder.html_OBJS) $(sequel.1_OBJS) $(sequel.html_OBJS) $(simulator.1_OBJS) $(simulator.html_OBJS)
@@ -40,12 +41,12 @@ distclean: clean
 	$(RM) -- $(TARGETS)
 
 install: $(TARGETS)
-	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "coder.1"
-	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "coder.html"
-	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "sequel.1"
-	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "sequel.html"
-	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "simulator.1"
-	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "simulator.html"
+	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "$(OBJDIR)coder.1"
+	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "$(OBJDIR)coder.html"
+	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "$(OBJDIR)sequel.1"
+	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "$(OBJDIR)sequel.html"
+	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "$(OBJDIR)simulator.1"
+	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -i -- "$(OBJDIR)simulator.html"
 
 uninstall:
 	./docbook.sh -P "$(DESTDIR)$(PREFIX)" -u -- "coder.1"

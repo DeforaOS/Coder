@@ -1,5 +1,6 @@
 SUBDIRS	= models
-TARGETS	= gdeasm sequel simulator
+TARGETS	= $(OBJDIR)gdeasm $(OBJDIR)sequel $(OBJDIR)simulator
+OBJDIR	=
 PREFIX	= /usr/local
 DESTDIR	=
 BINDIR	= $(PREFIX)/bin
@@ -21,44 +22,44 @@ all: subdirs $(TARGETS)
 subdirs:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE)) || exit; done
 
-gdeasm_OBJS = gdeasm.o gdeasm-main.o
+gdeasm_OBJS = $(OBJDIR)gdeasm.o $(OBJDIR)gdeasm-main.o
 gdeasm_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS) `pkg-config --cflags Asm`
 gdeasm_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs Asm`
 
-gdeasm: $(gdeasm_OBJS)
-	$(CC) -o gdeasm $(gdeasm_OBJS) $(gdeasm_LDFLAGS)
+$(OBJDIR)gdeasm: $(gdeasm_OBJS)
+	$(CC) -o $(OBJDIR)gdeasm $(gdeasm_OBJS) $(gdeasm_LDFLAGS)
 
-sequel_OBJS = sequel.o sequel-main.o
+sequel_OBJS = $(OBJDIR)sequel.o $(OBJDIR)sequel-main.o
 sequel_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS) `pkg-config --cflags libDatabase`
 sequel_LDFLAGS = $(LDFLAGSF) $(LDFLAGS) `pkg-config --libs libDatabase`
 
-sequel: $(sequel_OBJS)
-	$(CC) -o sequel $(sequel_OBJS) $(sequel_LDFLAGS)
+$(OBJDIR)sequel: $(sequel_OBJS)
+	$(CC) -o $(OBJDIR)sequel $(sequel_OBJS) $(sequel_LDFLAGS)
 
-simulator_OBJS = simulator.o simulator-main.o
+simulator_OBJS = $(OBJDIR)simulator.o $(OBJDIR)simulator-main.o
 simulator_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
 simulator_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
 
-simulator: $(simulator_OBJS)
-	$(CC) -o simulator $(simulator_OBJS) $(simulator_LDFLAGS)
+$(OBJDIR)simulator: $(simulator_OBJS)
+	$(CC) -o $(OBJDIR)simulator $(simulator_OBJS) $(simulator_LDFLAGS)
 
-gdeasm.o: gdeasm.c ../config.h
-	$(CC) $(gdeasm_CFLAGS) -c gdeasm.c
+$(OBJDIR)gdeasm.o: gdeasm.c ../config.h
+	$(CC) $(gdeasm_CFLAGS) -o $(OBJDIR)gdeasm.o -c gdeasm.c
 
-gdeasm-main.o: gdeasm-main.c
-	$(CC) $(gdeasm_CFLAGS) -c gdeasm-main.c
+$(OBJDIR)gdeasm-main.o: gdeasm-main.c
+	$(CC) $(gdeasm_CFLAGS) -o $(OBJDIR)gdeasm-main.o -c gdeasm-main.c
 
-sequel.o: sequel.c sequel.h
-	$(CC) $(sequel_CFLAGS) -c sequel.c
+$(OBJDIR)sequel.o: sequel.c sequel.h
+	$(CC) $(sequel_CFLAGS) -o $(OBJDIR)sequel.o -c sequel.c
 
-sequel-main.o: sequel-main.c sequel.h
-	$(CC) $(sequel_CFLAGS) -c sequel-main.c
+$(OBJDIR)sequel-main.o: sequel-main.c sequel.h
+	$(CC) $(sequel_CFLAGS) -o $(OBJDIR)sequel-main.o -c sequel-main.c
 
-simulator.o: simulator.c simulator.h ../config.h
-	$(CC) -D PREFIX=\"$(PREFIX)\" $(simulator_CFLAGS) -c simulator.c
+$(OBJDIR)simulator.o: simulator.c simulator.h ../config.h
+	$(CC) -D PREFIX=\"$(PREFIX)\" $(simulator_CFLAGS) -o $(OBJDIR)simulator.o -c simulator.c
 
-simulator-main.o: simulator-main.c simulator.h
-	$(CC) $(simulator_CFLAGS) -c simulator-main.c
+$(OBJDIR)simulator-main.o: simulator-main.c simulator.h
+	$(CC) $(simulator_CFLAGS) -o $(OBJDIR)simulator-main.o -c simulator-main.c
 
 clean:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) clean) || exit; done
@@ -72,11 +73,11 @@ distclean:
 install: $(TARGETS)
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) install) || exit; done
 	$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 gdeasm $(DESTDIR)$(BINDIR)/gdeasm
+	$(INSTALL) -m 0755 $(OBJDIR)gdeasm $(DESTDIR)$(BINDIR)/gdeasm
 	$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 sequel $(DESTDIR)$(BINDIR)/sequel
+	$(INSTALL) -m 0755 $(OBJDIR)sequel $(DESTDIR)$(BINDIR)/sequel
 	$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 simulator $(DESTDIR)$(BINDIR)/simulator
+	$(INSTALL) -m 0755 $(OBJDIR)simulator $(DESTDIR)$(BINDIR)/simulator
 
 uninstall:
 	@for i in $(SUBDIRS); do (cd "$$i" && $(MAKE) uninstall) || exit; done
