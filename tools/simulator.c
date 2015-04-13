@@ -654,6 +654,8 @@ static void _simulator_on_child_watch(GPid pid, gint status, gpointer data)
 		g_error_free(error);
 	}
 	g_spawn_close_pid(pid);
+	simulator->xephyr.pid = -1;
+	simulator->xephyr.source = 0;
 }
 
 
