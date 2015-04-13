@@ -493,6 +493,7 @@ static gboolean _new_xephyr(gpointer data)
 		| G_SPAWN_DO_NOT_REAP_CHILD;
 	GError * error = NULL;
 
+	simulator->source = 0;
 	/* launch Xephyr */
 	snprintf(parent, sizeof(parent), "%u", gtk_socket_get_id(
 				GTK_SOCKET(simulator->socket)));
