@@ -38,19 +38,22 @@ static char const _license[] =
 
 /* constants */
 #ifndef PROGNAME
-# define PROGNAME	"simulator"
+# define PROGNAME		"simulator"
+#endif
+#ifndef XEPHYR_PROGNAME
+# define XEPHYR_PROGNAME	"Xephyr"
 #endif
 #ifndef PREFIX
-# define PREFIX		"/usr/local"
+# define PREFIX			"/usr/local"
 #endif
 #ifndef BINDIR
-# define BINDIR		PREFIX "/bin"
+# define BINDIR			PREFIX "/bin"
 #endif
 #ifndef DATADIR
-# define DATADIR	PREFIX "/share"
+# define DATADIR		PREFIX "/share"
 #endif
 #ifndef MODELDIR
-# define MODELDIR	DATADIR "/" PACKAGE "/Simulator/models"
+# define MODELDIR		DATADIR "/" PACKAGE "/Simulator/models"
 #endif
 
 extern char ** environ;
@@ -485,8 +488,8 @@ static Config * _new_load_config(Simulator * simulator, char const * model)
 static gboolean _new_xephyr(gpointer data)
 {
 	Simulator * simulator = data;
-	char * argv[] = { BINDIR "/Xephyr", "Xephyr", "-parent", NULL,
-		"-dpi", NULL, ":1", NULL };
+	char * argv[] = { BINDIR "/" XEPHYR_PROGNAME, XEPHYR_PROGNAME,
+		"-parent", NULL, "-dpi", NULL, ":1", NULL };
 	char parent[16];
 	char dpi[16];
 	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO
