@@ -667,15 +667,35 @@ static void _simulator_on_child_watch(GPid pid, gint status, gpointer data)
 static void _simulator_on_children_watch(GPid pid, gint status, gpointer data)
 {
 	Simulator * simulator = data;
-	GError * error = NULL;
 	size_t i;
 	size_t s = sizeof(*simulator->children);
+#if GLIB_CHECK_VERSION(2, 34, 0)
+	GError * error = NULL;
 
 	if(g_spawn_check_exit_status(status, &error) == FALSE)
 	{
 		simulator_error(simulator, error->message, 1);
 		g_error_free(error);
 	}
+#else
+	char buf[64];
+
+	if(!(WIFEXITED(status) && WEXITSTATUS(status) == 0))
+	{
+		if(WIFEXITED(status))
+			snprintf(buf, sizeof(buf), "%s%d",
+					_("Child exited with error code "),
+					WEXITSTATUS(status));
+		else if(WIFSIGNALED(status))
+			snprintf(buf, sizeof(buf), "%s%d",
+					_("Child killed with signal "),
+					WTERMSIG(status));
+		else
+			snprintf(buf, sizeof(buf), "%s",
+					_("Child exited with an error"));
+		simulator_error(simulator, buf, 1);
+	}
+#endif
 	g_spawn_close_pid(pid);
 	for(i = 0; i < simulator->children_cnt; i++)
 	{
