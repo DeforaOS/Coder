@@ -163,15 +163,13 @@ static void _new_chooser_on_changed(GtkWidget * widget, gpointer data);
 static int _new_load(Simulator * simulator, char const * model);
 static Config * _new_load_config(Simulator * simulator, char const * model);
 /* callbacks */
-static gboolean _new_xephyr(gpointer data);
+static gboolean _new_on_idle(gpointer data);
+static gboolean _new_on_quit(gpointer data);
+static gboolean _new_on_xephyr(gpointer data);
 
 Simulator * simulator_new(SimulatorPrefs * prefs)
 {
 	Simulator * simulator;
-	GtkAccelGroup * group;
-	GtkWidget * vbox;
-	GtkWidget * widget;
-	char * p;
 
 	if((simulator = object_new(sizeof(*simulator))) == NULL)
 		return NULL;
@@ -216,48 +214,12 @@ Simulator * simulator_new(SimulatorPrefs * prefs)
 		}
 	}
 	else
+	{
 		/* load the configuration */
 		/* XXX no longer ignore errors */
 		_new_load(simulator, simulator->model);
-	/* widgets */
-	group = gtk_accel_group_new();
-	simulator->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-#if GTK_CHECK_VERSION(2, 6, 0)
-	gtk_window_set_icon_name(GTK_WINDOW(simulator->window),
-			"stock_cell-phone");
-#endif
-	gtk_widget_set_size_request(simulator->window, simulator->width,
-			simulator->height);
-	gtk_window_add_accel_group(GTK_WINDOW(simulator->window), group);
-	if(simulator->title == NULL || (p = string_new_append(_("Simulator - "),
-					simulator->title, NULL)) == NULL)
-		gtk_window_set_title(GTK_WINDOW(simulator->window),
-				_("Simulator"));
-	else
-	{
-		gtk_window_set_title(GTK_WINDOW(simulator->window), p);
-		free(p);
+		simulator->source = g_idle_add(_new_on_idle, simulator);
 	}
-	gtk_window_set_resizable(GTK_WINDOW(simulator->window), FALSE);
-	g_signal_connect_swapped(simulator->window, "delete-event", G_CALLBACK(
-				_simulator_on_closex), simulator);
-#if GTK_CHECK_VERSION(3, 0, 0)
-	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-#else
-	vbox = gtk_vbox_new(FALSE, 0);
-#endif
-	/* menubar */
-	widget = desktop_menubar_create(_simulator_menubar, simulator, group);
-	g_object_unref(group);
-	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
-	/* view */
-	simulator->socket = gtk_socket_new();
-	g_signal_connect_swapped(simulator->socket, "plug-added", G_CALLBACK(
-				_simulator_on_plug_added), simulator);
-	gtk_box_pack_start(GTK_BOX(vbox), simulator->socket, TRUE, TRUE, 0);
-	gtk_container_add(GTK_CONTAINER(simulator->window), vbox);
-	gtk_widget_show_all(simulator->window);
-	simulator->source = g_idle_add(_new_xephyr, simulator);
 	return simulator;
 }
 
@@ -342,7 +304,8 @@ static int _new_chooser(Simulator * simulator)
 	if(gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK)
 	{
 		gtk_widget_destroy(dialog);
-		return -1;
+		simulator->source = g_idle_add(_new_on_quit, simulator);
+		return 0;
 	}
 	gtk_widget_hide(dialog);
 	/* apply the values */
@@ -353,6 +316,7 @@ static int _new_chooser(Simulator * simulator)
 	simulator->height = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(
 				data.height));
 	gtk_widget_destroy(dialog);
+	simulator->source = g_idle_add(_new_on_idle, simulator);
 	return 0;
 }
 
@@ -485,7 +449,66 @@ static Config * _new_load_config(Simulator * simulator, char const * model)
 	return config;
 }
 
-static gboolean _new_xephyr(gpointer data)
+static gboolean _new_on_idle(gpointer data)
+{
+	Simulator * simulator = data;
+	GtkAccelGroup * group;
+	GtkWidget * vbox;
+	GtkWidget * widget;
+	char * p;
+
+	/* widgets */
+	group = gtk_accel_group_new();
+	simulator->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+#if GTK_CHECK_VERSION(2, 6, 0)
+	gtk_window_set_icon_name(GTK_WINDOW(simulator->window),
+			"stock_cell-phone");
+#endif
+	gtk_widget_set_size_request(simulator->window, simulator->width,
+			simulator->height);
+	gtk_window_add_accel_group(GTK_WINDOW(simulator->window), group);
+	if(simulator->title == NULL || (p = string_new_append(_("Simulator - "),
+					simulator->title, NULL)) == NULL)
+		gtk_window_set_title(GTK_WINDOW(simulator->window),
+				_("Simulator"));
+	else
+	{
+		gtk_window_set_title(GTK_WINDOW(simulator->window), p);
+		free(p);
+	}
+	gtk_window_set_resizable(GTK_WINDOW(simulator->window), FALSE);
+	g_signal_connect_swapped(simulator->window, "delete-event", G_CALLBACK(
+				_simulator_on_closex), simulator);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+#else
+	vbox = gtk_vbox_new(FALSE, 0);
+#endif
+	/* menubar */
+	widget = desktop_menubar_create(_simulator_menubar, simulator, group);
+	g_object_unref(group);
+	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+	/* view */
+	simulator->socket = gtk_socket_new();
+	g_signal_connect_swapped(simulator->socket, "plug-added", G_CALLBACK(
+				_simulator_on_plug_added), simulator);
+	gtk_box_pack_start(GTK_BOX(vbox), simulator->socket, TRUE, TRUE, 0);
+	gtk_container_add(GTK_CONTAINER(simulator->window), vbox);
+	gtk_widget_show_all(simulator->window);
+	simulator->source = g_idle_add(_new_on_xephyr, simulator);
+	return FALSE;
+}
+
+static gboolean _new_on_quit(gpointer data)
+{
+	Simulator * simulator = data;
+
+	simulator->source = 0;
+	gtk_main_quit();
+	return FALSE;
+}
+
+static gboolean _new_on_xephyr(gpointer data)
 {
 	Simulator * simulator = data;
 	char * argv[] = { BINDIR "/" XEPHYR_PROGNAME, XEPHYR_PROGNAME,
