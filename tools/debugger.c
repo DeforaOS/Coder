@@ -65,6 +65,7 @@ Debugger * debugger_new(void)
 	GtkWidget * paned;
 	GtkWidget * widget;
 	GtkListStore * store;
+	GtkTreeViewColumn * column;
 
 	if((debugger = object_new(sizeof(*debugger))) == NULL)
 		return NULL;
@@ -93,6 +94,12 @@ Debugger * debugger_new(void)
 			G_TYPE_STRING);	/* value */
 	debugger->reg_view = gtk_tree_view_new_with_model(
 			GTK_TREE_MODEL(store));
+	column = gtk_tree_view_column_new_with_attributes(_("Register"),
+			gtk_cell_renderer_text_new(), "text", 0, NULL);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(debugger->reg_view), column);
+	column = gtk_tree_view_column_new_with_attributes(_("Value"),
+			gtk_cell_renderer_text_new(), "text", 0, NULL);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(debugger->reg_view), column);
 	gtk_container_add(GTK_CONTAINER(widget), debugger->reg_view);
 	gtk_paned_add2(GTK_PANED(paned), widget);
 	gtk_paned_set_position(GTK_PANED(paned), 380);
