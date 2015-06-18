@@ -69,6 +69,7 @@ Debugger * debugger_new(void)
 	if((debugger = object_new(sizeof(*debugger))) == NULL)
 		return NULL;
 	debugger->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_default_size(GTK_WINDOW(debugger->window), 640, 480);
 	gtk_window_set_title(GTK_WINDOW(debugger->window), _("Debugger"));
 	g_signal_connect_swapped(debugger->window, "delete-event", G_CALLBACK(
 				_debugger_on_closex), debugger);
