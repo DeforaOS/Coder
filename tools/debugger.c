@@ -42,6 +42,8 @@ struct _Debugger
 	/* widgets */
 	GtkWidget * window;
 	/* toolbar */
+	/* disassembly */
+	GtkWidget * das_view;
 	/* registers */
 	GtkWidget * reg_view;
 };
@@ -75,6 +77,12 @@ Debugger * debugger_new(void)
 	/* toolbar */
 	/* view */
 	paned = gtk_hpaned_new();
+	/* assembly */
+	debugger->das_view = gtk_text_view_new();
+	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(debugger->das_view),
+			FALSE);
+	gtk_text_view_set_editable(GTK_TEXT_VIEW(debugger->das_view), FALSE);
+	gtk_paned_add1(GTK_PANED(paned), debugger->das_view);
 	/* registers */
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
@@ -85,7 +93,8 @@ Debugger * debugger_new(void)
 	debugger->reg_view = gtk_tree_view_new_with_model(
 			GTK_TREE_MODEL(store));
 	gtk_container_add(GTK_CONTAINER(widget), debugger->reg_view);
-	gtk_paned_add1(GTK_PANED(paned), widget);
+	gtk_paned_add2(GTK_PANED(paned), widget);
+	gtk_paned_set_position(GTK_PANED(paned), 380);
 	gtk_box_pack_start(GTK_BOX(vbox), paned, TRUE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(debugger->window), vbox);
 	gtk_widget_show_all(debugger->window);
