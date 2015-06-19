@@ -632,6 +632,7 @@ static void _debugger_on_child_watch(GPid pid, gint status, gpointer data)
 	if(g_spawn_check_exit_status(status, &error) == FALSE)
 	{
 		error_set_code(WEXITSTATUS(status), "%s", error->message);
+		g_error_free(error);
 		_debugger_error(debugger, error_get(), WEXITSTATUS(status));
 		g_spawn_close_pid(debugger->pid);
 		debugger->source = 0;
