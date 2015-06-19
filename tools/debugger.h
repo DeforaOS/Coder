@@ -42,13 +42,21 @@ typedef struct _Debugger Debugger;
 Debugger * debugger_new(void);
 void debugger_delete(Debugger * debugger);
 
+/* accessors */
+int debugger_is_opened(Debugger * debugger);
+int debugger_is_running(Debugger * debugger);
+
 /* useful */
 int debugger_open(Debugger * debugger, char const * arch, char const * format,
 		char const * filename);
 int debugger_open_dialog(Debugger * debugger, char const * arch,
 		char const * format);
+int debugger_close(Debugger * debugger);
 
+int debugger_continue(Debugger * debugger);
+int debugger_pause(Debugger * debugger);
 int debugger_run(Debugger * debugger, ...);
 int debugger_runv(Debugger * debugger, va_list ap);
+int debugger_stop(Debugger * debugger);
 
 #endif /* !CODER_DEBUGGER_H */
