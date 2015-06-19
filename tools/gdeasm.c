@@ -62,12 +62,6 @@ static char const _gdeasm_license[] =
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
 #endif
-#ifndef DATADIR
-# define DATADIR	PREFIX "/share"
-#endif
-#ifndef LOCALEDIR
-# define LOCALEDIR	DATADIR "/locale"
-#endif
 #ifndef LIBDIR
 # define LIBDIR		PREFIX "/lib"
 #endif
