@@ -68,7 +68,7 @@ struct _Debugger
 {
 	/* child */
 	char * filename;
-	pid_t pid;
+	GPid pid;
 	guint source;
 
 	/* widgets */
@@ -431,47 +431,31 @@ int debugger_run(Debugger * debugger, ...)
 
 
 /* debugger_runv */
-static int _runv_child(Debugger * debugger, va_list ap);
 static int _runv_parent(Debugger * debugger);
+/* callbacks */
+static void _runv_on_child_setup(gpointer data);
 
 int debugger_runv(Debugger * debugger, va_list ap)
 {
+	char * argv[3] = { NULL, NULL, NULL };
+	const unsigned int flags = G_SPAWN_DO_NOT_REAP_CHILD
+		| G_SPAWN_FILE_AND_ARGV_ZERO;
+	GError * error = NULL;
+
 	if(_debugger_confirm_reset(debugger) == FALSE)
 		return -1;
 	if(debugger_stop(debugger) != 0)
 		return -1;
-	if((debugger->pid = fork()) == -1)
+	argv[0] = debugger->filename;
+	argv[1] = debugger->filename;
+	if(g_spawn_async(NULL, argv, NULL, flags, _runv_on_child_setup,
+				debugger, &debugger->pid, &error) == FALSE)
 	{
-		error_set_code(-errno, "%s: %s", "fork", strerror(errno));
+		error_set_code(-errno, "%s", error->message);
+		g_error_free(error);
 		return -_debugger_error(debugger, error_get(), 1);
 	}
-	if(debugger->pid == 0)
-		return _runv_child(debugger, ap);
 	return _runv_parent(debugger);
-}
-
-static int _runv_child(Debugger * debugger, va_list ap)
-{
-	/* FIXME really implement */
-	char * argv[2] = { NULL, NULL };
-
-	argv[0] = debugger->filename;
-	errno = 0;
-	if(ptrace(PT_TRACE_ME, -1, NULL, (ptrace_data_t)0) == -1
-			&& errno != 0)
-	{
-		error_set_code(-errno, "%s: %s", "ptrace", strerror(errno));
-		_debugger_error(NULL, error_get(), 1);
-		_exit(125);
-	}
-	else
-	{
-		execvp(debugger->filename, argv);
-		error_set_code(-errno, "%s: %s", argv[0], strerror(errno));
-		_debugger_error(NULL, error_get(), 1);
-		_exit(127);
-	}
-	return 0;
 }
 
 static int _runv_parent(Debugger * debugger)
@@ -479,6 +463,20 @@ static int _runv_parent(Debugger * debugger)
 	debugger->source = g_child_watch_add(debugger->pid,
 			_debugger_on_child_watch, debugger);
 	return 0;
+}
+
+/* callbacks */
+static void _runv_on_child_setup(gpointer data)
+{
+	Debugger * debugger = data;
+
+	errno = 0;
+	if(ptrace(PT_TRACE_ME, -1, NULL, (ptrace_data_t)0) == -1
+			&& errno != 0)
+	{
+		_debugger_error(NULL, strerror(errno), 1);
+		_exit(125);
+	}
 }
 
 
