@@ -27,8 +27,11 @@ static char const _debugger_license[] =
 
 
 
+#include <sys/types.h>
+#include <sys/ptrace.h>
 #include <stdarg.h>
 #include <string.h>
+#include <errno.h>
 #include <libintl.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
@@ -46,11 +49,21 @@ static char const _debugger_license[] =
 #endif
 
 
+/* platform */
+#ifdef __NetBSD__
+typedef int ptrace_data_t;
+#endif
+
+
 /* Debugger */
 /* private */
 /* types */
 struct _Debugger
 {
+	/* child */
+	char * filename;
+	pid_t pid;
+
 	/* widgets */
 	GtkWidget * window;
 	/* toolbar */
@@ -62,12 +75,21 @@ struct _Debugger
 
 
 /* prototypes */
+static gboolean _debugger_confirm(Debugger * debugger, char const * message);
+static gboolean _debugger_confirm_close(Debugger * debugger);
+static gboolean _debugger_confirm_reset(Debugger * debugger);
+
+static int _debugger_error(Debugger * debugger, char const * message, int ret);
+
 /* callbacks */
 static void _debugger_on_close(gpointer data);
 static gboolean _debugger_on_closex(gpointer data);
 
+static void _debugger_on_continue(gpointer data);
 static void _debugger_on_open(gpointer data);
+static void _debugger_on_pause(gpointer data);
 static void _debugger_on_run(gpointer data);
+static void _debugger_on_stop(gpointer data);
 
 
 /* variables */
@@ -78,6 +100,13 @@ static DesktopToolbar _debugger_toolbar[] =
 	{ "", NULL, NULL, 0, 0, NULL },
 	{ N_("Run"), G_CALLBACK(_debugger_on_run), GTK_STOCK_EXECUTE, 0,
 		GDK_KEY_F10, NULL },
+	{ "", NULL, NULL, 0, 0, NULL },
+	{ N_("Continue"), G_CALLBACK(_debugger_on_continue),
+		GTK_STOCK_MEDIA_PLAY, 0, GDK_KEY_F9, NULL },
+	{ N_("Pause"), G_CALLBACK(_debugger_on_pause),
+		GTK_STOCK_MEDIA_PAUSE, 0, 0, NULL },
+	{ N_("Stop"), G_CALLBACK(_debugger_on_stop),
+		GTK_STOCK_MEDIA_STOP, 0, GDK_KEY_F11, NULL },
 	{ NULL, NULL, NULL, 0, 0, NULL }
 };
 
@@ -97,6 +126,10 @@ Debugger * debugger_new(void)
 
 	if((debugger = object_new(sizeof(*debugger))) == NULL)
 		return NULL;
+	/* child */
+	debugger->filename = NULL;
+	debugger->pid = -1;
+	/* widgets */
 	accel = gtk_accel_group_new();
 	debugger->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_add_accel_group(GTK_WINDOW(debugger->window), accel);
@@ -155,13 +188,55 @@ void debugger_delete(Debugger * debugger)
 }
 
 
+/* accessors */
+/* debugger_is_opened */
+int debugger_is_opened(Debugger * debugger)
+{
+	if(debugger_is_running(debugger))
+		return TRUE;
+	/* FIXME really implement */
+	return FALSE;
+}
+
+
+/* debugger_is_running */
+int debugger_is_running(Debugger * debugger)
+{
+	return (debugger->pid > 0) ? 1 : 0;
+}
+
+
 /* useful */
+/* debugger_close */
+int debugger_close(Debugger * debugger)
+{
+	if(debugger_is_opened(debugger) == FALSE)
+		return 0;
+	/* FIXME implement */
+	return error_set_code(-ENOSYS, "%s", strerror(ENOSYS));
+}
+
+
+/* debugger_continue */
+int debugger_continue(Debugger * debugger)
+{
+	if(debugger_is_running(debugger) == FALSE)
+		return 0;
+	ptrace(PT_CONTINUE, debugger->pid, (caddr_t)1, 0);
+	return 0;
+}
+
+
 /* debugger_open */
 int debugger_open(Debugger * debugger, char const * arch, char const * format,
 		char const * filename)
 {
+	if(_debugger_confirm_close(debugger) == FALSE)
+		return -1;
 	if(filename == NULL)
 		return debugger_open_dialog(debugger, arch, format);
+	if(debugger_close(debugger) != 0)
+		return -_debugger_error(debugger, error_get(), 1);
 	/* FIXME implement */
 	return -1;
 }
@@ -186,6 +261,8 @@ int debugger_open_dialog(Debugger * debugger, char const * arch,
 	char * f = NULL;
 	char * filename = NULL;
 
+	if(_debugger_confirm_close(debugger) == FALSE)
+		return -1;
 	dialog = gtk_file_chooser_dialog_new(_("Open file..."),
 			GTK_WINDOW(debugger->window),
 			GTK_FILE_CHOOSER_ACTION_OPEN,
@@ -301,6 +378,16 @@ static void _open_dialog_type(GtkWidget * combobox, char const * type,
 }
 
 
+/* debugger_pause */
+int debugger_pause(Debugger * debugger)
+{
+	if(debugger_is_running(debugger) == FALSE)
+		return 0;
+	/* FIXME implement */
+	return -1;
+}
+
+
 /* debugger_run */
 int debugger_run(Debugger * debugger, ...)
 {
@@ -315,10 +402,134 @@ int debugger_run(Debugger * debugger, ...)
 
 
 /* debugger_runv */
+static int _runv_child(Debugger * debugger, va_list ap);
+static int _runv_parent(Debugger * debugger);
+
 int debugger_runv(Debugger * debugger, va_list ap)
 {
+	if(_debugger_confirm_reset(debugger) == FALSE)
+		return -1;
+	if(debugger_stop(debugger) != 0)
+		return -1;
+	if((debugger->pid = fork()) == -1)
+	{
+		error_set_code(-errno, "%s: %s", "fork", strerror(errno));
+		return -_debugger_error(debugger, error_get(), 1);
+	}
+	if(debugger->pid == 0)
+		return _runv_child(debugger, ap);
+	return _runv_parent(debugger);
+}
+
+static int _runv_child(Debugger * debugger, va_list ap)
+{
+	/* FIXME really implement */
+	char * argv[2] = { NULL, NULL };
+
+	argv[0] = debugger->filename;
+	errno = 0;
+	if(ptrace(PT_TRACE_ME, -1, NULL, (ptrace_data_t)0) == -1
+			&& errno != 0)
+	{
+		error_set_code(-errno, "%s: %s", "ptrace", strerror(errno));
+		_debugger_error(NULL, error_get(), 1);
+		_exit(125);
+	}
+	else
+	{
+		execvp(debugger->filename, argv);
+		error_set_code(-errno, "%s: %s", argv[0], strerror(errno));
+		_debugger_error(NULL, error_get(), 1);
+		_exit(127);
+	}
+	return 0;
+}
+
+static int _runv_parent(Debugger * debugger)
+{
+	/* FIXME really implement */
+	return 0;
+}
+
+
+/* debugger_stop */
+int debugger_stop(Debugger * debugger)
+{
+	if(debugger_is_running(debugger) == FALSE)
+		return 0;
 	/* FIXME implement */
 	return -1;
+}
+
+
+/* private */
+/* functions */
+/* debugger_confirm */
+static gboolean _debugger_confirm(Debugger * debugger, char const * message)
+{
+	const unsigned int flags = GTK_DIALOG_MODAL
+		| GTK_DIALOG_DESTROY_WITH_PARENT;
+	GtkWidget * widget;
+	int res;
+
+	widget = gtk_message_dialog_new(GTK_WINDOW(debugger->window), flags,
+			GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO,
+#if GTK_CHECK_VERSION(2, 6, 0)
+			"%s", _("Question"));
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(widget),
+#endif
+			"%s", message);
+	gtk_window_set_title(GTK_WINDOW(widget), _("Question"));
+	res = gtk_dialog_run(GTK_DIALOG(widget));
+	gtk_widget_destroy(widget);
+	return (res == GTK_RESPONSE_YES) ? TRUE : FALSE;
+}
+
+
+/* debugger_confirm_close */
+static gboolean _debugger_confirm_close(Debugger * debugger)
+{
+	if(debugger_is_opened(debugger)
+			&& _debugger_confirm(debugger, _(
+					"A file is already opened.\n"
+					"Would you like to close it?\n"
+					"Any progress will be lost.")) == FALSE)
+		return FALSE;
+	return TRUE;
+}
+
+
+/* debugger_confirm_reset */
+static gboolean _debugger_confirm_reset(Debugger * debugger)
+{
+	if(debugger_is_running(debugger)
+			&& _debugger_confirm(debugger, _(
+					"A process is being debugged already\n"
+					"Would you like to restart it?\n"
+					"Any progress will be lost.")) == FALSE)
+		return FALSE;
+	return TRUE;
+}
+
+
+/* debugger_error */
+static int _debugger_error(Debugger * debugger, char const * message, int ret)
+{
+	const unsigned int flags = GTK_DIALOG_MODAL
+		| GTK_DIALOG_DESTROY_WITH_PARENT;
+	GtkWidget * widget;
+
+	widget = gtk_message_dialog_new(GTK_WINDOW(debugger->window), flags,
+			GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
+#if GTK_CHECK_VERSION(2, 6, 0)
+			"%s", _("Error"));
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(widget),
+#endif
+			"%s", message);
+	gtk_window_set_title(GTK_WINDOW(widget), _("Error"));
+	gtk_dialog_run(GTK_DIALOG(widget));
+	gtk_widget_destroy(widget);
+	return ret;
 }
 
 
@@ -343,6 +554,15 @@ static gboolean _debugger_on_closex(gpointer data)
 }
 
 
+/* debugger_on_continue */
+static void _debugger_on_continue(gpointer data)
+{
+	Debugger * debugger = data;
+
+	debugger_continue(debugger);
+}
+
+
 /* debugger_on_open */
 static void _debugger_on_open(gpointer data)
 {
@@ -352,10 +572,28 @@ static void _debugger_on_open(gpointer data)
 }
 
 
+/* debugger_on_pause */
+static void _debugger_on_pause(gpointer data)
+{
+	Debugger * debugger = data;
+
+	debugger_pause(debugger);
+}
+
+
 /* debugger_on_run */
 static void _debugger_on_run(gpointer data)
 {
 	Debugger * debugger = data;
 
 	debugger_run(debugger);
+}
+
+
+/* debugger_on_stop */
+static void _debugger_on_stop(gpointer data)
+{
+	Debugger * debugger = data;
+
+	debugger_stop(debugger);
 }
