@@ -32,6 +32,7 @@ static char const _debugger_license[] =
 #include <sys/wait.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <libintl.h>
@@ -43,6 +44,9 @@ static char const _debugger_license[] =
 #define _(string) gettext(string)
 #define N_(string) (string)
 
+#ifndef PROGNAME
+# define PROGNAME	"debugger"
+#endif
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
 #endif
@@ -539,12 +543,16 @@ static gboolean _debugger_confirm_reset(Debugger * debugger)
 
 
 /* debugger_error */
+static int _error_text(char const * message, int ret);
+
 static int _debugger_error(Debugger * debugger, char const * message, int ret)
 {
 	const unsigned int flags = GTK_DIALOG_MODAL
 		| GTK_DIALOG_DESTROY_WITH_PARENT;
 	GtkWidget * widget;
 
+	if(debugger == NULL)
+		return _error_text(message, ret);
 	widget = gtk_message_dialog_new(GTK_WINDOW(debugger->window), flags,
 			GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
 #if GTK_CHECK_VERSION(2, 6, 0)
@@ -555,6 +563,12 @@ static int _debugger_error(Debugger * debugger, char const * message, int ret)
 	gtk_window_set_title(GTK_WINDOW(widget), _("Error"));
 	gtk_dialog_run(GTK_DIALOG(widget));
 	gtk_widget_destroy(widget);
+	return ret;
+}
+
+static int _error_text(char const * message, int ret)
+{
+	fprintf(stderr, "%s: %s\n", PROGNAME, message);
 	return ret;
 }
 
