@@ -71,6 +71,8 @@ struct _Debugger
 	GtkWidget * das_view;
 	/* registers */
 	GtkWidget * reg_view;
+	/* statusbar */
+	GtkWidget * statusbar;
 };
 
 
@@ -174,6 +176,9 @@ Debugger * debugger_new(void)
 	gtk_paned_add2(GTK_PANED(paned), widget);
 	gtk_paned_set_position(GTK_PANED(paned), 380);
 	gtk_box_pack_start(GTK_BOX(vbox), paned, TRUE, TRUE, 0);
+	/* statusbar */
+	debugger->statusbar = gtk_statusbar_new();
+	gtk_box_pack_start(GTK_BOX(vbox), debugger->statusbar, FALSE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(debugger->window), vbox);
 	gtk_widget_show_all(debugger->window);
 	return debugger;
