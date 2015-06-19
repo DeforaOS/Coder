@@ -708,7 +708,11 @@ int gdeasm_open_dialog(GDeasm * gdeasm)
 	vbox = GTK_DIALOG(dialog)->vbox;
 #endif
 	/* arch */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
 	hbox = gtk_hbox_new(FALSE, 4);
+#endif
 	awidget = gtk_combo_box_new_text();
 	gtk_combo_box_append_text(GTK_COMBO_BOX(awidget), _("Auto-detect"));
 	_open_dialog_type(awidget, "arch");
@@ -718,7 +722,11 @@ int gdeasm_open_dialog(GDeasm * gdeasm)
 	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* format */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
 	hbox = gtk_hbox_new(FALSE, 4);
+#endif
 	fwidget = gtk_combo_box_new_text();
 	gtk_combo_box_append_text(GTK_COMBO_BOX(fwidget), _("Auto-detect"));
 	_open_dialog_type(fwidget, "format");
