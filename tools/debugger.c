@@ -235,7 +235,13 @@ int debugger_continue(Debugger * debugger)
 {
 	if(debugger_is_running(debugger) == FALSE)
 		return 0;
-	ptrace(PT_CONTINUE, debugger->pid, (caddr_t)1, 0);
+	errno = 0;
+	if(ptrace(PT_CONTINUE, debugger->pid, (caddr_t)1, (ptrace_data_t)0)
+			== -1 && errno != 0)
+	{
+		error_set_code(-errno, "%s: %s", "ptrace", strerror(errno));
+		return -_debugger_error(debugger, error_get(), 1);
+	}
 	return 0;
 }
 
