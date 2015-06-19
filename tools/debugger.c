@@ -31,6 +31,7 @@ static char const _debugger_license[] =
 #include <sys/ptrace.h>
 #include <sys/wait.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <libintl.h>
@@ -196,6 +197,7 @@ void debugger_delete(Debugger * debugger)
 		g_source_remove(debugger->source);
 	if(debugger->pid > 0)
 		g_spawn_close_pid(debugger->pid);
+	free(debugger->filename);
 	gtk_widget_destroy(debugger->window);
 	object_delete(debugger);
 }
@@ -225,8 +227,10 @@ int debugger_close(Debugger * debugger)
 {
 	if(debugger_is_opened(debugger) == FALSE)
 		return 0;
-	/* FIXME implement */
-	return error_set_code(-ENOSYS, "%s", strerror(ENOSYS));
+	/* FIXME really implement */
+	free(debugger->filename);
+	debugger->filename = NULL;
+	return 0;
 }
 
 
@@ -256,8 +260,10 @@ int debugger_open(Debugger * debugger, char const * arch, char const * format,
 		return debugger_open_dialog(debugger, arch, format);
 	if(debugger_close(debugger) != 0)
 		return -_debugger_error(debugger, error_get(), 1);
-	/* FIXME implement */
-	return -1;
+	/* FIXME really implement */
+	if((debugger->filename = strdup(filename)) == NULL)
+		return -1;
+	return 0;
 }
 
 
