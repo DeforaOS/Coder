@@ -69,7 +69,7 @@ static int _error(char const * message, int ret)
 /* usage */
 static int _usage(void)
 {
-	fprintf(stderr, _("Usage: %s\n"), PROGNAME);
+	fprintf(stderr, _("Usage: %s [filename]\n"), PROGNAME);
 	return 1;
 }
 
@@ -93,13 +93,15 @@ int main(int argc, char * argv[])
 			default:
 				return _usage();
 		}
-	if(optind != argc)
+	if(optind != argc && optind + 1 != argc)
 		return _usage();
 	if((debugger = debugger_new()) == NULL)
 	{
 		error_print(PROGNAME);
 		return 2;
 	}
+	if(argv[optind] != NULL)
+		debugger_open(debugger, NULL, NULL, argv[optind]);
 	gtk_main();
 	debugger_delete(debugger);
 	return 0;

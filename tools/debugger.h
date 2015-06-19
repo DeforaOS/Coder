@@ -45,7 +45,8 @@ void debugger_delete(Debugger * debugger);
 /* useful */
 int debugger_open(Debugger * debugger, char const * arch, char const * format,
 		char const * filename);
-int debugger_open_dialog(Debugger * debugger);
+int debugger_open_dialog(Debugger * debugger, char const * arch,
+		char const * format);
 
 int debugger_run(Debugger * debugger, ...);
 int debugger_runv(Debugger * debugger, va_list ap);
