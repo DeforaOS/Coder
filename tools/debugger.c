@@ -29,6 +29,7 @@ static char const _debugger_license[] =
 
 #include <sys/types.h>
 #include <sys/ptrace.h>
+#include <sys/wait.h>
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
@@ -63,6 +64,7 @@ struct _Debugger
 	/* child */
 	char * filename;
 	pid_t pid;
+	guint source;
 
 	/* widgets */
 	GtkWidget * window;
@@ -88,6 +90,7 @@ static void _debugger_on_close(gpointer data);
 static gboolean _debugger_on_closex(gpointer data);
 
 static void _debugger_on_continue(gpointer data);
+static void _debugger_on_child_watch(GPid pid, gint status, gpointer data);
 static void _debugger_on_open(gpointer data);
 static void _debugger_on_pause(gpointer data);
 static void _debugger_on_run(gpointer data);
@@ -131,6 +134,7 @@ Debugger * debugger_new(void)
 	/* child */
 	debugger->filename = NULL;
 	debugger->pid = -1;
+	debugger->source = 0;
 	/* widgets */
 	accel = gtk_accel_group_new();
 	debugger->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -188,6 +192,10 @@ Debugger * debugger_new(void)
 /* debugger_delete */
 void debugger_delete(Debugger * debugger)
 {
+	if(debugger->source != 0)
+		g_source_remove(debugger->source);
+	if(debugger->pid > 0)
+		g_spawn_close_pid(debugger->pid);
 	gtk_widget_destroy(debugger->window);
 	object_delete(debugger);
 }
@@ -452,7 +460,8 @@ static int _runv_child(Debugger * debugger, va_list ap)
 
 static int _runv_parent(Debugger * debugger)
 {
-	/* FIXME really implement */
+	debugger->source = g_child_watch_add(debugger->pid,
+			_debugger_on_child_watch, debugger);
 	return 0;
 }
 
@@ -565,6 +574,57 @@ static void _debugger_on_continue(gpointer data)
 	Debugger * debugger = data;
 
 	debugger_continue(debugger);
+}
+
+
+/* debugger_on_child_watch */
+static void _debugger_on_child_watch(GPid pid, gint status, gpointer data)
+{
+	Debugger * debugger = data;
+#ifndef G_OS_UNIX
+	GError * error = NULL;
+#endif
+
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s(%d, %d)\n", __func__, pid, status);
+#endif
+	if(debugger->pid != pid)
+		return;
+#ifdef G_OS_UNIX
+	if(WIFSTOPPED(status))
+	{
+#ifdef DEBUG
+		fprintf(stderr, "DEBUG: %s() stopped\n", __func__);
+#endif
+		debugger_continue(debugger);
+	}
+	else if(WIFSIGNALED(status))
+	{
+#ifdef DEBUG
+		fprintf(stderr, "DEBUG: %s() signal %d\n", __func__,
+				WTERMSIG(status));
+#endif
+		g_spawn_close_pid(debugger->pid);
+		debugger->source = 0;
+	}
+	else if(WIFEXITED(status))
+	{
+#ifdef DEBUG
+		fprintf(stderr, "DEBUG: %s() error %d\n", __func__,
+				WEXITSTATUS(status));
+#endif
+		g_spawn_close_pid(debugger->pid);
+		debugger->source = 0;
+	}
+#else
+	if(g_spawn_check_exit_status(status, &error) == FALSE)
+	{
+		error_set_code(WEXITSTATUS(status), "%s", error->message);
+		_debugger_error(debugger, error_get(), WEXITSTATUS(status));
+		g_spawn_close_pid(debugger->pid);
+		debugger->source = 0;
+	}
+#endif
 }
 
 
