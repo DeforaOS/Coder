@@ -30,6 +30,7 @@ static char const _debugger_license[] =
 #include <sys/types.h>
 #include <sys/ptrace.h>
 #include <sys/wait.h>
+#include <dirent.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
