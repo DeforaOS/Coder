@@ -4,6 +4,7 @@
 ../tools/debugger.c
 ../tools/debugger-main.c
 ../tools/gdeasm.c
+../tools/gdeasm-main.c
 ../tools/sequel.c
 ../tools/sequel-main.c
 ../tools/simulator.c
