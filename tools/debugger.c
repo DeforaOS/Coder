@@ -229,8 +229,15 @@ int debugger_is_running(Debugger * debugger)
 /* debugger_close */
 int debugger_close(Debugger * debugger)
 {
+	GtkTextBuffer * tbuf;
+	GtkTreeModel * model;
+
 	if(debugger_is_opened(debugger) == FALSE)
 		return 0;
+	tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(debugger->das_view));
+	gtk_text_buffer_set_text(tbuf, "", 0);
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(debugger->reg_view));
+	gtk_list_store_clear(GTK_LIST_STORE(model));
 	/* FIXME really implement */
 	free(debugger->filename);
 	debugger->filename = NULL;
