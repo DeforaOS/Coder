@@ -28,18 +28,14 @@ static char const _debugger_license[] =
 
 
 #include <sys/types.h>
-#include <sys/ptrace.h>
-#include <sys/wait.h>
 #include <dirent.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 #include <libintl.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
-#include <System.h>
 #include <Desktop.h>
 #include "debugger.h"
 #define _(string) gettext(string)
@@ -56,21 +52,18 @@ static char const _debugger_license[] =
 #endif
 
 
-/* platform */
-#ifdef __NetBSD__
-typedef int ptrace_data_t;
-#endif
-
-
 /* Debugger */
 /* private */
 /* types */
 struct _Debugger
 {
+	/* backend */
+	Plugin * plugin;
+	DebuggerBackendDefinition * definition;
+	DebuggerBackend * backend;
+
 	/* child */
 	char * filename;
-	GPid pid;
-	guint source;
 
 	/* widgets */
 	GtkWidget * window;
@@ -89,17 +82,16 @@ static gboolean _debugger_confirm(Debugger * debugger, char const * message);
 static gboolean _debugger_confirm_close(Debugger * debugger);
 static gboolean _debugger_confirm_reset(Debugger * debugger);
 
-static int _debugger_error(Debugger * debugger, char const * message, int ret);
-
 /* callbacks */
 static void _debugger_on_close(gpointer data);
 static gboolean _debugger_on_closex(gpointer data);
 
 static void _debugger_on_continue(gpointer data);
-static void _debugger_on_child_watch(GPid pid, gint status, gpointer data);
+static void _debugger_on_next(gpointer data);
 static void _debugger_on_open(gpointer data);
 static void _debugger_on_pause(gpointer data);
 static void _debugger_on_run(gpointer data);
+static void _debugger_on_step(gpointer data);
 static void _debugger_on_stop(gpointer data);
 
 
@@ -118,8 +110,15 @@ static DesktopToolbar _debugger_toolbar[] =
 		GTK_STOCK_MEDIA_PAUSE, 0, 0, NULL },
 	{ N_("Stop"), G_CALLBACK(_debugger_on_stop),
 		GTK_STOCK_MEDIA_STOP, 0, GDK_KEY_F11, NULL },
+	{ N_("Step"), G_CALLBACK(_debugger_on_step),
+		GTK_STOCK_MEDIA_FORWARD, 0, 0, NULL },
+	{ N_("Next"), G_CALLBACK(_debugger_on_next),
+		GTK_STOCK_MEDIA_NEXT, 0, 0, NULL },
 	{ NULL, NULL, NULL, 0, 0, NULL }
 };
+
+
+#include "backends/ptrace.c"
 
 
 /* public */
@@ -137,10 +136,12 @@ Debugger * debugger_new(void)
 
 	if((debugger = object_new(sizeof(*debugger))) == NULL)
 		return NULL;
+	/* backend */
+	debugger->plugin = NULL;
+	debugger->definition = NULL;
+	debugger->backend = NULL;
 	/* child */
 	debugger->filename = NULL;
-	debugger->pid = -1;
-	debugger->source = 0;
 	/* widgets */
 	accel = gtk_accel_group_new();
 	debugger->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -198,10 +199,8 @@ Debugger * debugger_new(void)
 /* debugger_delete */
 void debugger_delete(Debugger * debugger)
 {
-	if(debugger->source != 0)
-		g_source_remove(debugger->source);
-	if(debugger->pid > 0)
-		g_spawn_close_pid(debugger->pid);
+	if(debugger_is_running(debugger))
+		debugger_stop(debugger);
 	free(debugger->filename);
 	gtk_widget_destroy(debugger->window);
 	object_delete(debugger);
@@ -222,7 +221,7 @@ int debugger_is_opened(Debugger * debugger)
 /* debugger_is_running */
 int debugger_is_running(Debugger * debugger)
 {
-	return (debugger->pid > 0) ? 1 : 0;
+	return (debugger->backend != NULL) ? 1 : 0;
 }
 
 
@@ -242,16 +241,55 @@ int debugger_close(Debugger * debugger)
 /* debugger_continue */
 int debugger_continue(Debugger * debugger)
 {
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
 	if(debugger_is_running(debugger) == FALSE)
 		return 0;
-	errno = 0;
-	if(ptrace(PT_CONTINUE, debugger->pid, (caddr_t)1, (ptrace_data_t)0)
-			== -1 && errno != 0)
-	{
-		error_set_code(-errno, "%s: %s", "ptrace", strerror(errno));
-		return -_debugger_error(debugger, error_get(), 1);
-	}
-	return 0;
+	return debugger->definition->_continue(debugger->backend);
+}
+
+
+/* debugger_error */
+static int _error_text(char const * message, int ret);
+
+int debugger_error(Debugger * debugger, char const * message, int ret)
+{
+	const unsigned int flags = GTK_DIALOG_MODAL
+		| GTK_DIALOG_DESTROY_WITH_PARENT;
+	GtkWidget * widget;
+
+	if(debugger == NULL)
+		return _error_text(message, ret);
+	widget = gtk_message_dialog_new(GTK_WINDOW(debugger->window), flags,
+			GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
+#if GTK_CHECK_VERSION(2, 6, 0)
+			"%s", _("Error"));
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(widget),
+#endif
+			"%s", message);
+	gtk_window_set_title(GTK_WINDOW(widget), _("Error"));
+	gtk_dialog_run(GTK_DIALOG(widget));
+	gtk_widget_destroy(widget);
+	return ret;
+}
+
+static int _error_text(char const * message, int ret)
+{
+	fprintf(stderr, "%s: %s\n", PROGNAME, message);
+	return ret;
+}
+
+
+/* debugger_next */
+int debugger_next(Debugger * debugger)
+{
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
+	if(debugger_is_running(debugger) == FALSE)
+		return 0;
+	return debugger->definition->next(debugger->backend);
 }
 
 
@@ -264,7 +302,7 @@ int debugger_open(Debugger * debugger, char const * arch, char const * format,
 	if(filename == NULL)
 		return debugger_open_dialog(debugger, arch, format);
 	if(debugger_close(debugger) != 0)
-		return -_debugger_error(debugger, error_get(), 1);
+		return -debugger_error(debugger, error_get(), 1);
 	/* FIXME really implement */
 	if((debugger->filename = strdup(filename)) == NULL)
 		return -1;
@@ -411,10 +449,12 @@ static void _open_dialog_type(GtkWidget * combobox, char const * type,
 /* debugger_pause */
 int debugger_pause(Debugger * debugger)
 {
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
 	if(debugger_is_running(debugger) == FALSE)
 		return 0;
-	/* FIXME implement */
-	return -1;
+	return debugger->definition->pause(debugger->backend);
 }
 
 
@@ -432,62 +472,50 @@ int debugger_run(Debugger * debugger, ...)
 
 
 /* debugger_runv */
-static int _runv_parent(Debugger * debugger);
-/* callbacks */
-static void _runv_on_child_setup(gpointer data);
-
 int debugger_runv(Debugger * debugger, va_list ap)
 {
-	char * argv[3] = { NULL, NULL, NULL };
-	const unsigned int flags = G_SPAWN_DO_NOT_REAP_CHILD
-		| G_SPAWN_FILE_AND_ARGV_ZERO;
-	GError * error = NULL;
-
 	if(_debugger_confirm_reset(debugger) == FALSE)
 		return -1;
 	if(debugger_stop(debugger) != 0)
 		return -1;
-	argv[0] = debugger->filename;
-	argv[1] = debugger->filename;
-	if(g_spawn_async(NULL, argv, NULL, flags, _runv_on_child_setup,
-				debugger, &debugger->pid, &error) == FALSE)
+	debugger->definition = &_ptrace_definition;
+	if((debugger->backend = debugger->definition->init(debugger)) == NULL)
 	{
-		error_set_code(-errno, "%s", error->message);
-		g_error_free(error);
-		return -_debugger_error(debugger, error_get(), 1);
+		debugger_stop(debugger);
+		return -1;
 	}
-	return _runv_parent(debugger);
+	return debugger->definition->start(debugger->backend, ap);
 }
 
-static int _runv_parent(Debugger * debugger)
-{
-	debugger->source = g_child_watch_add(debugger->pid,
-			_debugger_on_child_watch, debugger);
-	return 0;
-}
 
-/* callbacks */
-static void _runv_on_child_setup(gpointer data)
+/* debugger_step */
+int debugger_step(Debugger * debugger)
 {
-	Debugger * debugger = data;
-
-	errno = 0;
-	if(ptrace(PT_TRACE_ME, -1, NULL, (ptrace_data_t)0) == -1
-			&& errno != 0)
-	{
-		_debugger_error(NULL, strerror(errno), 1);
-		_exit(125);
-	}
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
+	if(debugger_is_running(debugger) == FALSE)
+		return 0;
+	return debugger->definition->step(debugger->backend);
 }
 
 
 /* debugger_stop */
 int debugger_stop(Debugger * debugger)
 {
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
 	if(debugger_is_running(debugger) == FALSE)
 		return 0;
-	/* FIXME implement */
-	return -1;
+	debugger->definition->stop(debugger->backend);
+	debugger->definition->destroy(debugger->backend);
+	debugger->backend = NULL;
+	debugger->definition = NULL;
+	if(debugger->plugin != NULL)
+		plugin_delete(debugger->plugin);
+	debugger->plugin = NULL;
+	return 0;
 }
 
 
@@ -541,44 +569,14 @@ static gboolean _debugger_confirm_reset(Debugger * debugger)
 }
 
 
-/* debugger_error */
-static int _error_text(char const * message, int ret);
-
-static int _debugger_error(Debugger * debugger, char const * message, int ret)
-{
-	const unsigned int flags = GTK_DIALOG_MODAL
-		| GTK_DIALOG_DESTROY_WITH_PARENT;
-	GtkWidget * widget;
-
-	if(debugger == NULL)
-		return _error_text(message, ret);
-	widget = gtk_message_dialog_new(GTK_WINDOW(debugger->window), flags,
-			GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
-#if GTK_CHECK_VERSION(2, 6, 0)
-			"%s", _("Error"));
-	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(widget),
-#endif
-			"%s", message);
-	gtk_window_set_title(GTK_WINDOW(widget), _("Error"));
-	gtk_dialog_run(GTK_DIALOG(widget));
-	gtk_widget_destroy(widget);
-	return ret;
-}
-
-static int _error_text(char const * message, int ret)
-{
-	fprintf(stderr, "%s: %s\n", PROGNAME, message);
-	return ret;
-}
-
-
 /* callbacks */
 /* debugger_on_close */
 static void _debugger_on_close(gpointer data)
 {
 	Debugger * debugger = data;
 
-	/* FIXME really implement */
+	if(debugger_is_running(debugger))
+		debugger_stop(debugger);
 	gtk_main_quit();
 }
 
@@ -602,55 +600,12 @@ static void _debugger_on_continue(gpointer data)
 }
 
 
-/* debugger_on_child_watch */
-static void _debugger_on_child_watch(GPid pid, gint status, gpointer data)
+/* debugger_on_next */
+static void _debugger_on_next(gpointer data)
 {
 	Debugger * debugger = data;
-#ifndef G_OS_UNIX
-	GError * error = NULL;
-#endif
 
-#ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s(%d, %d)\n", __func__, pid, status);
-#endif
-	if(debugger->pid != pid)
-		return;
-#ifdef G_OS_UNIX
-	if(WIFSTOPPED(status))
-	{
-#ifdef DEBUG
-		fprintf(stderr, "DEBUG: %s() stopped\n", __func__);
-#endif
-		debugger_continue(debugger);
-	}
-	else if(WIFSIGNALED(status))
-	{
-#ifdef DEBUG
-		fprintf(stderr, "DEBUG: %s() signal %d\n", __func__,
-				WTERMSIG(status));
-#endif
-		g_spawn_close_pid(debugger->pid);
-		debugger->source = 0;
-	}
-	else if(WIFEXITED(status))
-	{
-#ifdef DEBUG
-		fprintf(stderr, "DEBUG: %s() error %d\n", __func__,
-				WEXITSTATUS(status));
-#endif
-		g_spawn_close_pid(debugger->pid);
-		debugger->source = 0;
-	}
-#else
-	if(g_spawn_check_exit_status(status, &error) == FALSE)
-	{
-		error_set_code(WEXITSTATUS(status), "%s", error->message);
-		g_error_free(error);
-		_debugger_error(debugger, error_get(), WEXITSTATUS(status));
-		g_spawn_close_pid(debugger->pid);
-		debugger->source = 0;
-	}
-#endif
+	debugger_next(debugger);
 }
 
 
@@ -677,7 +632,16 @@ static void _debugger_on_run(gpointer data)
 {
 	Debugger * debugger = data;
 
-	debugger_run(debugger);
+	debugger_run(debugger, debugger->filename, NULL);
+}
+
+
+/* debugger_on_step */
+static void _debugger_on_step(gpointer data)
+{
+	Debugger * debugger = data;
+
+	debugger_step(debugger);
 }
 
 

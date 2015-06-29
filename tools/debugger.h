@@ -29,12 +29,30 @@
 # define CODER_DEBUGGER_H
 
 # include <stdarg.h>
+# include <System.h>
 
 
 /* Debugger */
 /* protected */
 /* types */
 typedef struct _Debugger Debugger;
+
+typedef struct _DebuggerBackend DebuggerBackend;
+
+typedef const struct _DebuggerBackendDefinition
+{
+	char const * name;
+	char const * description;
+	LicenseFlags license;
+	DebuggerBackend * (*init)(Debugger * debugger);
+	void (*destroy)(DebuggerBackend * backend);
+	int (*start)(DebuggerBackend * backend, va_list argp);
+	int (*pause)(DebuggerBackend * backend);
+	int (*stop)(DebuggerBackend * backend);
+	int (*_continue)(DebuggerBackend * backend);
+	int (*next)(DebuggerBackend * backend);
+	int (*step)(DebuggerBackend * backend);
+} DebuggerBackendDefinition;
 
 
 /* public */
@@ -53,10 +71,14 @@ int debugger_open_dialog(Debugger * debugger, char const * arch,
 		char const * format);
 int debugger_close(Debugger * debugger);
 
+int debugger_error(Debugger * debugger, char const * message, int ret);
+
 int debugger_continue(Debugger * debugger);
+int debugger_next(Debugger * debugger);
 int debugger_pause(Debugger * debugger);
 int debugger_run(Debugger * debugger, ...);
 int debugger_runv(Debugger * debugger, va_list ap);
+int debugger_step(Debugger * debugger);
 int debugger_stop(Debugger * debugger);
 
 #endif /* !CODER_DEBUGGER_H */
