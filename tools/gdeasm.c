@@ -513,8 +513,10 @@ static int _open_code(GDeasm * gdeasm, AsmCode * code)
 	if(ret == 0)
 	{
 		/* update the status */
-		arch = asmcode_get_arch(code);
-		format = asmcode_get_format(code);
+		if((arch = asmcode_get_arch_description(code)) == NULL)
+			arch = asmcode_get_arch(code);
+		if((format = asmcode_get_format_description(code)) == NULL)
+			format = asmcode_get_format(code);
 		buf = g_strdup_printf("%s%s | %s%s", _("Architecture: "),
 				arch, _("Format: "), format);
 		_gdeasm_set_status(gdeasm, buf);
