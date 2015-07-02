@@ -155,7 +155,7 @@ static DesktopToolbar _debugger_toolbar[] =
 
 
 /* XXX load at run-time */
-#include "backends/ptrace.c"
+#include "debug/ptrace.c"
 
 
 /* public */
