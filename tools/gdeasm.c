@@ -167,6 +167,8 @@ static DesktopMenubar const _gdeasm_menubar[] =
 	{ NULL, NULL },
 };
 
+
+/* variables */
 /* toolbar */
 static DesktopToolbar _gdeasm_toolbar[] =
 {
@@ -190,12 +192,12 @@ GDeasm * gdeasm_new(void)
 	GtkAccelGroup * accel;
 	GtkWidget * vbox;
 	GtkWidget * hbox;
-	GtkWidget * menubar;
 	GtkWidget * toolbar;
 	GtkWidget * hpaned;
 	GtkWidget * vpaned;
 	GtkWidget * scrolled;
 	GtkWidget * treeview;
+	GtkWidget * widget;
 	GtkCellRenderer * renderer;
 	GtkTreeViewColumn * column;
 	char const * headers1[GFC_COUNT - 1] = { N_("Functions"),
@@ -232,8 +234,8 @@ GDeasm * gdeasm_new(void)
 				_gdeasm_on_closex), gdeasm);
 	vbox = gtk_vbox_new(FALSE, 0);
 	/* menubar */
-	menubar = desktop_menubar_create(_gdeasm_menubar, gdeasm, accel);
-	gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, TRUE, 0);
+	widget = desktop_menubar_create(_gdeasm_menubar, gdeasm, accel);
+	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* toolbar */
 	toolbar = desktop_toolbar_create(_gdeasm_toolbar, gdeasm, accel);
 	gtk_box_pack_start(GTK_BOX(vbox), toolbar, FALSE, TRUE, 0);
