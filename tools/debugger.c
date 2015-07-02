@@ -38,6 +38,7 @@ static char const _debugger_license[] =
 #include <gdk/gdkkeysyms.h>
 #include <Desktop.h>
 #include "debugger.h"
+#include "../config.h"
 #define _(string) gettext(string)
 #define N_(string) (string)
 
@@ -83,9 +84,9 @@ static gboolean _debugger_confirm_close(Debugger * debugger);
 static gboolean _debugger_confirm_reset(Debugger * debugger);
 
 /* callbacks */
+static void _debugger_on_about(gpointer data);
 static void _debugger_on_close(gpointer data);
 static gboolean _debugger_on_closex(gpointer data);
-
 static void _debugger_on_continue(gpointer data);
 static void _debugger_on_next(gpointer data);
 static void _debugger_on_open(gpointer data);
@@ -93,6 +94,41 @@ static void _debugger_on_pause(gpointer data);
 static void _debugger_on_run(gpointer data);
 static void _debugger_on_step(gpointer data);
 static void _debugger_on_stop(gpointer data);
+
+
+/* constants */
+static char const * _debugger_authors[] =
+{
+	"Pierre Pronchery <khorben@defora.org>",
+	NULL
+};
+
+static DesktopMenu const _debugger_menu_file[] =
+{
+	{ N_("_Open..."), G_CALLBACK(_debugger_on_open), GTK_STOCK_OPEN,
+		GDK_CONTROL_MASK, GDK_KEY_O },
+	{ "", NULL, NULL, 0, 0 },
+	{ N_("_Close"), G_CALLBACK(_debugger_on_close), GTK_STOCK_CLOSE,
+		GDK_CONTROL_MASK, GDK_KEY_W },
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
+static DesktopMenu const _debugger_menu_help[] =
+{
+#if GTK_CHECK_VERSION(2, 6, 0)
+	{ N_("_About"), G_CALLBACK(_debugger_on_about), GTK_STOCK_ABOUT, 0, 0 },
+#else
+	{ N_("_About"), G_CALLBACK(_debugger_on_about), NULL, 0, 0 },
+#endif
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
+static DesktopMenubar const _debugger_menubar[] =
+{
+	{ N_("_File"), _debugger_menu_file },
+	{ N_("_Help"), _debugger_menu_help },
+	{ NULL, NULL },
+};
 
 
 /* variables */
@@ -156,6 +192,8 @@ Debugger * debugger_new(void)
 	vbox = gtk_vbox_new(FALSE, 0);
 #endif
 	/* menubar */
+	widget = desktop_menubar_create(_debugger_menubar, debugger, accel);
+	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* toolbar */
 	widget = desktop_toolbar_create(_debugger_toolbar, debugger, accel);
 	g_object_unref(accel);
@@ -577,6 +615,31 @@ static gboolean _debugger_confirm_reset(Debugger * debugger)
 
 
 /* callbacks */
+/* debugger_on_about */
+static void _debugger_on_about(gpointer data)
+{
+	Debugger * debugger = data;
+	GtkWidget * dialog;
+
+	dialog = desktop_about_dialog_new();
+	gtk_window_set_transient_for(GTK_WINDOW(dialog), GTK_WINDOW(
+				debugger->window));
+	desktop_about_dialog_set_authors(dialog, _debugger_authors);
+	desktop_about_dialog_set_comments(dialog,
+			_("Debugger for the DeforaOS desktop"));
+	desktop_about_dialog_set_copyright(dialog, _debugger_copyright);
+	desktop_about_dialog_set_logo_icon_name(dialog,
+			"applications-development");
+	desktop_about_dialog_set_license(dialog, _debugger_license);
+	desktop_about_dialog_set_name(dialog, _("Debugger"));
+	desktop_about_dialog_set_version(dialog, VERSION);
+	desktop_about_dialog_set_website(dialog,
+			"http://www.defora.org/");
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
+}
+
+
 /* debugger_on_close */
 static void _debugger_on_close(gpointer data)
 {
