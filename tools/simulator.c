@@ -127,7 +127,8 @@ static const DesktopMenu _simulator_file_menu[] =
 
 static const DesktopMenu _simulator_view_menu[] =
 {
-	{ N_("_Rotate"), G_CALLBACK(_simulator_on_view_toggle_debugging_mode),
+	{ N_("Toggle _debugging mode"), G_CALLBACK(
+			_simulator_on_view_toggle_debugging_mode),
 		NULL, 0, 0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
