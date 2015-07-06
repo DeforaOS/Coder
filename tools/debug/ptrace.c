@@ -48,7 +48,7 @@ typedef int ptrace_data_t;
 
 struct _DebuggerBackend
 {
-	Debugger * debugger;
+	DebuggerBackendHelper const * helper;
 	GPid pid;
 	guint source;
 	gboolean running;
@@ -65,7 +65,7 @@ struct _DebuggerBackend
 
 /* prototypes */
 /* plug-in */
-static PtraceBackend * _ptrace_init(Debugger * debugger);
+static PtraceBackend * _ptrace_init(DebuggerBackendHelper const * helper);
 static void _ptrace_destroy(PtraceBackend * backend);
 static int _ptrace_start(PtraceBackend * backend, va_list argp);
 static int _ptrace_pause(PtraceBackend * backend);
@@ -103,13 +103,13 @@ static DebuggerBackendDefinition _ptrace_definition =
 /* functions */
 /* plug-in */
 /* ptrace_init */
-static PtraceBackend * _ptrace_init(Debugger * debugger)
+static PtraceBackend * _ptrace_init(DebuggerBackendHelper const * helper)
 {
 	PtraceBackend * backend;
 
 	if((backend = object_new(sizeof(*backend))) == NULL)
 		return NULL;
-	backend->debugger = debugger;
+	backend->helper = helper;
 	backend->pid = -1;
 	backend->source = 0;
 	backend->running = FALSE;
@@ -157,7 +157,8 @@ static int _ptrace_start(PtraceBackend * backend, va_list argp)
 	{
 		error_set_code(-errno, "%s", error->message);
 		g_error_free(error);
-		return -debugger_error(backend->debugger, error_get(), 1);
+		return -backend->helper->error(backend->helper->debugger, 1,
+				"%s", "Could not start execution");
 	}
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s() %d\n", __func__, backend->pid);
@@ -244,8 +245,8 @@ static void _start_on_child_watch(GPid pid, gint status, gpointer data)
 	{
 		error_set_code(WEXITSTATUS(status), "%s", error->message);
 		g_error_free(error);
-		debugger_error(backend->debugger, error_get(),
-				WEXITSTATUS(status));
+		backend->helper->error(backend->helper->debugger,
+				WEXITSTATUS(status), "%s", error_get(),
 		_ptrace_exit(backend);
 	}
 #endif
@@ -320,7 +321,8 @@ static int _ptrace_request(PtraceBackend * backend, int request, void * addr,
 		error_set_code(-errno, "%s: %s", "ptrace", strerror(errno));
 		if(errno == ESRCH)
 			_ptrace_exit(backend);
-		return -debugger_error(backend->debugger, error_get(), 1);
+		return -backend->helper->error(backend->helper->debugger, 1,
+				"%s", error_get());
 	}
 	backend->running = TRUE;
 	return 0;
@@ -331,6 +333,8 @@ static int _ptrace_request(PtraceBackend * backend, int request, void * addr,
 static int _ptrace_schedule(PtraceBackend * backend, int request, void * addr,
 		int data)
 {
+	DebuggerBackendHelper const * helper = backend->helper;
+
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s(%d, %p, %d)\n", __func__, request, addr,
 			data);
@@ -344,8 +348,9 @@ static int _ptrace_schedule(PtraceBackend * backend, int request, void * addr,
 					strerror(errno));
 			if(errno == ESRCH)
 				_ptrace_exit(backend);
-			return -debugger_error(backend->debugger, error_get(),
-					1);
+			return -helper->error(helper->debugger, 1,
+					"%s", "Could not schedule command"
+					" (could not stop the traced process)");
 		}
 		backend->running = FALSE;
 		wait(NULL);

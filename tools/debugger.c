@@ -59,6 +59,7 @@ static char const _debugger_license[] =
 struct _Debugger
 {
 	/* backend */
+	DebuggerBackendHelper helper;
 	Plugin * plugin;
 	DebuggerBackendDefinition * definition;
 	DebuggerBackend * backend;
@@ -82,6 +83,10 @@ struct _Debugger
 static gboolean _debugger_confirm(Debugger * debugger, char const * message);
 static gboolean _debugger_confirm_close(Debugger * debugger);
 static gboolean _debugger_confirm_reset(Debugger * debugger);
+
+/* helpers */
+static int _debugger_helper_error(Debugger * debugger, int code,
+		char const * format, ...);
 
 /* callbacks */
 static void _debugger_on_about(gpointer data);
@@ -174,6 +179,8 @@ Debugger * debugger_new(void)
 	if((debugger = object_new(sizeof(*debugger))) == NULL)
 		return NULL;
 	/* backend */
+	debugger->helper.debugger = debugger;
+	debugger->helper.error = _debugger_helper_error;
 	debugger->plugin = NULL;
 	debugger->definition = NULL;
 	debugger->backend = NULL;
@@ -280,6 +287,7 @@ int debugger_close(Debugger * debugger)
 	/* FIXME really implement */
 	free(debugger->filename);
 	debugger->filename = NULL;
+	gtk_window_set_title(GTK_WINDOW(debugger->window), _("Debugger"));
 	return 0;
 }
 
@@ -343,6 +351,8 @@ int debugger_next(Debugger * debugger)
 int debugger_open(Debugger * debugger, char const * arch, char const * format,
 		char const * filename)
 {
+	String * s;
+
 	if(_debugger_confirm_close(debugger) == FALSE)
 		return -1;
 	if(filename == NULL)
@@ -352,6 +362,10 @@ int debugger_open(Debugger * debugger, char const * arch, char const * format,
 	/* FIXME really implement */
 	if((debugger->filename = strdup(filename)) == NULL)
 		return -1;
+	if((s = string_new_append(_("Debugger"), " - ", filename, NULL))
+			!= NULL)
+		gtk_window_set_title(GTK_WINDOW(debugger->window), s);
+	string_delete(s);
 	return 0;
 }
 
@@ -525,7 +539,8 @@ int debugger_runv(Debugger * debugger, va_list ap)
 	if(debugger_stop(debugger) != 0)
 		return -1;
 	debugger->definition = &_ptrace_definition;
-	if((debugger->backend = debugger->definition->init(debugger)) == NULL)
+	if((debugger->backend = debugger->definition->init(&debugger->helper))
+			== NULL)
 	{
 		debugger_stop(debugger);
 		return -1;
@@ -612,6 +627,29 @@ static gboolean _debugger_confirm_reset(Debugger * debugger)
 					"Any progress will be lost.")) == FALSE)
 		return FALSE;
 	return TRUE;
+}
+
+
+/* helpers */
+/* debugger_helper_error */
+static int _debugger_helper_error(Debugger * debugger, int code,
+		char const * format, ...)
+{
+	va_list ap;
+	int size;
+	char * message;
+
+	va_start(ap, format);
+	size = vsnprintf(NULL, 0, format, ap);
+	message = (size >= 0) ? malloc(size + 1) : NULL;
+	if(message != NULL)
+		vsnprintf(message, size + 1, format, ap);
+	va_end(ap);
+	if(message == NULL)
+		return code;
+	debugger_error(debugger, message, code);
+	free(message);
+	return code;
 }
 
 

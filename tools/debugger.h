@@ -39,12 +39,18 @@ typedef struct _Debugger Debugger;
 
 typedef struct _DebuggerBackend DebuggerBackend;
 
+typedef struct _DebuggerBackendHelper
+{
+	Debugger * debugger;
+	int (*error)(Debugger * debugger, int code, char const * format, ...);
+} DebuggerBackendHelper;
+
 typedef const struct _DebuggerBackendDefinition
 {
 	char const * name;
 	char const * description;
 	LicenseFlags license;
-	DebuggerBackend * (*init)(Debugger * debugger);
+	DebuggerBackend * (*init)(DebuggerBackendHelper const * helper);
 	void (*destroy)(DebuggerBackend * backend);
 	int (*start)(DebuggerBackend * backend, va_list argp);
 	int (*pause)(DebuggerBackend * backend);
