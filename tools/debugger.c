@@ -747,6 +747,8 @@ static void _debugger_helper_backend_set_registers(Debugger * debugger,
 	gtk_list_store_clear(GTK_LIST_STORE(model));
 	for(i = 0; i < registers_cnt; i++)
 	{
+		if(registers[i].flags & ARF_ALIAS)
+			continue;
 		gtk_list_store_append(GTK_LIST_STORE(model), &iter);
 		gtk_list_store_set(GTK_LIST_STORE(model), &iter,
 				RV_NAME, registers[i].name, -1);
