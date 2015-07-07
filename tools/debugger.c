@@ -80,6 +80,11 @@ struct _Debugger
 
 
 /* prototypes */
+/* accessors */
+static void _debugger_set_sensitive_toolbar(Debugger * debugger, gboolean run,
+		gboolean debug);
+
+/* useful */
 static gboolean _debugger_confirm(Debugger * debugger, char const * message);
 static gboolean _debugger_confirm_close(Debugger * debugger);
 static gboolean _debugger_confirm_reset(Debugger * debugger);
@@ -137,6 +142,12 @@ static DesktopMenubar const _debugger_menubar[] =
 
 
 /* variables */
+#define DEBUGGER_TOOLBAR_RUN		2
+#define DEBUGGER_TOOLBAR_CONTINUE	4
+#define DEBUGGER_TOOLBAR_PAUSE		5
+#define DEBUGGER_TOOLBAR_STOP		6
+#define DEBUGGER_TOOLBAR_STEP		7
+#define DEBUGGER_TOOLBAR_NEXT		8
 static DesktopToolbar _debugger_toolbar[] =
 {
 	{ N_("Open"), G_CALLBACK(_debugger_on_open), GTK_STOCK_OPEN,
@@ -205,6 +216,7 @@ Debugger * debugger_new(void)
 	/* toolbar */
 	widget = desktop_toolbar_create(_debugger_toolbar, debugger, accel);
 	g_object_unref(accel);
+	_debugger_set_sensitive_toolbar(debugger, FALSE, FALSE);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* view */
 	paned = gtk_hpaned_new();
@@ -366,6 +378,7 @@ int debugger_open(Debugger * debugger, char const * arch, char const * format,
 			!= NULL)
 		gtk_window_set_title(GTK_WINDOW(debugger->window), s);
 	string_delete(s);
+	_debugger_set_sensitive_toolbar(debugger, TRUE, FALSE);
 	return 0;
 }
 
@@ -534,6 +547,8 @@ int debugger_run(Debugger * debugger, ...)
 /* debugger_runv */
 int debugger_runv(Debugger * debugger, va_list ap)
 {
+	int ret;
+
 	if(_debugger_confirm_reset(debugger) == FALSE)
 		return -1;
 	if(debugger_stop(debugger) != 0)
@@ -545,7 +560,9 @@ int debugger_runv(Debugger * debugger, va_list ap)
 		debugger_stop(debugger);
 		return -1;
 	}
-	return debugger->ddefinition->start(debugger->debug, ap);
+	if((ret = debugger->ddefinition->start(debugger->debug, ap)) == 0)
+		_debugger_set_sensitive_toolbar(debugger, TRUE, TRUE);
+	return ret;
 }
 
 
@@ -576,12 +593,39 @@ int debugger_stop(Debugger * debugger)
 	if(debugger->dplugin != NULL)
 		plugin_delete(debugger->dplugin);
 	debugger->dplugin = NULL;
+	_debugger_set_sensitive_toolbar(debugger, TRUE, FALSE);
 	return 0;
 }
 
 
 /* private */
 /* functions */
+/* accessors */
+/* debugger_set_sensitive_toolbar */
+static void _debugger_set_sensitive_toolbar(Debugger * debugger, gboolean run,
+		gboolean debug)
+{
+	const unsigned int widgets[] =
+	{
+		DEBUGGER_TOOLBAR_CONTINUE,
+		DEBUGGER_TOOLBAR_PAUSE,
+		DEBUGGER_TOOLBAR_STOP,
+		DEBUGGER_TOOLBAR_STEP,
+		DEBUGGER_TOOLBAR_NEXT
+	};
+	size_t i;
+
+	gtk_widget_set_sensitive(GTK_WIDGET(
+				_debugger_toolbar[DEBUGGER_TOOLBAR_RUN].widget),
+			run);
+	for(i = 0; i < sizeof(widgets) / sizeof(*widgets); i++)
+		gtk_widget_set_sensitive(GTK_WIDGET(
+					_debugger_toolbar[widgets[i]].widget),
+				debug);
+}
+
+
+/* useful */
 /* debugger_confirm */
 static gboolean _debugger_confirm(Debugger * debugger, char const * message)
 {
