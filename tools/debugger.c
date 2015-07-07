@@ -56,6 +56,10 @@ static char const _debugger_license[] =
 /* Debugger */
 /* private */
 /* types */
+enum { RV_NAME = 0, RV_VALUE, RV_VALUE_DISPLAY };
+#define RV_LAST RV_VALUE_DISPLAY
+#define RV_COUNT (RV_LAST + 1)
+
 struct _Debugger
 {
 	/* debug */
@@ -230,16 +234,18 @@ Debugger * debugger_new(void)
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-	store = gtk_list_store_new(2,
+	store = gtk_list_store_new(RV_COUNT,
 			G_TYPE_STRING,	/* name */
-			G_TYPE_STRING);	/* value */
+			G_TYPE_UINT64,	/* value */
+			G_TYPE_STRING);	/* value (string) */
 	debugger->reg_view = gtk_tree_view_new_with_model(
 			GTK_TREE_MODEL(store));
 	column = gtk_tree_view_column_new_with_attributes(_("Register"),
-			gtk_cell_renderer_text_new(), "text", 0, NULL);
+			gtk_cell_renderer_text_new(), "text", RV_NAME, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(debugger->reg_view), column);
 	column = gtk_tree_view_column_new_with_attributes(_("Value"),
-			gtk_cell_renderer_text_new(), "text", 0, NULL);
+			gtk_cell_renderer_text_new(), "text", RV_VALUE_DISPLAY,
+			NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(debugger->reg_view), column);
 	gtk_container_add(GTK_CONTAINER(widget), debugger->reg_view);
 	gtk_paned_add2(GTK_PANED(paned), widget);
