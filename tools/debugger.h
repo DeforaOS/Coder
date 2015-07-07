@@ -30,12 +30,37 @@
 
 # include <stdarg.h>
 # include <System.h>
+# include <Devel/Asm.h>
 
 
 /* Debugger */
 /* protected */
 /* types */
 typedef struct _Debugger Debugger;
+
+/* backend */
+typedef struct _DebuggerBackend DebuggerBackend;
+
+typedef struct _DebuggerBackendHelper
+{
+	Debugger * debugger;
+	int (*error)(Debugger * debugger, int code, char const * format, ...);
+	void (*set_registers)(Debugger * debugger,
+			AsmArchRegister const * registers,
+			size_t registers_cnt);
+} DebuggerBackendHelper;
+
+typedef const struct _DebuggerBackendDefinition
+{
+	char const * name;
+	char const * description;
+	LicenseFlags license;
+	DebuggerBackend * (*init)(DebuggerBackendHelper const * helper);
+	void (*destroy)(DebuggerBackend * backend);
+	int (*open)(DebuggerBackend * backend, char const * arch,
+			char const * format, char const * filename);
+	int (*close)(DebuggerBackend * backend);
+} DebuggerBackendDefinition;
 
 /* debug */
 typedef struct _DebuggerDebug DebuggerDebug;

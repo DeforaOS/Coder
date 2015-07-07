@@ -62,6 +62,12 @@ enum { RV_NAME = 0, RV_VALUE, RV_VALUE_DISPLAY };
 
 struct _Debugger
 {
+	/* backend */
+	DebuggerBackendHelper bhelper;
+	Plugin * bplugin;
+	DebuggerBackendDefinition * bdefinition;
+	DebuggerBackend * backend;
+
 	/* debug */
 	DebuggerDebugHelper dhelper;
 	Plugin * dplugin;
@@ -96,6 +102,9 @@ static gboolean _debugger_confirm_reset(Debugger * debugger);
 /* helpers */
 static int _debugger_helper_error(Debugger * debugger, int code,
 		char const * format, ...);
+/* backend */
+static void _debugger_helper_backend_set_registers(Debugger * debugger,
+		AsmArchRegister const * registers, size_t registers_cnt);
 
 /* callbacks */
 static void _debugger_on_about(gpointer data);
@@ -175,6 +184,7 @@ static DesktopToolbar _debugger_toolbar[] =
 
 
 /* XXX load at run-time */
+#include "backend/asm.c"
 #include "debug/ptrace.c"
 
 
@@ -193,6 +203,14 @@ Debugger * debugger_new(void)
 
 	if((debugger = object_new(sizeof(*debugger))) == NULL)
 		return NULL;
+	/* backend */
+	debugger->bhelper.debugger = debugger;
+	debugger->bhelper.error = _debugger_helper_error;
+	debugger->bhelper.set_registers
+		= _debugger_helper_backend_set_registers;
+	debugger->bplugin = NULL;
+	debugger->bdefinition = &_asm_definition; /* XXX */
+	debugger->backend = NULL;
 	/* debug */
 	debugger->dhelper.debugger = debugger;
 	debugger->dhelper.error = _debugger_helper_error;
@@ -201,6 +219,13 @@ Debugger * debugger_new(void)
 	debugger->debug = NULL;
 	/* child */
 	debugger->filename = NULL;
+	/* check for errors */
+	if((debugger->backend = debugger->bdefinition->init(&debugger->bhelper))
+			== NULL)
+	{
+		debugger_delete(debugger);
+		return NULL;
+	}
 	/* widgets */
 	accel = gtk_accel_group_new();
 	debugger->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -377,9 +402,15 @@ int debugger_open(Debugger * debugger, char const * arch, char const * format,
 		return debugger_open_dialog(debugger, arch, format);
 	if(debugger_close(debugger) != 0)
 		return -debugger_error(debugger, error_get(), 1);
-	/* FIXME really implement */
 	if((debugger->filename = strdup(filename)) == NULL)
 		return -1;
+	if(debugger->bdefinition->open(debugger->backend, arch, format,
+				filename) != 0)
+	{
+		free(debugger->filename);
+		debugger->filename = NULL;
+		return -debugger_error(debugger, error_get(), 1);
+	}
 	if((s = string_new_append(_("Debugger"), " - ", filename, NULL))
 			!= NULL)
 		gtk_window_set_title(GTK_WINDOW(debugger->window), s);
@@ -700,6 +731,26 @@ static int _debugger_helper_error(Debugger * debugger, int code,
 	debugger_error(debugger, message, code);
 	free(message);
 	return code;
+}
+
+
+/* helpers: backend */
+/* debugger_helper_backend_set_registers */
+static void _debugger_helper_backend_set_registers(Debugger * debugger,
+		AsmArchRegister const * registers, size_t registers_cnt)
+{
+	GtkTreeModel * model;
+	size_t i;
+	GtkTreeIter iter;
+
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(debugger->reg_view));
+	gtk_list_store_clear(GTK_LIST_STORE(model));
+	for(i = 0; i < registers_cnt; i++)
+	{
+		gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+		gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+				RV_NAME, registers[i].name, -1);
+	}
 }
 
 
