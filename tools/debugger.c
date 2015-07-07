@@ -58,11 +58,11 @@ static char const _debugger_license[] =
 /* types */
 struct _Debugger
 {
-	/* backend */
-	DebuggerBackendHelper helper;
-	Plugin * plugin;
-	DebuggerBackendDefinition * definition;
-	DebuggerBackend * backend;
+	/* debug */
+	DebuggerDebugHelper dhelper;
+	Plugin * dplugin;
+	DebuggerDebugDefinition * ddefinition;
+	DebuggerDebug * debug;
 
 	/* child */
 	char * filename;
@@ -178,12 +178,12 @@ Debugger * debugger_new(void)
 
 	if((debugger = object_new(sizeof(*debugger))) == NULL)
 		return NULL;
-	/* backend */
-	debugger->helper.debugger = debugger;
-	debugger->helper.error = _debugger_helper_error;
-	debugger->plugin = NULL;
-	debugger->definition = NULL;
-	debugger->backend = NULL;
+	/* debug */
+	debugger->dhelper.debugger = debugger;
+	debugger->dhelper.error = _debugger_helper_error;
+	debugger->dplugin = NULL;
+	debugger->ddefinition = NULL;
+	debugger->debug = NULL;
 	/* child */
 	debugger->filename = NULL;
 	/* widgets */
@@ -267,7 +267,7 @@ int debugger_is_opened(Debugger * debugger)
 /* debugger_is_running */
 int debugger_is_running(Debugger * debugger)
 {
-	return (debugger->backend != NULL) ? 1 : 0;
+	return (debugger->debug != NULL) ? 1 : 0;
 }
 
 
@@ -300,7 +300,7 @@ int debugger_continue(Debugger * debugger)
 #endif
 	if(debugger_is_running(debugger) == FALSE)
 		return 0;
-	return debugger->definition->_continue(debugger->backend);
+	return debugger->ddefinition->_continue(debugger->debug);
 }
 
 
@@ -343,7 +343,7 @@ int debugger_next(Debugger * debugger)
 #endif
 	if(debugger_is_running(debugger) == FALSE)
 		return 0;
-	return debugger->definition->next(debugger->backend);
+	return debugger->ddefinition->next(debugger->debug);
 }
 
 
@@ -514,7 +514,7 @@ int debugger_pause(Debugger * debugger)
 #endif
 	if(debugger_is_running(debugger) == FALSE)
 		return 0;
-	return debugger->definition->pause(debugger->backend);
+	return debugger->ddefinition->pause(debugger->debug);
 }
 
 
@@ -538,14 +538,14 @@ int debugger_runv(Debugger * debugger, va_list ap)
 		return -1;
 	if(debugger_stop(debugger) != 0)
 		return -1;
-	debugger->definition = &_ptrace_definition;
-	if((debugger->backend = debugger->definition->init(&debugger->helper))
+	debugger->ddefinition = &_ptrace_definition; /* XXX */
+	if((debugger->debug = debugger->ddefinition->init(&debugger->dhelper))
 			== NULL)
 	{
 		debugger_stop(debugger);
 		return -1;
 	}
-	return debugger->definition->start(debugger->backend, ap);
+	return debugger->ddefinition->start(debugger->debug, ap);
 }
 
 
@@ -557,7 +557,7 @@ int debugger_step(Debugger * debugger)
 #endif
 	if(debugger_is_running(debugger) == FALSE)
 		return 0;
-	return debugger->definition->step(debugger->backend);
+	return debugger->ddefinition->step(debugger->debug);
 }
 
 
@@ -569,13 +569,13 @@ int debugger_stop(Debugger * debugger)
 #endif
 	if(debugger_is_running(debugger) == FALSE)
 		return 0;
-	debugger->definition->stop(debugger->backend);
-	debugger->definition->destroy(debugger->backend);
-	debugger->backend = NULL;
-	debugger->definition = NULL;
-	if(debugger->plugin != NULL)
-		plugin_delete(debugger->plugin);
-	debugger->plugin = NULL;
+	debugger->ddefinition->stop(debugger->debug);
+	debugger->ddefinition->destroy(debugger->debug);
+	debugger->debug = NULL;
+	debugger->ddefinition = NULL;
+	if(debugger->dplugin != NULL)
+		plugin_delete(debugger->dplugin);
+	debugger->dplugin = NULL;
 	return 0;
 }
 

@@ -37,28 +37,29 @@
 /* types */
 typedef struct _Debugger Debugger;
 
-typedef struct _DebuggerBackend DebuggerBackend;
+/* debug */
+typedef struct _DebuggerDebug DebuggerDebug;
 
-typedef struct _DebuggerBackendHelper
+typedef struct _DebuggerDebugHelper
 {
 	Debugger * debugger;
 	int (*error)(Debugger * debugger, int code, char const * format, ...);
-} DebuggerBackendHelper;
+} DebuggerDebugHelper;
 
-typedef const struct _DebuggerBackendDefinition
+typedef const struct _DebuggerDebugDefinition
 {
 	char const * name;
 	char const * description;
 	LicenseFlags license;
-	DebuggerBackend * (*init)(DebuggerBackendHelper const * helper);
-	void (*destroy)(DebuggerBackend * backend);
-	int (*start)(DebuggerBackend * backend, va_list argp);
-	int (*pause)(DebuggerBackend * backend);
-	int (*stop)(DebuggerBackend * backend);
-	int (*_continue)(DebuggerBackend * backend);
-	int (*next)(DebuggerBackend * backend);
-	int (*step)(DebuggerBackend * backend);
-} DebuggerBackendDefinition;
+	DebuggerDebug * (*init)(DebuggerDebugHelper const * helper);
+	void (*destroy)(DebuggerDebug * backend);
+	int (*start)(DebuggerDebug * backend, va_list argp);
+	int (*pause)(DebuggerDebug * backend);
+	int (*stop)(DebuggerDebug * backend);
+	int (*_continue)(DebuggerDebug * backend);
+	int (*next)(DebuggerDebug * backend);
+	int (*step)(DebuggerDebug * backend);
+} DebuggerDebugDefinition;
 
 
 /* public */

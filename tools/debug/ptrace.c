@@ -40,16 +40,16 @@
 
 /* ptrace */
 /* private */
-typedef struct _DebuggerBackend PtraceBackend;
+typedef struct _DebuggerDebug PtraceDebug;
 
 /* platform */
 #ifdef __NetBSD__
 typedef int ptrace_data_t;
 #endif
 
-struct _DebuggerBackend
+struct _DebuggerDebug
 {
-	DebuggerBackendHelper const * helper;
+	DebuggerDebugHelper const * helper;
 	GPid pid;
 	guint source;
 	gboolean running;
@@ -66,25 +66,25 @@ struct _DebuggerBackend
 
 /* prototypes */
 /* plug-in */
-static PtraceBackend * _ptrace_init(DebuggerBackendHelper const * helper);
-static void _ptrace_destroy(PtraceBackend * backend);
-static int _ptrace_start(PtraceBackend * backend, va_list argp);
-static int _ptrace_pause(PtraceBackend * backend);
-static int _ptrace_stop(PtraceBackend * backend);
-static int _ptrace_continue(PtraceBackend * backend);
-static int _ptrace_next(PtraceBackend * backend);
-static int _ptrace_step(PtraceBackend * backend);
+static PtraceDebug * _ptrace_init(DebuggerDebugHelper const * helper);
+static void _ptrace_destroy(PtraceDebug * debug);
+static int _ptrace_start(PtraceDebug * debug, va_list argp);
+static int _ptrace_pause(PtraceDebug * debug);
+static int _ptrace_stop(PtraceDebug * debug);
+static int _ptrace_continue(PtraceDebug * debug);
+static int _ptrace_next(PtraceDebug * debug);
+static int _ptrace_step(PtraceDebug * debug);
 
 /* useful */
-static void _ptrace_exit(PtraceBackend * backend);
-static int _ptrace_request(PtraceBackend * backend, int request, void * addr,
+static void _ptrace_exit(PtraceDebug * debug);
+static int _ptrace_request(PtraceDebug * debug, int request, void * addr,
 		ptrace_data_t data);
-static int _ptrace_schedule(PtraceBackend * backend, int request, void * addr,
+static int _ptrace_schedule(PtraceDebug * debug, int request, void * addr,
 		ptrace_data_t data);
 
 
 /* constants */
-static DebuggerBackendDefinition _ptrace_definition =
+static DebuggerDebugDefinition _ptrace_definition =
 {
 	"ptrace",
 	NULL,
@@ -104,47 +104,47 @@ static DebuggerBackendDefinition _ptrace_definition =
 /* functions */
 /* plug-in */
 /* ptrace_init */
-static PtraceBackend * _ptrace_init(DebuggerBackendHelper const * helper)
+static PtraceDebug * _ptrace_init(DebuggerDebugHelper const * helper)
 {
-	PtraceBackend * backend;
+	PtraceDebug * debug;
 
-	if((backend = object_new(sizeof(*backend))) == NULL)
+	if((debug = object_new(sizeof(*debug))) == NULL)
 		return NULL;
-	backend->helper = helper;
-	backend->pid = -1;
-	backend->source = 0;
-	backend->running = FALSE;
+	debug->helper = helper;
+	debug->pid = -1;
+	debug->source = 0;
+	debug->running = FALSE;
 	/* events */
-	memset(&backend->event, 0, sizeof(backend->event));
+	memset(&debug->event, 0, sizeof(debug->event));
 #ifdef PTRACE_FORK
-	backend->event.pe_set_event = PTRACE_FORK;
+	debug->event.pe_set_event = PTRACE_FORK;
 #endif
 	/* deferred requests */
-	backend->request = -1;
-	backend->addr = NULL;
-	backend->data = 0;
-	return backend;
+	debug->request = -1;
+	debug->addr = NULL;
+	debug->data = 0;
+	return debug;
 }
 
 
 /* ptrace_destroy */
-static void _ptrace_destroy(PtraceBackend * backend)
+static void _ptrace_destroy(PtraceDebug * debug)
 {
-	if(backend->source != 0)
-		g_source_remove(backend->source);
-	if(backend->pid > 0)
-		g_spawn_close_pid(backend->pid);
-	object_delete(backend);
+	if(debug->source != 0)
+		g_source_remove(debug->source);
+	if(debug->pid > 0)
+		g_spawn_close_pid(debug->pid);
+	object_delete(debug);
 }
 
 
 /* ptrace_start */
-static int _start_parent(PtraceBackend * backend);
+static int _start_parent(PtraceDebug * debug);
 /* callbacks */
 static void _start_on_child_setup(gpointer data);
 static void _start_on_child_watch(GPid pid, gint status, gpointer data);
 
-static int _ptrace_start(PtraceBackend * backend, va_list argp)
+static int _ptrace_start(PtraceDebug * debug, va_list argp)
 {
 	char * argv[3] = { NULL, NULL, NULL };
 	const unsigned int flags = G_SPAWN_DO_NOT_REAP_CHILD
@@ -154,26 +154,26 @@ static int _ptrace_start(PtraceBackend * backend, va_list argp)
 	argv[0] = va_arg(argp, char *);
 	argv[1] = argv[0];
 	if(g_spawn_async(NULL, argv, NULL, flags, _start_on_child_setup,
-				backend, &backend->pid, &error) == FALSE)
+				debug, &debug->pid, &error) == FALSE)
 	{
 		error_set_code(-errno, "%s", error->message);
 		g_error_free(error);
-		return -backend->helper->error(backend->helper->debugger, 1,
+		return -debug->helper->error(debug->helper->debugger, 1,
 				"%s", "Could not start execution");
 	}
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s() %d\n", __func__, backend->pid);
+	fprintf(stderr, "DEBUG: %s() %d\n", __func__, debug->pid);
 #endif
-	return _start_parent(backend);
+	return _start_parent(debug);
 }
 
-static int _start_parent(PtraceBackend * backend)
+static int _start_parent(PtraceDebug * debug)
 {
-	backend->source = g_child_watch_add(backend->pid, _start_on_child_watch,
-			backend);
+	debug->source = g_child_watch_add(debug->pid, _start_on_child_watch,
+			debug);
 #ifdef PTRACE_FORK
-	_ptrace_schedule(backend, PT_SET_EVENT_MASK, &backend->event,
-			sizeof(backend->event));
+	_ptrace_schedule(debug, PT_SET_EVENT_MASK, &debug->event,
+			sizeof(debug->event));
 #endif
 	return 0;
 }
@@ -181,7 +181,7 @@ static int _start_parent(PtraceBackend * backend)
 /* callbacks */
 static void _start_on_child_setup(gpointer data)
 {
-	PtraceBackend * backend = data;
+	PtraceDebug * debug = data;
 
 	errno = 0;
 	if(ptrace(PT_TRACE_ME, 0, (caddr_t)NULL, (ptrace_data_t)0) == -1
@@ -194,31 +194,31 @@ static void _start_on_child_setup(gpointer data)
 
 static void _start_on_child_watch(GPid pid, gint status, gpointer data)
 {
-	PtraceBackend * backend = data;
+	PtraceDebug * debug = data;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s(%d, %d)\n", __func__, pid, status);
 #endif
 #ifdef G_OS_UNIX
-	if(backend->pid != pid)
+	if(debug->pid != pid)
 		return;
 	if(WIFSTOPPED(status))
 	{
 # ifdef DEBUG
 		fprintf(stderr, "DEBUG: %s() stopped\n", __func__);
 # endif
-		backend->running = FALSE;
-		if(backend->request >= 0)
+		debug->running = FALSE;
+		if(debug->request >= 0)
 		{
-			if(_ptrace_request(backend, backend->request,
-						backend->addr, backend->data)
+			if(_ptrace_request(debug, debug->request,
+						debug->addr, debug->data)
 					!= 0)
 			{
-				backend->request = -1;
+				debug->request = -1;
 				return;
 			}
-			backend->running = TRUE;
-			backend->request = -1;
+			debug->running = TRUE;
+			debug->request = -1;
 		}
 	}
 	else if(WIFSIGNALED(status))
@@ -227,7 +227,7 @@ static void _start_on_child_watch(GPid pid, gint status, gpointer data)
 		fprintf(stderr, "DEBUG: %s() signal %d\n", __func__,
 				WTERMSIG(status));
 # endif
-		_ptrace_exit(backend);
+		_ptrace_exit(debug);
 	}
 	else if(WIFEXITED(status))
 	{
@@ -235,18 +235,18 @@ static void _start_on_child_watch(GPid pid, gint status, gpointer data)
 		fprintf(stderr, "DEBUG: %s() error %d\n", __func__,
 				WEXITSTATUS(status));
 # endif
-		_ptrace_exit(backend);
+		_ptrace_exit(debug);
 	}
 #else
 	GError * error = NULL;
 
-	if(backend->pid != pid)
+	if(debug->pid != pid)
 		return;
 	if(g_spawn_check_exit_status(status, &error) == FALSE)
 	{
 		error_set_code(WEXITSTATUS(status), "%s", error->message);
 		g_error_free(error);
-		backend->helper->error(backend->helper->debugger,
+		debug->helper->error(debug->helper->debugger,
 				WEXITSTATUS(status), "%s", error_get(),
 		_ptrace_exit(backend);
 	}
@@ -255,118 +255,118 @@ static void _start_on_child_watch(GPid pid, gint status, gpointer data)
 
 
 /* ptrace_pause */
-static int _ptrace_pause(PtraceBackend * backend)
+static int _ptrace_pause(PtraceDebug * debug)
 {
-	return _ptrace_schedule(backend, -1, NULL, 0);
+	return _ptrace_schedule(debug, -1, NULL, 0);
 }
 
 
 /* ptrace_stop */
-static int _ptrace_stop(PtraceBackend * backend)
+static int _ptrace_stop(PtraceDebug * debug)
 {
-	return _ptrace_schedule(backend, PT_KILL, NULL, 0);
+	return _ptrace_schedule(debug, PT_KILL, NULL, 0);
 }
 
 
 /* ptrace_continue */
-static int _ptrace_continue(PtraceBackend * backend)
+static int _ptrace_continue(PtraceDebug * debug)
 {
-	return _ptrace_schedule(backend, PT_CONTINUE, (caddr_t)1, 0);
+	return _ptrace_schedule(debug, PT_CONTINUE, (caddr_t)1, 0);
 }
 
 
 /* ptrace_next */
-static int _ptrace_next(PtraceBackend * backend)
+static int _ptrace_next(PtraceDebug * debug)
 {
-	return _ptrace_schedule(backend, PT_SYSCALL, (caddr_t)1, 0);
+	return _ptrace_schedule(debug, PT_SYSCALL, (caddr_t)1, 0);
 }
 
 
 /* ptrace_step */
-static int _ptrace_step(PtraceBackend * backend)
+static int _ptrace_step(PtraceDebug * debug)
 {
-	return _ptrace_schedule(backend, PT_STEP, (caddr_t)1, 0);
+	return _ptrace_schedule(debug, PT_STEP, (caddr_t)1, 0);
 }
 
 
 /* useful */
 /* ptrace_exit */
-static void _ptrace_exit(PtraceBackend * backend)
+static void _ptrace_exit(PtraceDebug * debug)
 {
-	if(backend->source != 0)
-		g_source_remove(backend->source);
-	backend->source = 0;
-	if(backend->pid > 0)
-		g_spawn_close_pid(backend->pid);
-	backend->pid = -1;
-	backend->running = FALSE;
-	backend->request = -1;
-	backend->addr = NULL;
-	backend->data = 0;
+	if(debug->source != 0)
+		g_source_remove(debug->source);
+	debug->source = 0;
+	if(debug->pid > 0)
+		g_spawn_close_pid(debug->pid);
+	debug->pid = -1;
+	debug->running = FALSE;
+	debug->request = -1;
+	debug->addr = NULL;
+	debug->data = 0;
 }
 
 
 /* ptrace_request */
-static int _ptrace_request(PtraceBackend * backend, int request, void * addr,
+static int _ptrace_request(PtraceDebug * debug, int request, void * addr,
 		int data)
 {
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s(%d, %p, %d) %d\n", __func__, request, addr,
-			data, backend->pid);
+			data, debug->pid);
 #endif
-	if(backend->pid <= 0)
+	if(debug->pid <= 0)
 		return -1;
 	errno = 0;
-	if(ptrace(request, backend->pid, addr, data) == -1 && errno != 0)
+	if(ptrace(request, debug->pid, addr, data) == -1 && errno != 0)
 	{
 		error_set_code(-errno, "%s: %s", "ptrace", strerror(errno));
 		if(errno == ESRCH)
-			_ptrace_exit(backend);
-		return -backend->helper->error(backend->helper->debugger, 1,
+			_ptrace_exit(debug);
+		return -debug->helper->error(debug->helper->debugger, 1,
 				"%s", error_get());
 	}
-	backend->running = TRUE;
+	debug->running = TRUE;
 	return 0;
 }
 
 
 /* ptrace_schedule */
-static int _ptrace_schedule(PtraceBackend * backend, int request, void * addr,
+static int _ptrace_schedule(PtraceDebug * debug, int request, void * addr,
 		int data)
 {
-	DebuggerBackendHelper const * helper = backend->helper;
+	DebuggerDebugHelper const * helper = debug->helper;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s(%d, %p, %d)\n", __func__, request, addr,
 			data);
 #endif
-	if(backend->running)
+	if(debug->running)
 	{
 		/* stop the traced process */
-		if(kill(backend->pid, SIGSTOP) != 0)
+		if(kill(debug->pid, SIGSTOP) != 0)
 		{
 			error_set_code(-errno, "%s: %s", "kill",
 					strerror(errno));
 			if(errno == ESRCH)
-				_ptrace_exit(backend);
+				_ptrace_exit(debug);
 			return -helper->error(helper->debugger, 1,
 					"%s", "Could not schedule command"
 					" (could not stop the traced process)");
 		}
-		backend->running = FALSE;
+		debug->running = FALSE;
 		wait(NULL);
 		if(request < 0)
 			return 0;
 		/* schedule the request */
-		backend->request = request;
-		backend->addr = addr;
-		backend->data = data;
+		debug->request = request;
+		debug->addr = addr;
+		debug->data = data;
 		return 0;
 	}
 	if(request < 0)
 		return 0;
 	/* we can issue the request directly */
-	if(_ptrace_request(backend, request, addr, data) != 0)
+	if(_ptrace_request(debug, request, addr, data) != 0)
 		return -1;
 	return 0;
 }
