@@ -130,10 +130,7 @@ static PtraceDebug * _ptrace_init(DebuggerDebugHelper const * helper)
 /* ptrace_destroy */
 static void _ptrace_destroy(PtraceDebug * debug)
 {
-	if(debug->source != 0)
-		g_source_remove(debug->source);
-	if(debug->pid > 0)
-		g_spawn_close_pid(debug->pid);
+	_ptrace_exit(debug);
 	object_delete(debug);
 }
 
@@ -227,6 +224,7 @@ static void _start_on_child_watch(GPid pid, gint status, gpointer data)
 		fprintf(stderr, "DEBUG: %s() signal %d\n", __func__,
 				WTERMSIG(status));
 # endif
+		debug->source = 0;
 		_ptrace_exit(debug);
 	}
 	else if(WIFEXITED(status))
@@ -235,6 +233,7 @@ static void _start_on_child_watch(GPid pid, gint status, gpointer data)
 		fprintf(stderr, "DEBUG: %s() error %d\n", __func__,
 				WEXITSTATUS(status));
 # endif
+		debug->source = 0;
 		_ptrace_exit(debug);
 	}
 #else
@@ -248,8 +247,9 @@ static void _start_on_child_watch(GPid pid, gint status, gpointer data)
 		g_error_free(error);
 		debug->helper->error(debug->helper->debugger,
 				WEXITSTATUS(status), "%s", error_get(),
-		_ptrace_exit(backend);
 	}
+	debug->source = 0;
+	_ptrace_exit(debug);
 #endif
 }
 
