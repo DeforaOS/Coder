@@ -243,7 +243,7 @@ static int _new_chooser(Simulator * simulator)
 	} data;
 
 	data.simulator = simulator;
-	dialog = gtk_dialog_new_with_buttons(_("Simulator properties"),
+	dialog = gtk_dialog_new_with_buttons(_("Simulator profiles"),
 			NULL, 0, GTK_STOCK_QUIT, GTK_RESPONSE_CLOSE,
 			GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
 #if GTK_CHECK_VERSION(2, 14, 0)
