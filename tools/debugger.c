@@ -78,6 +78,7 @@ struct _Debugger
 	char * filename;
 
 	/* widgets */
+	PangoFontDescription * bold;
 	GtkWidget * window;
 	/* toolbar */
 	/* disassembly */
@@ -114,6 +115,7 @@ static void _debugger_on_continue(gpointer data);
 static void _debugger_on_next(gpointer data);
 static void _debugger_on_open(gpointer data);
 static void _debugger_on_pause(gpointer data);
+static void _debugger_on_properties(gpointer data);
 static void _debugger_on_run(gpointer data);
 static void _debugger_on_step(gpointer data);
 static void _debugger_on_stop(gpointer data);
@@ -130,6 +132,9 @@ static DesktopMenu const _debugger_menu_file[] =
 {
 	{ N_("_Open..."), G_CALLBACK(_debugger_on_open), GTK_STOCK_OPEN,
 		GDK_CONTROL_MASK, GDK_KEY_O },
+	{ "", NULL, NULL, 0, 0 },
+	{ N_("_Properties"), G_CALLBACK(_debugger_on_properties),
+		GTK_STOCK_PROPERTIES, GDK_MOD1_MASK, GDK_KEY_Return },
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("_Close"), G_CALLBACK(_debugger_on_close), GTK_STOCK_CLOSE,
 		GDK_CONTROL_MASK, GDK_KEY_W },
@@ -161,6 +166,7 @@ static DesktopMenubar const _debugger_menubar[] =
 #define DEBUGGER_TOOLBAR_STOP		6
 #define DEBUGGER_TOOLBAR_STEP		7
 #define DEBUGGER_TOOLBAR_NEXT		8
+#define DEBUGGER_TOOLBAR_PROPERTIES	10
 static DesktopToolbar _debugger_toolbar[] =
 {
 	{ N_("Open"), G_CALLBACK(_debugger_on_open), GTK_STOCK_OPEN,
@@ -179,6 +185,9 @@ static DesktopToolbar _debugger_toolbar[] =
 		GTK_STOCK_MEDIA_FORWARD, 0, 0, NULL },
 	{ N_("Next"), G_CALLBACK(_debugger_on_next),
 		GTK_STOCK_MEDIA_NEXT, 0, 0, NULL },
+	{ "", NULL, NULL, 0, 0, NULL },
+	{ N_("Properties"), G_CALLBACK(_debugger_on_properties),
+		GTK_STOCK_PROPERTIES, 0, 0, NULL },
 	{ NULL, NULL, NULL, 0, 0, NULL }
 };
 
@@ -228,6 +237,8 @@ Debugger * debugger_new(void)
 		return NULL;
 	}
 	/* widgets */
+	debugger->bold = pango_font_description_new();
+	pango_font_description_set_weight(debugger->bold, PANGO_WEIGHT_BOLD);
 	accel = gtk_accel_group_new();
 	debugger->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_add_accel_group(GTK_WINDOW(debugger->window), accel);
@@ -298,6 +309,7 @@ void debugger_delete(Debugger * debugger)
 		debugger_stop(debugger);
 	free(debugger->filename);
 	gtk_widget_destroy(debugger->window);
+	pango_font_description_free(debugger->bold);
 	object_delete(debugger);
 }
 
@@ -571,6 +583,75 @@ int debugger_pause(Debugger * debugger)
 }
 
 
+/* debugger_properties */
+static GtkWidget * _properties_label(Debugger * debugger, GtkSizeGroup * group,
+		char const * label, char const * value);
+
+void debugger_properties(Debugger * debugger)
+{
+	const unsigned int flags = GTK_DIALOG_MODAL
+		| GTK_DIALOG_DESTROY_WITH_PARENT;
+	GtkSizeGroup * group;
+	GtkWidget * dialog;
+	GtkWidget * vbox;
+	GtkWidget * widget;
+	String * s;
+
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
+	if(debugger_is_opened(debugger) == FALSE)
+		return;
+	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
+	dialog = gtk_dialog_new_with_buttons(_("Properties"),
+			GTK_WINDOW(debugger->window), flags,
+			GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE, NULL);
+	if((s = string_new_format(_("Properties of %s"), debugger->filename))
+			!= NULL)
+		gtk_window_set_title(GTK_WINDOW(dialog), s);
+	string_delete(s);
+#if GTK_CHECK_VERSION(2, 14, 0)
+	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+#else
+	vbox = GTK_DIALOG(dialog)->vbox;
+#endif
+	/* FIXME really implement */
+	/* architecture */
+	widget = _properties_label(debugger, group, _("Architecture: "),
+			debugger->bdefinition->arch_get_name(debugger->backend));
+	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+	/* format */
+	widget = _properties_label(debugger, group, _("Format: "),
+			debugger->bdefinition->format_get_name(debugger->backend));
+	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+	gtk_widget_show_all(vbox);
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
+}
+
+static GtkWidget * _properties_label(Debugger * debugger, GtkSizeGroup * group,
+		char const * label, char const * value)
+{
+	GtkWidget * hbox;
+	GtkWidget * widget;
+
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
+	hbox = gtk_hbox_new(FALSE, 4);
+#endif
+	widget = gtk_label_new(label);
+	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+	gtk_widget_modify_font(widget, debugger->bold);
+	gtk_size_group_add_widget(group, widget);
+	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	widget = gtk_label_new((value != NULL) ? value : "");
+	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
+	return hbox;
+}
+
+
 /* debugger_run */
 int debugger_run(Debugger * debugger, ...)
 {
@@ -653,15 +734,18 @@ static void _debugger_set_sensitive_toolbar(Debugger * debugger, gboolean run,
 		DEBUGGER_TOOLBAR_STEP,
 		DEBUGGER_TOOLBAR_NEXT
 	};
+	GtkWidget * widget;
 	size_t i;
 
-	gtk_widget_set_sensitive(GTK_WIDGET(
-				_debugger_toolbar[DEBUGGER_TOOLBAR_RUN].widget),
-			run);
+	widget = GTK_WIDGET(_debugger_toolbar[DEBUGGER_TOOLBAR_RUN].widget);
+	gtk_widget_set_sensitive(widget, run);
 	for(i = 0; i < sizeof(widgets) / sizeof(*widgets); i++)
 		gtk_widget_set_sensitive(GTK_WIDGET(
 					_debugger_toolbar[widgets[i]].widget),
 				debug);
+	widget = GTK_WIDGET(_debugger_toolbar[DEBUGGER_TOOLBAR_PROPERTIES]
+			.widget);
+	gtk_widget_set_sensitive(widget, debugger_is_opened(debugger));
 }
 
 
@@ -839,6 +923,15 @@ static void _debugger_on_pause(gpointer data)
 	Debugger * debugger = data;
 
 	debugger_pause(debugger);
+}
+
+
+/* debugger_on_properties */
+static void _debugger_on_properties(gpointer data)
+{
+	Debugger * debugger = data;
+
+	debugger_properties(debugger);
 }
 
 
