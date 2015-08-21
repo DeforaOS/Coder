@@ -259,8 +259,10 @@ static int _new_chooser(Simulator * simulator)
 	hbox = gtk_hbox_new(FALSE, 4);
 	widget = gtk_label_new(_("Profile: "));
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
-	store = gtk_list_store_new(3, G_TYPE_STRING, GDK_TYPE_PIXBUF,
-			G_TYPE_STRING);
+	store = gtk_list_store_new(3,
+			G_TYPE_STRING,				/* filename */
+			GDK_TYPE_PIXBUF,			/* icon */
+			G_TYPE_STRING);				/* name */
 	gtk_list_store_append(store, &iter);
 	gtk_list_store_set(store, &iter, 0, NULL, 2, _("Custom profile"), -1);
 	_new_chooser_list(simulator, store);
