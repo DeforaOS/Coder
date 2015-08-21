@@ -306,10 +306,7 @@ void debugger_delete(Debugger * debugger)
 /* debugger_is_opened */
 int debugger_is_opened(Debugger * debugger)
 {
-	if(debugger_is_running(debugger))
-		return TRUE;
-	/* FIXME really implement */
-	return FALSE;
+	return (debugger->filename != NULL) ? 1 : 0;
 }
 
 
