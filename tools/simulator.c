@@ -164,6 +164,8 @@ static void _new_chooser_on_changed(GtkWidget * widget, gpointer data);
 static int _new_load(Simulator * simulator, char const * model);
 static Config * _new_load_config(Simulator * simulator, char const * model);
 /* callbacks */
+static gint _new_chooser_list_sort(GtkTreeModel * model, GtkTreeIter * a,
+		GtkTreeIter * b, gpointer data);
 static gboolean _new_on_idle(gpointer data);
 static gboolean _new_on_quit(gpointer data);
 static gboolean _new_on_xephyr(gpointer data);
@@ -230,6 +232,7 @@ static int _new_chooser(Simulator * simulator)
 	GtkWidget * vbox;
 	GtkWidget * hbox;
 	GtkListStore * store;
+	GtkTreeModel * model;
 	GtkWidget * combobox;
 	GtkTreeIter iter;
 	GtkCellRenderer * renderer;
@@ -261,7 +264,10 @@ static int _new_chooser(Simulator * simulator)
 	gtk_list_store_append(store, &iter);
 	gtk_list_store_set(store, &iter, 0, NULL, 2, _("Custom profile"), -1);
 	_new_chooser_list(simulator, store);
-	combobox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(store));
+	model = gtk_tree_model_sort_new_with_model(GTK_TREE_MODEL(store));
+	gtk_tree_sortable_set_default_sort_func(GTK_TREE_SORTABLE(model),
+			_new_chooser_list_sort, simulator, NULL);
+	combobox = gtk_combo_box_new_with_model(model);
 	renderer = gtk_cell_renderer_pixbuf_new();
 	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(combobox), renderer, FALSE);
 	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(combobox), renderer,
@@ -377,13 +383,18 @@ static void _new_chooser_on_changed(GtkWidget * widget, gpointer data)
 		GtkWidget * width;
 		GtkWidget * height;
 	} * d = data;
+	GtkTreeIter siter;
+	GtkTreeModel * smodel;
 	GtkTreeIter iter;
 	GtkTreeModel * model;
 	gchar * name;
 
-	if(gtk_combo_box_get_active_iter(GTK_COMBO_BOX(widget), &iter) == FALSE)
+	if(gtk_combo_box_get_active_iter(GTK_COMBO_BOX(widget), &siter) == FALSE)
 		return;
-	model = gtk_combo_box_get_model(GTK_COMBO_BOX(widget));
+	smodel = gtk_combo_box_get_model(GTK_COMBO_BOX(widget));
+	gtk_tree_model_sort_convert_iter_to_child_iter(
+			GTK_TREE_MODEL_SORT(smodel), &iter, &siter);
+	model = gtk_tree_model_sort_get_model(GTK_TREE_MODEL_SORT(smodel));
 	gtk_tree_model_get(model, &iter, 0, &name, -1);
 	if(_new_load(d->simulator, name) == 0)
 	{
@@ -448,6 +459,30 @@ static Config * _new_load_config(Simulator * simulator, char const * model)
 		return NULL;
 	}
 	return config;
+}
+
+static gint _new_chooser_list_sort(GtkTreeModel * model, GtkTreeIter * a,
+		GtkTreeIter * b, gpointer data)
+{
+	gint ret;
+	gchar * afilename;
+	gchar * aname;
+	gchar * bfilename;
+	gchar * bname;
+
+	gtk_tree_model_get(model, a, 0, &afilename, 2, &aname, -1);
+	gtk_tree_model_get(model, b, 0, &bfilename, 2, &bname, -1);
+	if(afilename == NULL && bfilename != NULL)
+		ret = -1;
+	else if(afilename != NULL && bfilename == NULL)
+		ret = 1;
+	else
+		ret = strcmp(aname, bname);
+	g_free(afilename);
+	g_free(aname);
+	g_free(bfilename);
+	g_free(bname);
+	return ret;
 }
 
 static gboolean _new_on_idle(gpointer data)
