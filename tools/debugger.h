@@ -60,6 +60,8 @@ typedef const struct _DebuggerBackendDefinition
 	int (*open)(DebuggerBackend * backend, char const * arch,
 			char const * format, char const * filename);
 	int (*close)(DebuggerBackend * backend);
+	char const * (*arch_get_name)(DebuggerBackend * backend);
+	char const * (*format_get_name)(DebuggerBackend * backend);
 } DebuggerBackendDefinition;
 
 /* debug */

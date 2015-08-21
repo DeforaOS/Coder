@@ -54,6 +54,8 @@ static void _asm_destroy(AsmBackend * backend);
 static int _asm_open(AsmBackend * backend, char const * arch,
 		char const * format, char const * filename);
 static int _asm_close(AsmBackend * backend);
+static char const * _asm_arch_get_name(AsmBackend * backend);
+static char const * _asm_format_get_name(AsmBackend * backend);
 
 /* useful */
 
@@ -67,7 +69,9 @@ static DebuggerBackendDefinition _asm_definition =
 	_asm_init,
 	_asm_destroy,
 	_asm_open,
-	_asm_close
+	_asm_close,
+	_asm_arch_get_name,
+	_asm_format_get_name
 };
 
 
@@ -145,4 +149,18 @@ static int _asm_close(AsmBackend * backend)
 		asm_delete(backend->a);
 	backend->a = NULL;
 	return 0;
+}
+
+
+/* asm_arch_get_name */
+static char const * _asm_arch_get_name(AsmBackend * backend)
+{
+	return asmcode_get_arch(backend->code);
+}
+
+
+/* asm_format_get_name */
+static char const * _asm_format_get_name(AsmBackend * backend)
+{
+	return asmcode_get_format(backend->code);
 }
