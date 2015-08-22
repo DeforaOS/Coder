@@ -86,8 +86,18 @@ struct _Simulator
 
 	/* widgets */
 	GtkWidget * window;
+	GtkWidget * toolbar;
 	GtkWidget * socket;
 };
+
+typedef struct _SimulatorData
+{
+	Simulator * simulator;
+	Config * config;
+	GtkWidget * dpi;
+	GtkWidget * width;
+	GtkWidget * height;
+} SimulatorData;
 
 
 /* constants */
@@ -100,6 +110,8 @@ static char const * _authors[] =
 
 /* prototypes */
 /* callbacks */
+static void _simulator_on_button_clicked(GtkToolButton * button, gpointer data);
+
 static void _simulator_on_child_watch(GPid pid, gint status, gpointer data);
 static void _simulator_on_children_watch(GPid pid, gint status, gpointer data);
 static void _simulator_on_close(gpointer data);
@@ -160,7 +172,9 @@ static const DesktopMenubar _simulator_menubar[] =
 /* simulator_new */
 static int _new_chooser(Simulator * simulator);
 static void _new_chooser_list(Simulator * simulator, GtkListStore * store);
+static void _new_chooser_load(SimulatorData * data, GtkWidget * combobox);
 static void _new_chooser_on_changed(GtkWidget * widget, gpointer data);
+static void _new_chooser_on_config(String const * section, void * data);
 static int _new_load(Simulator * simulator, char const * model);
 static Config * _new_load_config(Simulator * simulator, char const * model);
 /* callbacks */
@@ -204,6 +218,7 @@ Simulator * simulator_new(SimulatorPrefs * prefs)
 	simulator->children_cnt = 0;
 	simulator->source = 0;
 	simulator->window = NULL;
+	simulator->toolbar = NULL;
 	/* set default values */
 	simulator->dpi = 96;
 	simulator->width = 640;
@@ -237,15 +252,10 @@ static int _new_chooser(Simulator * simulator)
 	GtkTreeIter iter;
 	GtkCellRenderer * renderer;
 	GtkWidget * widget;
-	struct
-	{
-		Simulator * simulator;
-		GtkWidget * dpi;
-		GtkWidget * width;
-		GtkWidget * height;
-	} data;
+	SimulatorData data;
 
 	data.simulator = simulator;
+	data.config = NULL;
 	dialog = gtk_dialog_new_with_buttons(_("Simulator profiles"),
 			NULL, 0, GTK_STOCK_QUIT, GTK_RESPONSE_CLOSE,
 			GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
@@ -324,6 +334,7 @@ static int _new_chooser(Simulator * simulator)
 				data.width));
 	simulator->height = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(
 				data.height));
+	_new_chooser_load(&data, combobox);
 	gtk_widget_destroy(dialog);
 	simulator->source = g_idle_add(_new_on_idle, simulator);
 	return 0;
@@ -376,15 +387,36 @@ static void _new_chooser_list(Simulator * simulator, GtkListStore * store)
 	closedir(dir);
 }
 
+static void _new_chooser_load(SimulatorData * data, GtkWidget * combobox)
+{
+	GtkTreeModel * smodel;
+	GtkTreeIter siter;
+	GtkTreeModel * model;
+	GtkTreeIter iter;
+	gchar * profile;
+
+	if(gtk_combo_box_get_active_iter(GTK_COMBO_BOX(combobox), &siter)
+			== FALSE)
+		return;
+	smodel = gtk_combo_box_get_model(GTK_COMBO_BOX(combobox));
+	gtk_tree_model_sort_convert_iter_to_child_iter(GTK_TREE_MODEL_SORT(
+				smodel), &iter, &siter);
+	model = gtk_tree_model_sort_get_model(GTK_TREE_MODEL_SORT(smodel));
+	gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, 0, &profile, -1);
+	if(profile != NULL
+			&& (data->config = _new_load_config(data->simulator,
+					profile)) != NULL)
+	{
+		config_foreach(data->config, _new_chooser_on_config, data);
+		config_delete(data->config);
+		data->config = NULL;
+	}
+	g_free(profile);
+}
+
 static void _new_chooser_on_changed(GtkWidget * widget, gpointer data)
 {
-	struct
-	{
-		Simulator * simulator;
-		GtkWidget * dpi;
-		GtkWidget * width;
-		GtkWidget * height;
-	} * d = data;
+	SimulatorData * d = data;
 	GtkTreeIter siter;
 	GtkTreeModel * smodel;
 	GtkTreeIter iter;
@@ -408,6 +440,34 @@ static void _new_chooser_on_changed(GtkWidget * widget, gpointer data)
 				d->simulator->height);
 	}
 	g_free(name);
+}
+
+static void _new_chooser_on_config(String const * section, void * data)
+{
+	SimulatorData * d = data;
+	const String button[] = "button::";
+	GtkWidget * image;
+	GtkToolItem * toolitem;
+	char const * p;
+
+	if(strncmp(section, button, sizeof(button) - 1) != 0)
+		return;
+	if(d->simulator->toolbar == NULL)
+		d->simulator->toolbar = gtk_toolbar_new();
+	if((p = config_get(d->config, section, "icon")) != NULL)
+		image = gtk_image_new_from_icon_name(p,
+				GTK_ICON_SIZE_LARGE_TOOLBAR);
+	else
+		image = NULL;
+	p = config_get(d->config, section, "name");
+	toolitem = gtk_tool_button_new(image, p);
+	/* XXX memory leaks */
+	if((p = config_get(d->config, section, "command")) != NULL)
+			g_object_set_data(G_OBJECT(toolitem), "command",
+					g_strdup(p));
+	g_signal_connect(toolitem, "clicked", G_CALLBACK(
+				_simulator_on_button_clicked), d->simulator);
+	gtk_toolbar_insert(GTK_TOOLBAR(d->simulator->toolbar), toolitem, -1);
 }
 
 static int _new_load(Simulator * simulator, char const * model)
@@ -526,6 +586,10 @@ static gboolean _new_on_idle(gpointer data)
 	widget = desktop_menubar_create(_simulator_menubar, simulator, group);
 	g_object_unref(group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+	/* toolbar */
+	if(simulator->toolbar != NULL)
+		gtk_box_pack_start(GTK_BOX(vbox), simulator->toolbar, FALSE,
+				TRUE, 0);
 	/* view */
 	simulator->socket = gtk_socket_new();
 	g_signal_connect_swapped(simulator->socket, "plug-added", G_CALLBACK(
@@ -705,6 +769,18 @@ int simulator_run(Simulator * simulator, char const * command)
 /* private */
 /* functions */
 /* callbacks */
+/* simulator_on_button_clicked */
+static void _simulator_on_button_clicked(GtkToolButton * button, gpointer data)
+{
+	Simulator * simulator = data;
+	char const * p;
+
+	/* run commands */
+	if((p = g_object_get_data(G_OBJECT(button), "command")) != NULL)
+		simulator_run(simulator, p);
+}
+
+
 /* simulator_on_child_watch */
 static void _simulator_on_child_watch(GPid pid, gint status, gpointer data)
 {
