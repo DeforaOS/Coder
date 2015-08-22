@@ -371,6 +371,8 @@ static void _new_chooser_list(GtkListStore * store)
 	size_t len;
 	Config * config;
 	char const * p;
+	char const * q;
+	String * title;
 	GdkPixbuf * pixbuf = NULL;
 
 	if((dir = opendir(models)) == NULL)
@@ -391,11 +393,14 @@ static void _new_chooser_list(GtkListStore * store)
 		if((p = config_get(config, NULL, "icon")) != NULL)
 			pixbuf = gtk_icon_theme_load_icon(icontheme, p, size, 0,
 					NULL);
-		if((p = config_get(config, NULL, "title")) == NULL)
-			p = de->d_name;
+		p = config_get(config, NULL, "vendor");
+		q = config_get(config, NULL, "model");
+		title = string_new_append((p != NULL) ? p : "",
+				(q != NULL) ? " " : de->d_name, q, NULL);
 		gtk_list_store_append(store, &iter);
 		gtk_list_store_set(store, &iter, 0, de->d_name, 1, pixbuf,
-				2, p, -1);
+				2, title, -1);
+		string_delete(title);
 		if(pixbuf != NULL)
 		{
 			g_object_unref(pixbuf);
