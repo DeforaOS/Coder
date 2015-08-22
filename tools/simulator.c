@@ -226,9 +226,7 @@ Simulator * simulator_new(SimulatorPrefs * prefs)
 	simulator->toolbar = NULL;
 	/* set default values */
 	simulator->display = NULL;
-	simulator->dpi = 96;
-	simulator->width = 640;
-	simulator->height = 480;
+	_new_load(simulator, NULL);
 	if(prefs != NULL && prefs->chooser != 0)
 	{
 		if(_new_chooser(simulator) != 0)
@@ -491,6 +489,9 @@ static int _new_load(Simulator * simulator, char const * model)
 	char * q;
 	long l;
 
+	simulator->dpi = 96;
+	simulator->width = 640;
+	simulator->height = 480;
 	if((config = _new_load_config(simulator, model)) == NULL)
 		return -1;
 	if((p = config_get(config, NULL, "dpi")) != NULL
