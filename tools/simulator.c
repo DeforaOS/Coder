@@ -176,12 +176,12 @@ static const DesktopMenubar _simulator_menubar[] =
 /* functions */
 /* simulator_new */
 static int _new_chooser(Simulator * simulator);
-static void _new_chooser_list(Simulator * simulator, GtkListStore * store);
+static void _new_chooser_list(GtkListStore * store);
 static void _new_chooser_load(SimulatorData * data, GtkWidget * combobox);
 static void _new_chooser_on_changed(GtkWidget * widget, gpointer data);
 static void _new_chooser_on_config(String const * section, void * data);
 static int _new_load(Simulator * simulator, char const * model);
-static Config * _new_load_config(Simulator * simulator, char const * model);
+static Config * _new_load_config(char const * model);
 /* callbacks */
 static gint _new_chooser_list_sort(GtkTreeModel * model, GtkTreeIter * a,
 		GtkTreeIter * b, gpointer data);
@@ -285,7 +285,7 @@ static int _new_chooser(Simulator * simulator)
 			G_TYPE_STRING);				/* name */
 	gtk_list_store_append(store, &iter);
 	gtk_list_store_set(store, &iter, 0, NULL, 2, _("Custom profile"), -1);
-	_new_chooser_list(simulator, store);
+	_new_chooser_list(store);
 	model = gtk_tree_model_sort_new_with_model(GTK_TREE_MODEL(store));
 	gtk_tree_sortable_set_default_sort_func(GTK_TREE_SORTABLE(model),
 			_new_chooser_list_sort, simulator, NULL);
@@ -359,7 +359,7 @@ static int _new_chooser(Simulator * simulator)
 	return 0;
 }
 
-static void _new_chooser_list(Simulator * simulator, GtkListStore * store)
+static void _new_chooser_list(GtkListStore * store)
 {
 	GtkIconTheme * icontheme;
 	GtkTreeIter iter;
@@ -386,7 +386,7 @@ static void _new_chooser_list(Simulator * simulator, GtkListStore * store)
 		if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
 			continue;
 		de->d_name[len - sizeof(ext) + 1] = '\0';
-		if((config = _new_load_config(simulator, de->d_name)) == NULL)
+		if((config = _new_load_config(de->d_name)) == NULL)
 			continue;
 		if((p = config_get(config, NULL, "icon")) != NULL)
 			pixbuf = gtk_icon_theme_load_icon(icontheme, p, size, 0,
@@ -423,8 +423,7 @@ static void _new_chooser_load(SimulatorData * data, GtkWidget * combobox)
 	model = gtk_tree_model_sort_get_model(GTK_TREE_MODEL_SORT(smodel));
 	gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, 0, &profile, -1);
 	if(profile != NULL
-			&& (data->config = _new_load_config(data->simulator,
-					profile)) != NULL)
+			&& (data->config = _new_load_config(profile)) != NULL)
 	{
 		config_foreach(data->config, _new_chooser_on_config, data);
 		config_delete(data->config);
@@ -502,7 +501,7 @@ static int _new_load(Simulator * simulator, char const * model)
 	simulator->dpi = 96;
 	simulator->width = 640;
 	simulator->height = 480;
-	if((config = _new_load_config(simulator, model)) == NULL)
+	if((config = _new_load_config(model)) == NULL)
 		return -1;
 	if((p = config_get(config, NULL, "dpi")) != NULL
 			&& (l = strtol(p, &q, 10)) > 0
@@ -525,7 +524,7 @@ static int _new_load(Simulator * simulator, char const * model)
 	return 0;
 }
 
-static Config * _new_load_config(Simulator * simulator, char const * model)
+static Config * _new_load_config(char const * model)
 {
 	Config * config;
 	char * p;
