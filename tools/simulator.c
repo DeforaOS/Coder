@@ -24,10 +24,14 @@ static char const _license[] =
 #include <string.h>
 #include <errno.h>
 #include <libintl.h>
+#include <X11/Xlib.h>
+#include <X11/extensions/XTest.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #if GTK_CHECK_VERSION(3, 0, 0)
 # include <gtk/gtkx.h>
+#else
+# include <gdk/gdkx.h>
 #endif
 #include <System.h>
 #include <Desktop.h>
@@ -74,6 +78,7 @@ struct _Simulator
 	char * title;
 	char * command;
 
+	Display * display;
 	int dpi;
 	int width;
 	int height;
@@ -220,6 +225,7 @@ Simulator * simulator_new(SimulatorPrefs * prefs)
 	simulator->window = NULL;
 	simulator->toolbar = NULL;
 	/* set default values */
+	simulator->display = NULL;
 	simulator->dpi = 96;
 	simulator->width = 640;
 	simulator->height = 480;
@@ -465,6 +471,9 @@ static void _new_chooser_on_config(String const * section, void * data)
 	if((p = config_get(d->config, section, "command")) != NULL)
 			g_object_set_data(G_OBJECT(toolitem), "command",
 					g_strdup(p));
+	if((p = config_get(d->config, section, "keysym")) != NULL)
+			g_object_set_data(G_OBJECT(toolitem), "keysym",
+					g_strdup(p));
 	g_signal_connect(toolitem, "clicked", G_CALLBACK(
 				_simulator_on_button_clicked), d->simulator);
 	gtk_toolbar_insert(GTK_TOOLBAR(d->simulator->toolbar), toolitem, -1);
@@ -655,6 +664,8 @@ void simulator_delete(Simulator * simulator)
 	free(simulator->children);
 	if(simulator->source > 0)
 		g_source_remove(simulator->source);
+	if(simulator->display != NULL)
+		XCloseDisplay(simulator->display);
 	if(simulator->xephyr.pid > 0)
 	{
 		kill(simulator->xephyr.pid, SIGTERM);
@@ -773,11 +784,29 @@ int simulator_run(Simulator * simulator, char const * command)
 static void _simulator_on_button_clicked(GtkToolButton * button, gpointer data)
 {
 	Simulator * simulator = data;
+	/* FIXME may be wrong */
+	char const display[] = ":1.0";
 	char const * p;
+	KeySym keysym;
+	KeyCode keycode;
 
 	/* run commands */
 	if((p = g_object_get_data(G_OBJECT(button), "command")) != NULL)
 		simulator_run(simulator, p);
+	/* simulate keys */
+	if(simulator->display == NULL)
+		simulator->display = XOpenDisplay(display);
+	if(simulator->display != NULL
+			&& (p = g_object_get_data(G_OBJECT(button), "keysym"))
+			&& (keysym = XStringToKeysym(p)) != NoSymbol
+			&& (keycode = XKeysymToKeycode(simulator->display,
+					keysym)) != NoSymbol)
+	{
+		XTestGrabControl(simulator->display, True);
+		XTestFakeKeyEvent(simulator->display, keycode, True, 0);
+		XTestFakeKeyEvent(simulator->display, keycode, False, 0);
+		XTestGrabControl(simulator->display, False);
+	}
 }
 
 
