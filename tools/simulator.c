@@ -249,6 +249,7 @@ Simulator * simulator_new(SimulatorPrefs * prefs)
 
 static int _new_chooser(Simulator * simulator)
 {
+	GtkSizeGroup * group;
 	GtkWidget * dialog;
 	GtkWidget * vbox;
 	GtkWidget * hbox;
@@ -262,6 +263,7 @@ static int _new_chooser(Simulator * simulator)
 
 	data.simulator = simulator;
 	data.config = NULL;
+	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 	dialog = gtk_dialog_new_with_buttons(_("Simulator profiles"),
 			NULL, 0, GTK_STOCK_QUIT, GTK_RESPONSE_CLOSE,
 			GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
@@ -305,6 +307,7 @@ static int _new_chooser(Simulator * simulator)
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	data.dpi = gtk_spin_button_new_with_range(48.0, 300.0, 1.0);
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(data.dpi), simulator->dpi);
+	gtk_size_group_add_widget(group, data.dpi);
 	gtk_box_pack_end(GTK_BOX(hbox), data.dpi, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* width */
@@ -314,6 +317,7 @@ static int _new_chooser(Simulator * simulator)
 	data.width = gtk_spin_button_new_with_range(120, 1600, 1.0);
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(data.width),
 			simulator->width);
+	gtk_size_group_add_widget(group, data.width);
 	gtk_box_pack_end(GTK_BOX(hbox), data.width, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* height */
@@ -323,6 +327,7 @@ static int _new_chooser(Simulator * simulator)
 	data.height = gtk_spin_button_new_with_range(120, 1600, 1.0);
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(data.height),
 			simulator->height);
+	gtk_size_group_add_widget(group, data.height);
 	gtk_box_pack_end(GTK_BOX(hbox), data.height, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
