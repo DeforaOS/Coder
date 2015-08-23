@@ -176,7 +176,9 @@ static const DesktopMenubar _simulator_menubar[] =
 /* functions */
 /* simulator_new */
 static int _new_chooser(Simulator * simulator);
-static void _new_chooser_list(GtkListStore * store);
+static void _new_chooser_list(GtkTreeStore * store);
+static void _new_chooser_list_vendor(GtkTreeStore * store, char const * vendor,
+		GtkTreeIter * parent);
 static void _new_chooser_load(SimulatorData * data, GtkWidget * combobox);
 static void _new_chooser_on_changed(GtkWidget * widget, gpointer data);
 static void _new_chooser_on_config(String const * section, void * data);
@@ -252,7 +254,7 @@ static int _new_chooser(Simulator * simulator)
 	GtkWidget * dialog;
 	GtkWidget * vbox;
 	GtkWidget * hbox;
-	GtkListStore * store;
+	GtkTreeStore * store;
 	GtkTreeModel * model;
 	GtkWidget * combobox;
 	GtkTreeIter iter;
@@ -279,12 +281,12 @@ static int _new_chooser(Simulator * simulator)
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
 	gtk_size_group_add_widget(lgroup, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
-	store = gtk_list_store_new(3,
+	store = gtk_tree_store_new(3,
 			G_TYPE_STRING,				/* filename */
 			GDK_TYPE_PIXBUF,			/* icon */
 			G_TYPE_STRING);				/* name */
-	gtk_list_store_append(store, &iter);
-	gtk_list_store_set(store, &iter, 0, NULL, 2, _("Custom profile"), -1);
+	gtk_tree_store_append(store, &iter, NULL);
+	gtk_tree_store_set(store, &iter, 0, NULL, 2, _("Custom profile"), -1);
 	_new_chooser_list(store);
 	model = gtk_tree_model_sort_new_with_model(GTK_TREE_MODEL(store));
 	gtk_tree_sortable_set_default_sort_func(GTK_TREE_SORTABLE(model),
@@ -359,10 +361,11 @@ static int _new_chooser(Simulator * simulator)
 	return 0;
 }
 
-static void _new_chooser_list(GtkListStore * store)
+static void _new_chooser_list(GtkTreeStore * store)
 {
 	GtkIconTheme * icontheme;
 	GtkTreeIter iter;
+	GtkTreeIter parent;
 	int size = 16;
 	char const models[] = MODELDIR;
 	char const ext[] = ".conf";
@@ -393,12 +396,21 @@ static void _new_chooser_list(GtkListStore * store)
 		if((p = config_get(config, NULL, "icon")) != NULL)
 			pixbuf = gtk_icon_theme_load_icon(icontheme, p, size, 0,
 					NULL);
-		p = config_get(config, NULL, "vendor");
 		q = config_get(config, NULL, "model");
-		title = string_new_append((p != NULL) ? p : "",
-				(q != NULL) ? " " : de->d_name, q, NULL);
-		gtk_list_store_append(store, &iter);
-		gtk_list_store_set(store, &iter, 0, de->d_name, 1, pixbuf,
+		if((p = config_get(config, NULL, "vendor")) != NULL)
+		{
+			_new_chooser_list_vendor(store, p, &parent);
+			gtk_tree_store_append(store, &iter, &parent);
+			title = string_new_append((q != NULL)
+					? " " : de->d_name, q, NULL);
+		}
+		else
+		{
+			gtk_tree_store_append(store, &iter, NULL);
+			title = string_new_append((p != NULL) ? p : "",
+					(q != NULL) ? " " : de->d_name, q, NULL);
+		}
+		gtk_tree_store_set(store, &iter, 0, de->d_name, 1, pixbuf,
 				2, title, -1);
 		string_delete(title);
 		if(pixbuf != NULL)
@@ -409,6 +421,33 @@ static void _new_chooser_list(GtkListStore * store)
 		config_delete(config);
 	}
 	closedir(dir);
+}
+
+static void _new_chooser_list_vendor(GtkTreeStore * store, char const * vendor,
+		GtkTreeIter * parent)
+{
+	GtkTreeModel * model = GTK_TREE_MODEL(store);
+	GtkTreeIter iter;
+	gboolean valid;
+	gchar * v;
+	int res;
+
+	for(valid = gtk_tree_model_get_iter_first(model, &iter); valid == TRUE;
+			valid = gtk_tree_model_iter_next(model, &iter))
+	{
+		gtk_tree_model_get(model, &iter, 2, &v, -1);
+		res = strcmp(v, vendor);
+		g_free(v);
+		if(res == 0)
+			break;
+	}
+	if(valid == TRUE && res == 0)
+		*parent = iter;
+	else
+	{
+		gtk_tree_store_append(store, parent, NULL);
+		gtk_tree_store_set(store, parent, 2, vendor, -1);
+	}
 }
 
 static void _new_chooser_load(SimulatorData * data, GtkWidget * combobox)
