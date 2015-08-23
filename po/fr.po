@@ -7,10 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Coder 0.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-09 01:22+0100\n"
+"POT-Creation-Date: 2015-08-24 00:53+0200\n"
 "PO-Revision-Date: 2012-06-06 22:28+0200\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: French\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -45,7 +46,7 @@ msgid "_Save project"
 msgstr "_Enregistrer le projet"
 
 #: ../src/coder.c:104
-msgid "Save project _as..."
+msgid "Save project _As..."
 msgstr "Enregistrer le projet _sous..."
 
 #: ../src/coder.c:107
@@ -60,17 +61,17 @@ msgstr "_Simulateur"
 msgid "S_QL console"
 msgstr "Console S_QL"
 
-#: ../src/coder.c:123 ../tools/sequel.c:211 ../tools/simulator.c:116
+#: ../src/coder.c:123 ../tools/sequel.c:211 ../tools/simulator.c:155
 msgid "_Contents"
 msgstr "_Sommaire"
 
-#: ../src/coder.c:125 ../tools/gdeasm.c:162 ../tools/gdeasm.c:164
-#: ../tools/sequel.c:214
+#: ../src/coder.c:125 ../tools/debugger.c:147 ../tools/debugger.c:149
+#: ../tools/gdeasm.c:156 ../tools/gdeasm.c:158 ../tools/sequel.c:214
 msgid "_About"
 msgstr "À _propos"
 
-#: ../src/coder.c:131 ../tools/gdeasm.c:171 ../tools/sequel.c:224
-#: ../tools/simulator.c:129
+#: ../src/coder.c:131 ../tools/debugger.c:156 ../tools/gdeasm.c:165
+#: ../tools/sequel.c:224 ../tools/simulator.c:168
 msgid "_File"
 msgstr "_Fichier"
 
@@ -82,8 +83,8 @@ msgstr "_Projet"
 msgid "_Tools"
 msgstr "_Outils"
 
-#: ../src/coder.c:134 ../tools/gdeasm.c:172 ../tools/sequel.c:227
-#: ../tools/simulator.c:130
+#: ../src/coder.c:134 ../tools/debugger.c:157 ../tools/gdeasm.c:166
+#: ../tools/sequel.c:227 ../tools/simulator.c:170
 msgid "_Help"
 msgstr "_Aide"
 
@@ -103,9 +104,10 @@ msgstr "Fichiers"
 msgid "Integrated Development Environment for the DeforaOS desktop"
 msgstr "Interface Intégrée de Développement pour l'environnement DeforaOS"
 
-#: ../src/coder.c:315 ../src/coder.c:319 ../tools/gdeasm.c:951
-#: ../tools/gdeasm.c:955 ../tools/sequel.c:397 ../tools/sequel.c:401
-#: ../tools/simulator.c:489 ../tools/simulator.c:493
+#: ../src/coder.c:315 ../src/coder.c:319 ../tools/debugger.c:379
+#: ../tools/debugger.c:383 ../tools/gdeasm.c:966 ../tools/gdeasm.c:970
+#: ../tools/sequel.c:397 ../tools/sequel.c:401 ../tools/simulator.c:767
+#: ../tools/simulator.c:771
 msgid "Error"
 msgstr "Erreur"
 
@@ -117,9 +119,10 @@ msgstr "Ouvrir projet..."
 msgid "Project files"
 msgstr "Fichiers du projet"
 
-#: ../src/coder.c:398 ../tools/gdeasm.c:419 ../tools/gdeasm.c:751
-#: ../tools/gdeasm.c:886 ../tools/sequel.c:643 ../tools/sequel.c:957
-#: ../tools/sequel.c:1022 ../tools/sequel.c:1207 ../tools/simulator.c:677
+#: ../src/coder.c:398 ../tools/debugger.c:504 ../tools/gdeasm.c:415
+#: ../tools/gdeasm.c:766 ../tools/gdeasm.c:901 ../tools/sequel.c:643
+#: ../tools/sequel.c:971 ../tools/sequel.c:1036 ../tools/sequel.c:1225
+#: ../tools/simulator.c:1039
 msgid "All files"
 msgstr "Tous les fichiers"
 
@@ -172,75 +175,189 @@ msgstr "Pas encore implémenté"
 msgid "Project properties"
 msgstr "Propriétés du projet"
 
-#: ../tools/gdeasm.c:146
+#: ../tools/debugger.c:133 ../tools/gdeasm.c:140
 msgid "_Open..."
 msgstr "_Ouvrir..."
 
-#: ../tools/gdeasm.c:149
-msgid "_Load comments..."
-msgstr "_Charger des commentaires..."
+#: ../tools/debugger.c:136
+msgid "_Properties"
+msgstr "_Propriétés"
 
-#: ../tools/gdeasm.c:151
-msgid "_Save comments as..."
-msgstr "Enregistrer les commentaires _sous..."
-
-#: ../tools/gdeasm.c:154 ../tools/sequel.c:176 ../tools/simulator.c:109
+#: ../tools/debugger.c:139 ../tools/gdeasm.c:148 ../tools/sequel.c:176
+#: ../tools/simulator.c:140
 msgid "_Close"
 msgstr "_Fermer"
 
-#: ../tools/gdeasm.c:179
+#: ../tools/debugger.c:172
+msgid "Open"
+msgstr "Ouvrir"
+
+#: ../tools/debugger.c:175
+msgid "Run"
+msgstr "Exécuter"
+
+#: ../tools/debugger.c:178
+msgid "Continue"
+msgstr "Continuer"
+
+#: ../tools/debugger.c:180
+msgid "Pause"
+msgstr "Pause"
+
+#: ../tools/debugger.c:182
+msgid "Stop"
+msgstr "Stop"
+
+#: ../tools/debugger.c:184
+msgid "Step"
+msgstr "Étape"
+
+#: ../tools/debugger.c:186
+msgid "Next"
+msgstr "Suivant"
+
+#: ../tools/debugger.c:189 ../tools/debugger.c:606
+msgid "Properties"
+msgstr "Propriétés"
+
+#: ../tools/debugger.c:246 ../tools/debugger.c:348 ../tools/debugger.c:429
+#: ../tools/debugger.c:863
+msgid "Debugger"
+msgstr "Debugger"
+
+#: ../tools/debugger.c:283
+msgid "Register"
+msgstr "Registre"
+
+#: ../tools/debugger.c:289
+msgid "Value"
+msgstr "Valeur"
+
+#: ../tools/debugger.c:459 ../tools/gdeasm.c:705
+msgid "Open file..."
+msgstr "Ouvrir fichier..."
+
+#: ../tools/debugger.c:476 ../tools/debugger.c:489 ../tools/gdeasm.c:721
+#: ../tools/gdeasm.c:735
+msgid "Auto-detect"
+msgstr "Auto-détecter"
+
+#: ../tools/debugger.c:479 ../tools/gdeasm.c:725
+msgid "Architecture:"
+msgstr "Architecture :"
+
+#: ../tools/debugger.c:492 ../tools/gdeasm.c:739
+msgid "File format:"
+msgstr "Format de fichier :"
+
+#: ../tools/debugger.c:498 ../tools/gdeasm.c:745 ../tools/simulator.c:1022
+msgid "Executable files"
+msgstr "Fichiers exécutables"
+
+#: ../tools/debugger.c:609
+#, c-format
+msgid "Properties of %s"
+msgstr "Propriétés de %s"
+
+#: ../tools/debugger.c:620 ../tools/gdeasm.c:522
+msgid "Architecture: "
+msgstr "Architecture : "
+
+#: ../tools/debugger.c:624 ../tools/gdeasm.c:523
+msgid "Format: "
+msgstr "Format : "
+
+#: ../tools/debugger.c:764 ../tools/debugger.c:768 ../tools/gdeasm.c:941
+#: ../tools/gdeasm.c:950 ../tools/sequel.c:892 ../tools/sequel.c:898
+#: ../tools/sequel.c:1165 ../tools/sequel.c:1171 ../tools/sequel.c:1276
+#: ../tools/sequel.c:1285
+msgid "Question"
+msgstr "Question"
+
+#: ../tools/debugger.c:780
+msgid ""
+"A file is already opened.\n"
+"Would you like to close it?\n"
+"Any progress will be lost."
+msgstr ""
+
+#: ../tools/debugger.c:793
+msgid ""
+"A process is being debugged already\n"
+"Would you like to restart it?\n"
+"Any progress will be lost."
+msgstr ""
+
+#: ../tools/debugger.c:858
+msgid "Debugger for the DeforaOS desktop"
+msgstr "Débogueur pour l'environnement DeforaOS"
+
+#: ../tools/debugger-main.c:72
+#, c-format
+msgid "Usage: %s [filename]\n"
+msgstr "Usage: %s [fichier]\n"
+
+#: ../tools/gdeasm.c:143
+msgid "_Load comments..."
+msgstr "_Charger des commentaires..."
+
+#: ../tools/gdeasm.c:145
+msgid "_Save comments as..."
+msgstr "Enregistrer les commentaires _sous..."
+
+#: ../tools/gdeasm.c:175
 msgid "Open file"
 msgstr "Ouvrir fichier"
 
-#: ../tools/gdeasm.c:182
+#: ../tools/gdeasm.c:178
 msgid "Load comments"
 msgstr "Charger des commentaires"
 
-#: ../tools/gdeasm.c:184
+#: ../tools/gdeasm.c:180
 msgid "Save comments"
 msgstr "Enregistrer les commentaires"
 
-#: ../tools/gdeasm.c:207
+#: ../tools/gdeasm.c:203
 msgid "Functions"
 msgstr "Fonctions"
 
-#: ../tools/gdeasm.c:208
+#: ../tools/gdeasm.c:204
 msgid "Offset"
 msgstr "Position"
 
-#: ../tools/gdeasm.c:209
+#: ../tools/gdeasm.c:205
 msgid "Strings"
 msgstr "Chaînes"
 
-#: ../tools/gdeasm.c:210
+#: ../tools/gdeasm.c:206
 msgid "Address"
 msgstr "Adresse"
 
-#: ../tools/gdeasm.c:210
+#: ../tools/gdeasm.c:206
 msgid "Instruction"
 msgstr "Instruction"
 
-#: ../tools/gdeasm.c:211 ../tools/gdeasm.c:212
+#: ../tools/gdeasm.c:207 ../tools/gdeasm.c:208
 msgid "Operand"
 msgstr "Opérande"
 
-#: ../tools/gdeasm.c:212
+#: ../tools/gdeasm.c:208
 msgid "Comment"
 msgstr "Commentaire"
 
-#: ../tools/gdeasm.c:236 ../tools/gdeasm.c:979
+#: ../tools/gdeasm.c:232 ../tools/gdeasm.c:994
 msgid "GDeasm"
 msgstr "GDeasm"
 
-#: ../tools/gdeasm.c:409
+#: ../tools/gdeasm.c:405
 msgid "Load comments..."
 msgstr "Charger des commentaires..."
 
-#: ../tools/gdeasm.c:414 ../tools/gdeasm.c:881
+#: ../tools/gdeasm.c:410 ../tools/gdeasm.c:896
 msgid "GDeasm files"
 msgstr "Fichiers GDeasm"
 
-#: ../tools/gdeasm.c:462 ../tools/gdeasm.c:996
+#: ../tools/gdeasm.c:458 ../tools/gdeasm.c:1011
 msgid ""
 "There are unsaved comments.\n"
 "Discard or save them?"
@@ -248,63 +365,35 @@ msgstr ""
 "Il y a des commentaires non enregistrés.\n"
 "Abandonner ou enregistrer ?"
 
-#: ../tools/gdeasm.c:468
+#: ../tools/gdeasm.c:464
 msgid "Discard"
 msgstr "Abandonner"
 
-#: ../tools/gdeasm.c:524
-msgid "Architecture: "
-msgstr "Architecture : "
-
-#: ../tools/gdeasm.c:525
-msgid "Format: "
-msgstr "Format : "
-
-#: ../tools/gdeasm.c:698
-msgid "Open file..."
-msgstr "Ouvrir fichier..."
-
-#: ../tools/gdeasm.c:710 ../tools/gdeasm.c:720
-msgid "Auto-detect"
-msgstr "Auto-détecter"
-
-#: ../tools/gdeasm.c:714
-msgid "Architecture:"
-msgstr "Architecture :"
-
-#: ../tools/gdeasm.c:724
-msgid "File format:"
-msgstr "Format de fichier :"
-
-#: ../tools/gdeasm.c:730 ../tools/simulator.c:660
-msgid "Executable files"
-msgstr "Fichiers exécutables"
-
-#: ../tools/gdeasm.c:736
+#: ../tools/gdeasm.c:751
 msgid "Java classes"
 msgstr "Classes Java"
 
-#: ../tools/gdeasm.c:741
+#: ../tools/gdeasm.c:756
 msgid "Objects"
 msgstr "Objets"
 
-#: ../tools/gdeasm.c:746
+#: ../tools/gdeasm.c:761
 msgid "Shared objects"
 msgstr "Objets partagés"
 
-#: ../tools/gdeasm.c:876
+#: ../tools/gdeasm.c:891
 msgid "Save comments as..."
 msgstr "Enregistrer les commentaires sous..."
 
-#: ../tools/gdeasm.c:926 ../tools/gdeasm.c:935 ../tools/sequel.c:878
-#: ../tools/sequel.c:884 ../tools/sequel.c:1147 ../tools/sequel.c:1153
-#: ../tools/sequel.c:1258 ../tools/sequel.c:1267
-msgid "Question"
-msgstr "Question"
-
-#: ../tools/gdeasm.c:974
+#: ../tools/gdeasm.c:989
 msgid "Disassembler for the DeforaOS desktop"
 msgstr "Désassembleur pour l'environnement DeforaOS"
+
+#: ../tools/gdeasm-main.c:94
+#, c-format
+msgid "Usage: %s [-C comments][-D][-a arch][-f format] [filename]\n"
+msgstr ""
+"Usage: %s [-C commentaires][-D][-a architecture][-f format] [fichier]\n"
 
 #: ../tools/sequel.c:170
 msgid "New _tab"
@@ -315,12 +404,12 @@ msgid "C_onnect..."
 msgstr "_Connexion..."
 
 #: ../tools/sequel.c:178
-msgid "Close _all tabs"
+msgid "Close _All tabs"
 msgstr "Fermer _toutes les tabs"
 
 #: ../tools/sequel.c:185
 msgid "Clear"
-msgstr ""
+msgstr "Effacer"
 
 #: ../tools/sequel.c:187 ../tools/sequel.c:242
 msgid "Execute"
@@ -330,11 +419,11 @@ msgstr "Exécuter"
 msgid "Load..."
 msgstr "Charger..."
 
-#: ../tools/sequel.c:192 ../tools/sequel.c:247 ../tools/sequel.c:1197
+#: ../tools/sequel.c:192 ../tools/sequel.c:247 ../tools/sequel.c:1215
 msgid "Save as..."
 msgstr "Enregistrer sous..."
 
-#: ../tools/sequel.c:196 ../tools/sequel.c:249 ../tools/sequel.c:947
+#: ../tools/sequel.c:196 ../tools/sequel.c:249 ../tools/sequel.c:961
 msgid "Export..."
 msgstr "Exporter..."
 
@@ -342,7 +431,7 @@ msgstr "Exporter..."
 msgid "_Log console"
 msgstr "Console des _logs"
 
-#: ../tools/sequel.c:217 ../tools/simulator.c:119 ../tools/simulator.c:122
+#: ../tools/sequel.c:217 ../tools/simulator.c:158 ../tools/simulator.c:161
 msgid "About"
 msgstr "À propos"
 
@@ -350,7 +439,7 @@ msgstr "À propos"
 msgid "_Query"
 msgstr "_Requête"
 
-#: ../tools/sequel.c:226
+#: ../tools/sequel.c:226 ../tools/simulator.c:169
 msgid "_View"
 msgstr "_Vue"
 
@@ -411,114 +500,122 @@ msgstr "Fichiers de connexion"
 msgid "Section:"
 msgstr "Section :"
 
-#: ../tools/sequel.c:882 ../tools/sequel.c:1151
+#: ../tools/sequel.c:896 ../tools/sequel.c:1169
 msgid "This file already exists. Overwrite?"
-msgstr ""
+msgstr "Le fichier existe déjà. L'écraser ?"
 
-#: ../tools/sequel.c:953
+#: ../tools/sequel.c:967
 msgid "CSV files"
 msgstr "Fichiers CSV"
 
-#: ../tools/sequel.c:1012
+#: ../tools/sequel.c:1026
 msgid "Load query..."
 msgstr "Charger une requête..."
 
-#: ../tools/sequel.c:1018 ../tools/sequel.c:1203
+#: ../tools/sequel.c:1032 ../tools/sequel.c:1221
 msgid "SQL files"
 msgstr "Fichiers SQL"
 
-#: ../tools/sequel.c:1082
+#: ../tools/sequel.c:1100
 #, c-format
 msgid "Tab %lu"
 msgstr "Tab %lu"
 
-#: ../tools/sequel.c:1261
+#: ../tools/sequel.c:1279
 msgid ""
 "There are multiple tabs opened.\n"
 "Do you really want to close every tab opened in this window?"
 msgstr ""
 
-#: ../tools/sequel.c:1348
+#: ../tools/sequel.c:1366
 msgid "SQL console for the DeforaOS desktop"
 msgstr "Console SQL pour l'environnement DeforaOS"
 
-#: ../tools/simulator.c:106
+#: ../tools/simulator.c:137
 msgid "_Run..."
 msgstr "_Exécuter..."
 
-#: ../tools/simulator.c:206
-msgid "Simulator - "
-msgstr "Simulateur - "
+#: ../tools/simulator.c:147
+msgid "Toggle _debugging mode"
+msgstr "Basculer le mode débogage"
 
-#: ../tools/simulator.c:209
-msgid "Simulator"
-msgstr "Simulateur"
+#: ../tools/simulator.c:270
+msgid "Simulator profiles"
+msgstr "Profils du simulateur"
 
-#: ../tools/simulator.c:254
-msgid "Simulator properties"
-msgstr "Propriétés du simulateur"
-
-#: ../tools/simulator.c:265
+#: ../tools/simulator.c:281
 msgid "Profile: "
 msgstr "Profil : "
 
-#: ../tools/simulator.c:270 ../tools/simulator.c:273
+#: ../tools/simulator.c:290
 msgid "Custom profile"
 msgstr "Profil personnalisé"
 
-#: ../tools/simulator.c:283
+#: ../tools/simulator.c:313
 msgid "Resolution: "
 msgstr "Résolution : "
 
-#: ../tools/simulator.c:291
+#: ../tools/simulator.c:324
 msgid "Width: "
 msgstr "Largeur : "
 
-#: ../tools/simulator.c:300
+#: ../tools/simulator.c:336
 msgid "Height: "
 msgstr "Hauteur : "
 
-#: ../tools/simulator.c:571
-msgid "Xephyr exited with status "
-msgstr "Xephyr terminé avec l'état "
+#: ../tools/simulator.c:647
+msgid "Simulator - "
+msgstr "Simulateur - "
 
-#: ../tools/simulator.c:578
-msgid "Xephyr exited with signal "
-msgstr "Xephyr terminé avec le signal "
+#: ../tools/simulator.c:650
+msgid "Simulator"
+msgstr "Simulateur"
 
-#: ../tools/simulator.c:630
+#: ../tools/simulator.c:923
+msgid "Child exited with error code "
+msgstr "Sous-processus terminé avec code d'erreur "
+
+#: ../tools/simulator.c:927
+msgid "Child killed with signal "
+msgstr "Sous-processus terminé avec le signal "
+
+#: ../tools/simulator.c:931
+msgid "Child exited with an error"
+msgstr "Sous-processus terminé avec erreur"
+
+#: ../tools/simulator.c:992
 msgid "Run..."
 msgstr "Exécuter..."
 
-#: ../tools/simulator.c:646
+#: ../tools/simulator.c:1008
 msgid "Command:"
 msgstr "Commande :"
 
-#: ../tools/simulator.c:653
+#: ../tools/simulator.c:1015
 msgid "Run program..."
 msgstr "Exécuter un programme..."
 
-#: ../tools/simulator.c:665
+#: ../tools/simulator.c:1027
 msgid "Perl scripts"
 msgstr "Scripts Perl"
 
-#: ../tools/simulator.c:669
+#: ../tools/simulator.c:1031
 msgid "Python scripts"
 msgstr "Scripts Python"
 
-#: ../tools/simulator.c:673
+#: ../tools/simulator.c:1035
 msgid "Shell scripts"
 msgstr "Scripts shell"
 
-#: ../tools/simulator.c:719
+#: ../tools/simulator.c:1090
 msgid "Simulator for the DeforaOS desktop"
 msgstr "Simulateur pour l'environnement DeforaOS"
 
-#: ../tools/simulator-main.c:83
+#: ../tools/simulator-main.c:86
 msgid "Available models:"
 msgstr "Modèles disponibles:"
 
-#: ../tools/simulator-main.c:116
+#: ../tools/simulator-main.c:119
 #, c-format
 msgid ""
 "Usage: %s [-n][-m model][-t title] [command]\n"
