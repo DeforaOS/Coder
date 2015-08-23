@@ -544,6 +544,7 @@ static int _new_load(Simulator * simulator, char const * model)
 	char const * p;
 	char * q;
 	long l;
+	char const * v;
 
 	simulator->dpi = 96;
 	simulator->width = 640;
@@ -563,8 +564,10 @@ static int _new_load(Simulator * simulator, char const * model)
 			&& p[0] != '\0' && *q == '\0')
 		simulator->height = l;
 	free(simulator->title);
+	v = config_get(config, NULL, "vendor");
 	if((p = config_get(config, NULL, "model")) != NULL)
-		simulator->title = strdup(p);
+		simulator->title = string_new_append((v != NULL) ? v : "",
+				(v != NULL) ? " " : "", p, NULL);
 	else
 		simulator->title = NULL;
 	config_delete(config);
