@@ -563,7 +563,7 @@ static int _new_load(Simulator * simulator, char const * model)
 			&& p[0] != '\0' && *q == '\0')
 		simulator->height = l;
 	free(simulator->title);
-	if((p = config_get(config, NULL, "title")) != NULL)
+	if((p = config_get(config, NULL, "model")) != NULL)
 		simulator->title = strdup(p);
 	else
 		simulator->title = NULL;
