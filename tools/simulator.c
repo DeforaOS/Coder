@@ -258,6 +258,7 @@ static int _new_chooser(Simulator * simulator)
 	GtkTreeModel * model;
 	GtkWidget * combobox;
 	GtkTreeIter iter;
+	GtkTreeIter siter;
 	GtkCellRenderer * renderer;
 	GtkWidget * widget;
 	SimulatorData data;
@@ -300,7 +301,9 @@ static int _new_chooser(Simulator * simulator)
 	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(combobox), renderer, TRUE);
 	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(combobox), renderer,
 			"text", 2, NULL);
-	gtk_combo_box_set_active(GTK_COMBO_BOX(combobox), 0);
+	if(gtk_tree_model_sort_convert_child_iter_to_iter(
+				GTK_TREE_MODEL_SORT(model), &siter, &iter))
+		gtk_combo_box_set_active_iter(GTK_COMBO_BOX(combobox), &siter);
 	g_signal_connect(combobox, "changed", G_CALLBACK(
 				_new_chooser_on_changed), &data);
 	gtk_box_pack_end(GTK_BOX(hbox), combobox, TRUE, TRUE, 0);
