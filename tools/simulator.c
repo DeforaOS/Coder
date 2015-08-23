@@ -514,6 +514,7 @@ static void _new_chooser_on_config(String const * section, void * data)
 	GtkWidget * image;
 	GtkToolItem * toolitem;
 	char const * p;
+	char const * q;
 
 	if(strncmp(section, button, sizeof(button) - 1) != 0)
 		return;
@@ -530,11 +531,15 @@ static void _new_chooser_on_config(String const * section, void * data)
 	if((p = config_get(d->config, section, "command")) != NULL)
 			g_object_set_data(G_OBJECT(toolitem), "command",
 					g_strdup(p));
-	if((p = config_get(d->config, section, "keysym")) != NULL)
+	if((q = config_get(d->config, section, "keysym")) != NULL)
 			g_object_set_data(G_OBJECT(toolitem), "keysym",
-					g_strdup(p));
-	g_signal_connect(toolitem, "clicked", G_CALLBACK(
-				_simulator_on_button_clicked), d->simulator);
+					g_strdup(q));
+	if(p == NULL && q == NULL)
+		gtk_widget_set_sensitive(GTK_WIDGET(toolitem), FALSE);
+	else
+		g_signal_connect(toolitem, "clicked",
+				G_CALLBACK(_simulator_on_button_clicked),
+				d->simulator);
 	gtk_toolbar_insert(GTK_TOOLBAR(d->simulator->toolbar), toolitem, -1);
 }
 
