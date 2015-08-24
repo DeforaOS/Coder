@@ -392,8 +392,7 @@ msgstr "Désassembleur pour l'environnement DeforaOS"
 #: ../tools/gdeasm-main.c:94
 #, c-format
 msgid "Usage: %s [-C comments][-D][-a arch][-f format] [filename]\n"
-msgstr ""
-"Usage: %s [-C commentaires][-D][-a architecture][-f format] [fichier]\n"
+msgstr "Usage: %s [-C commentaires][-D][-a architecture][-f format] [fichier]\n"
 
 #: ../tools/sequel.c:170
 msgid "New _tab"
