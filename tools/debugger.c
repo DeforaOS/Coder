@@ -80,7 +80,8 @@ struct _Debugger
 	/* widgets */
 	PangoFontDescription * bold;
 	GtkWidget * window;
-	/* toolbar */
+	/* call graph */
+	GtkWidget * dcg_view;
 	/* disassembly */
 	GtkWidget * das_view;
 	/* registers */
@@ -271,6 +272,10 @@ Debugger * debugger_new(void)
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(debugger->das_view), FALSE);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), debugger->das_view,
 			gtk_label_new(_("Disassembly")));
+	/* call graph */
+	debugger->dcg_view = gtk_drawing_area_new();
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), debugger->dcg_view,
+			gtk_label_new(_("Call graph")));
 	gtk_paned_add1(GTK_PANED(paned), notebook);
 	/* registers */
 	widget = gtk_scrolled_window_new(NULL, NULL);
