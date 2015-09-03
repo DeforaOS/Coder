@@ -84,6 +84,8 @@ struct _Debugger
 	GtkWidget * dcg_view;
 	/* disassembly */
 	GtkWidget * das_view;
+	/* hexdump */
+	GtkWidget * dhx_view;
 	/* registers */
 	GtkWidget * reg_view;
 	/* statusbar */
@@ -276,6 +278,13 @@ Debugger * debugger_new(void)
 	debugger->dcg_view = gtk_drawing_area_new();
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), debugger->dcg_view,
 			gtk_label_new(_("Call graph")));
+	/* hexdump */
+	debugger->dhx_view = gtk_text_view_new();
+	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(debugger->dhx_view),
+			FALSE);
+	gtk_text_view_set_editable(GTK_TEXT_VIEW(debugger->dhx_view), FALSE);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), debugger->dhx_view,
+			gtk_label_new(_("Hexdump")));
 	gtk_paned_add1(GTK_PANED(paned), notebook);
 	/* registers */
 	widget = gtk_scrolled_window_new(NULL, NULL);
@@ -349,6 +358,8 @@ int debugger_close(Debugger * debugger)
 	if(debugger_is_opened(debugger) == FALSE)
 		return 0;
 	tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(debugger->das_view));
+	gtk_text_buffer_set_text(tbuf, "", 0);
+	tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(debugger->dhx_view));
 	gtk_text_buffer_set_text(tbuf, "", 0);
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(debugger->reg_view));
 	gtk_list_store_clear(GTK_LIST_STORE(model));
