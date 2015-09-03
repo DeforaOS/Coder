@@ -206,6 +206,7 @@ Debugger * debugger_new(void)
 	GtkAccelGroup * accel;
 	GtkWidget * vbox;
 	GtkWidget * paned;
+	GtkWidget * notebook;
 	GtkWidget * widget;
 	GtkListStore * store;
 	GtkTreeViewColumn * column;
@@ -261,12 +262,16 @@ Debugger * debugger_new(void)
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* view */
 	paned = gtk_hpaned_new();
-	/* assembly */
+	/* notebook */
+	notebook = gtk_notebook_new();
+	/* disassembly */
 	debugger->das_view = gtk_text_view_new();
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(debugger->das_view),
 			FALSE);
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(debugger->das_view), FALSE);
-	gtk_paned_add1(GTK_PANED(paned), debugger->das_view);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), debugger->das_view,
+			gtk_label_new(_("Disassembly")));
+	gtk_paned_add1(GTK_PANED(paned), notebook);
 	/* registers */
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
