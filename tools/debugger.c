@@ -80,6 +80,7 @@ struct _Debugger
 	/* widgets */
 	PangoFontDescription * bold;
 	GtkWidget * window;
+	GtkWidget * notebook;
 	/* call graph */
 	GtkWidget * dcg_view;
 	/* disassembly */
@@ -122,6 +123,9 @@ static void _debugger_on_properties(gpointer data);
 static void _debugger_on_run(gpointer data);
 static void _debugger_on_step(gpointer data);
 static void _debugger_on_stop(gpointer data);
+static void _debugger_on_view_call_graph(gpointer data);
+static void _debugger_on_view_disassembly(gpointer data);
+static void _debugger_on_view_hexdump(gpointer data);
 
 
 /* constants */
@@ -144,6 +148,16 @@ static DesktopMenu const _debugger_menu_file[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
+static DesktopMenu const _debugger_menu_view[] =
+{
+	{ N_("Call graph"), G_CALLBACK(_debugger_on_view_call_graph), NULL, 0,
+		0 },
+	{ N_("Disassembly"), G_CALLBACK(_debugger_on_view_disassembly), NULL, 0,
+		0 },
+	{ N_("Hexdump"), G_CALLBACK(_debugger_on_view_hexdump), NULL, 0, 0 },
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
 static DesktopMenu const _debugger_menu_help[] =
 {
 #if GTK_CHECK_VERSION(2, 6, 0)
@@ -157,6 +171,7 @@ static DesktopMenu const _debugger_menu_help[] =
 static DesktopMenubar const _debugger_menubar[] =
 {
 	{ N_("_File"), _debugger_menu_file },
+	{ N_("_View"), _debugger_menu_view },
 	{ N_("_Help"), _debugger_menu_help },
 	{ NULL, NULL },
 };
@@ -209,7 +224,6 @@ Debugger * debugger_new(void)
 	GtkAccelGroup * accel;
 	GtkWidget * vbox;
 	GtkWidget * paned;
-	GtkWidget * notebook;
 	GtkWidget * widget;
 	GtkListStore * store;
 	GtkTreeViewColumn * column;
@@ -266,26 +280,26 @@ Debugger * debugger_new(void)
 	/* view */
 	paned = gtk_hpaned_new();
 	/* notebook */
-	notebook = gtk_notebook_new();
+	debugger->notebook = gtk_notebook_new();
 	/* disassembly */
 	debugger->das_view = gtk_text_view_new();
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(debugger->das_view),
 			FALSE);
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(debugger->das_view), FALSE);
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), debugger->das_view,
-			gtk_label_new(_("Disassembly")));
+	gtk_notebook_append_page(GTK_NOTEBOOK(debugger->notebook),
+			debugger->das_view, gtk_label_new(_("Disassembly")));
 	/* call graph */
 	debugger->dcg_view = gtk_drawing_area_new();
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), debugger->dcg_view,
-			gtk_label_new(_("Call graph")));
+	gtk_notebook_append_page(GTK_NOTEBOOK(debugger->notebook),
+			debugger->dcg_view, gtk_label_new(_("Call graph")));
 	/* hexdump */
 	debugger->dhx_view = gtk_text_view_new();
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(debugger->dhx_view),
 			FALSE);
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(debugger->dhx_view), FALSE);
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), debugger->dhx_view,
-			gtk_label_new(_("Hexdump")));
-	gtk_paned_add1(GTK_PANED(paned), notebook);
+	gtk_notebook_append_page(GTK_NOTEBOOK(debugger->notebook),
+			debugger->dhx_view, gtk_label_new(_("Hexdump")));
+	gtk_paned_add1(GTK_PANED(paned), debugger->notebook);
 	/* registers */
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
@@ -980,4 +994,31 @@ static void _debugger_on_stop(gpointer data)
 	Debugger * debugger = data;
 
 	debugger_stop(debugger);
+}
+
+
+/* debugger_on_view_call_graph */
+static void _debugger_on_view_call_graph(gpointer data)
+{
+	Debugger * debugger = data;
+
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(debugger->notebook), 1);
+}
+
+
+/* debugger_on_view_disassembly */
+static void _debugger_on_view_disassembly(gpointer data)
+{
+	Debugger * debugger = data;
+
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(debugger->notebook), 0);
+}
+
+
+/* debugger_on_view_hexdump */
+static void _debugger_on_view_hexdump(gpointer data)
+{
+	Debugger * debugger = data;
+
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(debugger->notebook), 2);
 }
