@@ -148,6 +148,24 @@ static DesktopMenu const _debugger_menu_file[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
+static DesktopMenu const _debugger_menu_debug[] =
+{
+	{ N_("Run"), G_CALLBACK(_debugger_on_run), GTK_STOCK_EXECUTE, 0,
+		GDK_KEY_F10 },
+	{ "", NULL, NULL, 0, 0 },
+	{ N_("Continue"), G_CALLBACK(_debugger_on_continue),
+		GTK_STOCK_MEDIA_PLAY, 0, GDK_KEY_F9 },
+	{ N_("Pause"), G_CALLBACK(_debugger_on_pause),
+		GTK_STOCK_MEDIA_PAUSE, 0, 0 },
+	{ N_("Stop"), G_CALLBACK(_debugger_on_stop),
+		GTK_STOCK_MEDIA_STOP, 0, GDK_KEY_F11 },
+	{ N_("Step"), G_CALLBACK(_debugger_on_step),
+		GTK_STOCK_MEDIA_FORWARD, 0, 0 },
+	{ N_("Next"), G_CALLBACK(_debugger_on_next),
+		GTK_STOCK_MEDIA_NEXT, 0, 0 },
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
 static DesktopMenu const _debugger_menu_view[] =
 {
 	{ N_("Call graph"), G_CALLBACK(_debugger_on_view_call_graph), NULL, 0,
@@ -171,6 +189,7 @@ static DesktopMenu const _debugger_menu_help[] =
 static DesktopMenubar const _debugger_menubar[] =
 {
 	{ N_("_File"), _debugger_menu_file },
+	{ N_("_Debug"), _debugger_menu_debug },
 	{ N_("_View"), _debugger_menu_view },
 	{ N_("_Help"), _debugger_menu_help },
 	{ NULL, NULL },
@@ -190,15 +209,15 @@ static DesktopToolbar _debugger_toolbar[] =
 	{ N_("Open"), G_CALLBACK(_debugger_on_open), GTK_STOCK_OPEN,
 		GDK_CONTROL_MASK, GDK_KEY_O, NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
-	{ N_("Run"), G_CALLBACK(_debugger_on_run), GTK_STOCK_EXECUTE, 0,
-		GDK_KEY_F10, NULL },
+	{ N_("Run"), G_CALLBACK(_debugger_on_run), GTK_STOCK_EXECUTE, 0, 0,
+		NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
 	{ N_("Continue"), G_CALLBACK(_debugger_on_continue),
-		GTK_STOCK_MEDIA_PLAY, 0, GDK_KEY_F9, NULL },
+		GTK_STOCK_MEDIA_PLAY, 0, 0, NULL },
 	{ N_("Pause"), G_CALLBACK(_debugger_on_pause),
 		GTK_STOCK_MEDIA_PAUSE, 0, 0, NULL },
 	{ N_("Stop"), G_CALLBACK(_debugger_on_stop),
-		GTK_STOCK_MEDIA_STOP, 0, GDK_KEY_F11, NULL },
+		GTK_STOCK_MEDIA_STOP, 0, 0, NULL },
 	{ N_("Step"), G_CALLBACK(_debugger_on_step),
 		GTK_STOCK_MEDIA_FORWARD, 0, 0, NULL },
 	{ N_("Next"), G_CALLBACK(_debugger_on_next),
