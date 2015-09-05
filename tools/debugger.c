@@ -703,22 +703,21 @@ int debugger_run(Debugger * debugger, ...)
 /* debugger_runv */
 int debugger_runv(Debugger * debugger, va_list ap)
 {
-	int ret;
-
 	if(_debugger_confirm_reset(debugger) == FALSE)
 		return -1;
 	if(debugger_stop(debugger) != 0)
 		return -1;
 	debugger->ddefinition = &_ptrace_definition; /* XXX */
 	if((debugger->debug = debugger->ddefinition->init(&debugger->dhelper))
-			== NULL)
+			== NULL
+			|| debugger->ddefinition->start(debugger->debug, ap)
+			!= 0)
 	{
 		debugger_stop(debugger);
 		return -1;
 	}
-	if((ret = debugger->ddefinition->start(debugger->debug, ap)) == 0)
-		_debugger_set_sensitive_toolbar(debugger, TRUE, TRUE);
-	return ret;
+	_debugger_set_sensitive_toolbar(debugger, TRUE, TRUE);
+	return 0;
 }
 
 
