@@ -150,7 +150,7 @@ static DesktopMenu const _debugger_menu_file[] =
 
 static DesktopMenu const _debugger_menu_debug[] =
 {
-	{ N_("Run"), G_CALLBACK(_debugger_on_run), GTK_STOCK_EXECUTE, 0,
+	{ N_("Run"), G_CALLBACK(_debugger_on_run), "system-run", 0,
 		GDK_KEY_F10 },
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("Continue"), G_CALLBACK(_debugger_on_continue),
@@ -209,7 +209,7 @@ static DesktopToolbar _debugger_toolbar[] =
 	{ N_("Open"), G_CALLBACK(_debugger_on_open), GTK_STOCK_OPEN,
 		GDK_CONTROL_MASK, GDK_KEY_O, NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
-	{ N_("Run"), G_CALLBACK(_debugger_on_run), GTK_STOCK_EXECUTE, 0, 0,
+	{ N_("Run"), G_CALLBACK(_debugger_on_run), "system-run", 0, 0,
 		NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
 	{ N_("Continue"), G_CALLBACK(_debugger_on_continue),
