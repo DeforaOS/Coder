@@ -154,15 +154,15 @@ static DesktopMenu const _debugger_menu_debug[] =
 		GDK_KEY_F10 },
 	{ "", NULL, NULL, 0, 0 },
 	{ N_("Continue"), G_CALLBACK(_debugger_on_continue),
-		GTK_STOCK_MEDIA_PLAY, 0, GDK_KEY_F9 },
+		"media-playback-start", 0, GDK_KEY_F9 },
 	{ N_("Pause"), G_CALLBACK(_debugger_on_pause),
-		GTK_STOCK_MEDIA_PAUSE, 0, 0 },
+		"media-playback-pause", 0, 0 },
 	{ N_("Stop"), G_CALLBACK(_debugger_on_stop),
-		GTK_STOCK_MEDIA_STOP, 0, GDK_KEY_F11 },
+		"media-playback-stop", 0, GDK_KEY_F11 },
 	{ N_("Step"), G_CALLBACK(_debugger_on_step),
-		GTK_STOCK_MEDIA_FORWARD, 0, 0 },
+		"media-seek-forward", 0, 0 },
 	{ N_("Next"), G_CALLBACK(_debugger_on_next),
-		GTK_STOCK_MEDIA_NEXT, 0, 0 },
+		"media-skip-forward", 0, 0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
