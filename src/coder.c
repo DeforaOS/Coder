@@ -179,7 +179,11 @@ Coder * coder_new(void)
 	gtk_window_set_resizable(GTK_WINDOW(coder->tb_window), FALSE);
 	g_signal_connect_swapped(coder->tb_window, "delete-event", G_CALLBACK(
 				on_closex), coder);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+#else
 	vbox = gtk_vbox_new(FALSE, 0);
+#endif
 	/* menubar */
 	widget = desktop_menubar_create(_coder_menubar, coder, group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
@@ -192,8 +196,13 @@ Coder * coder_new(void)
 	coder->fi_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_default_size(GTK_WINDOW(coder->fi_window), 150, 200);
 	gtk_window_set_title(GTK_WINDOW(coder->fi_window), _("Files"));
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+#else
 	hbox = gtk_hbox_new(FALSE, 0);
 	vbox = gtk_vbox_new(FALSE, 0);
+#endif
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, 2);
 #if GTK_CHECK_VERSION(2, 24, 0)
 	coder->fi_combo = gtk_combo_box_text_new();
@@ -526,7 +535,11 @@ static void _show_preferences_window(Coder * coder)
 	/* notebook page editor */
 	nb_vbox = gtk_vbox_new(FALSE, 4);
 	gtk_container_set_border_width(GTK_CONTAINER(nb_vbox), 4);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
 	hbox = gtk_hbox_new(FALSE, 4);
+#endif
 	gtk_box_pack_start(GTK_BOX(hbox), gtk_label_new(_("Editor:")), FALSE,
 			TRUE, 0);
 	coder->pr_editor_command = gtk_entry_new();
@@ -546,7 +559,11 @@ static void _show_preferences_window(Coder * coder)
 				_("Plug-ins")));
 	gtk_box_pack_start(GTK_BOX(vbox), nb, TRUE, TRUE, 0);
 	/* buttons */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
 	hbox = gtk_hbox_new(TRUE, 4);
+#endif
 	b_ok = gtk_button_new_from_stock(GTK_STOCK_OK);
 	g_signal_connect_swapped(b_ok, "clicked", G_CALLBACK(
 				_on_preferences_ok), coder);
