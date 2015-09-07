@@ -37,6 +37,8 @@ static char const _debugger_license[] =
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <Desktop.h>
+#include "backend.h"
+#include "debug.h"
 #include "debugger.h"
 #include "../config.h"
 #define _(string) gettext(string)

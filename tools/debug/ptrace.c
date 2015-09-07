@@ -35,7 +35,7 @@
 #include <string.h>
 #include <errno.h>
 #include <glib.h>
-#include "../debugger.h"
+#include "../debug.h"
 
 
 /* ptrace */

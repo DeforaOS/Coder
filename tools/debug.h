@@ -25,39 +25,37 @@
 
 
 
-#ifndef CODER_DEBUGGER_H
-# define CODER_DEBUGGER_H
+#ifndef CODER_DEBUGGER_DEBUG_H
+# define CODER_DEBUGGER_DEBUG_H
 
-# include <stdarg.h>
+# include <System.h>
 # include "common.h"
 
 
-/* Debugger */
-/* protected */
-/* public */
-/* functions */
-Debugger * debugger_new(void);
-void debugger_delete(Debugger * debugger);
+/* Debug */
+/* types */
+typedef struct _DebuggerDebug DebuggerDebug;
 
-/* accessors */
-int debugger_is_opened(Debugger * debugger);
-int debugger_is_running(Debugger * debugger);
+typedef struct _DebuggerDebugHelper
+{
+	Debugger * debugger;
+	int (*error)(Debugger * debugger, int code, char const * format, ...);
+} DebuggerDebugHelper;
 
-/* useful */
-int debugger_open(Debugger * debugger, char const * arch, char const * format,
-		char const * filename);
-int debugger_open_dialog(Debugger * debugger, char const * arch,
-		char const * format);
-int debugger_close(Debugger * debugger);
+typedef const struct _DebuggerDebugDefinition
+{
+	char const * name;
+	char const * description;
+	LicenseFlags license;
+	DebuggerDebug * (*init)(DebuggerDebugHelper const * helper);
+	void (*destroy)(DebuggerDebug * backend);
+	int (*start)(DebuggerDebug * backend, va_list argp);
+	int (*pause)(DebuggerDebug * backend);
+	int (*stop)(DebuggerDebug * backend);
+	int (*_continue)(DebuggerDebug * backend);
+	int (*next)(DebuggerDebug * backend);
+	int (*step)(DebuggerDebug * backend);
+} DebuggerDebugDefinition;
 
-int debugger_error(Debugger * debugger, char const * message, int ret);
 
-int debugger_continue(Debugger * debugger);
-int debugger_next(Debugger * debugger);
-int debugger_pause(Debugger * debugger);
-int debugger_run(Debugger * debugger, ...);
-int debugger_runv(Debugger * debugger, va_list ap);
-int debugger_step(Debugger * debugger);
-int debugger_stop(Debugger * debugger);
-
-#endif /* !CODER_DEBUGGER_H */
+#endif /* !CODER_DEBUGGER_DEBUG_H */

@@ -30,6 +30,7 @@
 #include <glib.h>
 #include <System.h>
 #include <Devel/Asm.h>
+#include "../backend.h"
 #include "../debugger.h"
 
 

@@ -25,39 +25,12 @@
 
 
 
-#ifndef CODER_DEBUGGER_H
-# define CODER_DEBUGGER_H
-
-# include <stdarg.h>
-# include "common.h"
+#ifndef CODER_DEBUGGER_COMMON_H
+# define CODER_DEBUGGER_COMMON_H
 
 
-/* Debugger */
 /* protected */
-/* public */
-/* functions */
-Debugger * debugger_new(void);
-void debugger_delete(Debugger * debugger);
-
-/* accessors */
-int debugger_is_opened(Debugger * debugger);
-int debugger_is_running(Debugger * debugger);
-
-/* useful */
-int debugger_open(Debugger * debugger, char const * arch, char const * format,
-		char const * filename);
-int debugger_open_dialog(Debugger * debugger, char const * arch,
-		char const * format);
-int debugger_close(Debugger * debugger);
-
-int debugger_error(Debugger * debugger, char const * message, int ret);
-
-int debugger_continue(Debugger * debugger);
-int debugger_next(Debugger * debugger);
-int debugger_pause(Debugger * debugger);
-int debugger_run(Debugger * debugger, ...);
-int debugger_runv(Debugger * debugger, va_list ap);
-int debugger_step(Debugger * debugger);
-int debugger_stop(Debugger * debugger);
+/* types */
+typedef struct _Debugger Debugger;
 
 #endif /* !CODER_DEBUGGER_H */

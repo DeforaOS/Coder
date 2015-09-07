@@ -25,39 +25,38 @@
 
 
 
-#ifndef CODER_DEBUGGER_H
-# define CODER_DEBUGGER_H
+#ifndef CODER_DEBUGGER_BACKEND_H
+# define CODER_DEBUGGER_BACKEND_H
 
-# include <stdarg.h>
+# include <System.h>
+# include <Devel/Asm.h>
 # include "common.h"
 
 
-/* Debugger */
-/* protected */
-/* public */
-/* functions */
-Debugger * debugger_new(void);
-void debugger_delete(Debugger * debugger);
+/* types */
+typedef struct _DebuggerBackend DebuggerBackend;
 
-/* accessors */
-int debugger_is_opened(Debugger * debugger);
-int debugger_is_running(Debugger * debugger);
+typedef struct _DebuggerBackendHelper
+{
+	Debugger * debugger;
+	int (*error)(Debugger * debugger, int code, char const * format, ...);
+	void (*set_registers)(Debugger * debugger,
+			AsmArchRegister const * registers,
+			size_t registers_cnt);
+} DebuggerBackendHelper;
 
-/* useful */
-int debugger_open(Debugger * debugger, char const * arch, char const * format,
-		char const * filename);
-int debugger_open_dialog(Debugger * debugger, char const * arch,
-		char const * format);
-int debugger_close(Debugger * debugger);
+typedef const struct _DebuggerBackendDefinition
+{
+	char const * name;
+	char const * description;
+	LicenseFlags license;
+	DebuggerBackend * (*init)(DebuggerBackendHelper const * helper);
+	void (*destroy)(DebuggerBackend * backend);
+	int (*open)(DebuggerBackend * backend, char const * arch,
+			char const * format, char const * filename);
+	int (*close)(DebuggerBackend * backend);
+	char const * (*arch_get_name)(DebuggerBackend * backend);
+	char const * (*format_get_name)(DebuggerBackend * backend);
+} DebuggerBackendDefinition;
 
-int debugger_error(Debugger * debugger, char const * message, int ret);
-
-int debugger_continue(Debugger * debugger);
-int debugger_next(Debugger * debugger);
-int debugger_pause(Debugger * debugger);
-int debugger_run(Debugger * debugger, ...);
-int debugger_runv(Debugger * debugger, va_list ap);
-int debugger_step(Debugger * debugger);
-int debugger_stop(Debugger * debugger);
-
-#endif /* !CODER_DEBUGGER_H */
+#endif /* !CODER_DEBUGGER_BACKEND_H */
