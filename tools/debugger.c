@@ -245,6 +245,8 @@ Debugger * debugger_new(void)
 	GtkAccelGroup * accel;
 	GtkWidget * vbox;
 	GtkWidget * paned;
+	GtkWidget * combo;
+	GtkWidget * window;
 	GtkWidget * widget;
 	GtkListStore * store;
 	GtkTreeViewColumn * column;
@@ -322,19 +324,28 @@ Debugger * debugger_new(void)
 			debugger->dhx_view, gtk_label_new(_("Hexdump")));
 	gtk_paned_add1(GTK_PANED(paned), debugger->notebook);
 	/* registers */
-	widget = gtk_scrolled_window_new(NULL, NULL);
-	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
+#if GTK_CHECK_VERSION(3, 0, 0)
+	widget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+#else
+	widget = gtk_vbox_new(FALSE, 0);
+#endif
+	combo = gtk_combo_box_new_text();
+	gtk_combo_box_append_text(GTK_COMBO_BOX(combo), _("Registers"));
+	gtk_combo_box_set_active(GTK_COMBO_BOX(combo), 0);
+	gtk_box_pack_start(GTK_BOX(widget), combo, FALSE, TRUE, 0);
+	window = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(window),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-	store = gtk_list_store_new(RV_COUNT,
+	debugger->reg_store = gtk_list_store_new(RV_COUNT,
 			G_TYPE_STRING,	/* name */
 			G_TYPE_UINT64,	/* value */
 			G_TYPE_STRING);	/* value (string) */
 	debugger->reg_view = gtk_tree_view_new_with_model(
-			GTK_TREE_MODEL(store));
+			GTK_TREE_MODEL(debugger->reg_store));
 	/* registers: name */
 	renderer = gtk_cell_renderer_text_new();
 	g_object_set(renderer, "family", "Monospace", NULL);
-	column = gtk_tree_view_column_new_with_attributes(_("Register"),
+	column = gtk_tree_view_column_new_with_attributes(_("Name"),
 			renderer, "text", RV_NAME, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(debugger->reg_view), column);
 	/* registers: value */
@@ -343,7 +354,8 @@ Debugger * debugger_new(void)
 	column = gtk_tree_view_column_new_with_attributes(_("Value"), renderer,
 			"text", RV_VALUE_DISPLAY, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(debugger->reg_view), column);
-	gtk_container_add(GTK_CONTAINER(widget), debugger->reg_view);
+	gtk_container_add(GTK_CONTAINER(window), debugger->reg_view);
+	gtk_box_pack_start(GTK_BOX(widget), window, TRUE, TRUE, 0);
 	gtk_paned_add2(GTK_PANED(paned), widget);
 	gtk_paned_set_position(GTK_PANED(paned), 380);
 	gtk_box_pack_start(GTK_BOX(vbox), paned, TRUE, TRUE, 0);
