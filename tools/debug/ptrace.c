@@ -28,6 +28,9 @@
 #include <sys/types.h>
 #include <sys/ptrace.h>
 #include <sys/wait.h>
+#ifdef __NetBSD__
+# include <machine/reg.h>
+#endif
 #include <unistd.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -74,6 +77,9 @@ static int _ptrace_stop(PtraceDebug * debug);
 static int _ptrace_continue(PtraceDebug * debug);
 static int _ptrace_next(PtraceDebug * debug);
 static int _ptrace_step(PtraceDebug * debug);
+
+/* accessors */
+static void _ptrace_get_registers(PtraceDebug * debug);
 
 /* useful */
 static void _ptrace_exit(PtraceDebug * debug);
@@ -288,6 +294,50 @@ static int _ptrace_next(PtraceDebug * debug)
 static int _ptrace_step(PtraceDebug * debug)
 {
 	return _ptrace_schedule(debug, PT_STEP, (caddr_t)1, 0);
+}
+
+
+/* accessors */
+/* ptrace_get_registers */
+static void _ptrace_get_registers(PtraceDebug * debug)
+{
+#ifdef PT_GETREGS
+	DebuggerDebugHelper * helper = debug->helper;
+	struct reg regs;
+
+	if(_ptrace_request(debug, PT_GETREGS, &regs, 0) != 0)
+		return;
+# if defined(__amd64__)
+	/* XXX also support 32-bits on 64-bits */
+	helper->set_register(helper->debugger, "rax", regs.regs[_REG_RAX]);
+	helper->set_register(helper->debugger, "rcx", regs.regs[_REG_RCX]);
+	helper->set_register(helper->debugger, "rdx", regs.regs[_REG_RDX]);
+	helper->set_register(helper->debugger, "rbx", regs.regs[_REG_RBX]);
+	helper->set_register(helper->debugger, "r8", regs.regs[_REG_R8]);
+	helper->set_register(helper->debugger, "r9", regs.regs[_REG_R9]);
+	helper->set_register(helper->debugger, "r10", regs.regs[_REG_R10]);
+	helper->set_register(helper->debugger, "r11", regs.regs[_REG_R11]);
+	helper->set_register(helper->debugger, "r12", regs.regs[_REG_R12]);
+	helper->set_register(helper->debugger, "r13", regs.regs[_REG_R13]);
+	helper->set_register(helper->debugger, "r14", regs.regs[_REG_R14]);
+	helper->set_register(helper->debugger, "r15", regs.regs[_REG_R15]);
+	helper->set_register(helper->debugger, "rsi", regs.regs[_REG_RSI]);
+	helper->set_register(helper->debugger, "rdi", regs.regs[_REG_RDI]);
+	helper->set_register(helper->debugger, "rsp", regs.regs[_REG_RSP]);
+	helper->set_register(helper->debugger, "rbp", regs.regs[_REG_RBP]);
+	helper->set_register(helper->debugger, "rip", regs.regs[_REG_RIP]);
+# elif defined(__i386__)
+	helper->set_register(helper->debugger, "eax", regs.regs[_REG_EAX]);
+	helper->set_register(helper->debugger, "ecx", regs.regs[_REG_ECX]);
+	helper->set_register(helper->debugger, "edx", regs.regs[_REG_EDX]);
+	helper->set_register(helper->debugger, "ebx", regs.regs[_REG_EBX]);
+	helper->set_register(helper->debugger, "esi", regs.regs[_REG_ESI]);
+	helper->set_register(helper->debugger, "edi", regs.regs[_REG_EDI]);
+	helper->set_register(helper->debugger, "esp", regs.regs[_REG_ESP]);
+	helper->set_register(helper->debugger, "ebp", regs.regs[_REG_EBP]);
+	helper->set_register(helper->debugger, "eip", regs.regs[_REG_EIP]);
+# endif
+#endif
 }
 
 
