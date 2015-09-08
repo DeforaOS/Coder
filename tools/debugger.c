@@ -90,6 +90,7 @@ struct _Debugger
 	/* hexdump */
 	GtkWidget * dhx_view;
 	/* registers */
+	GtkListStore * reg_store;
 	GtkWidget * reg_view;
 	/* statusbar */
 	GtkWidget * statusbar;
@@ -109,6 +110,8 @@ static gboolean _debugger_confirm_reset(Debugger * debugger);
 /* helpers */
 static int _debugger_helper_error(Debugger * debugger, int code,
 		char const * format, ...);
+static void _debugger_helper_set_register(Debugger * debugger,
+		char const * name, uint64_t value);
 /* backend */
 static void _debugger_helper_backend_set_registers(Debugger * debugger,
 		AsmArchRegister const * registers, size_t registers_cnt);
@@ -265,6 +268,7 @@ Debugger * debugger_new(void)
 	/* debug */
 	debugger->dhelper.debugger = debugger;
 	debugger->dhelper.error = _debugger_helper_error;
+	debugger->dhelper.set_register = _debugger_helper_set_register;
 	debugger->dplugin = NULL;
 	debugger->ddefinition = NULL;
 	debugger->debug = NULL;
@@ -894,6 +898,37 @@ static int _debugger_helper_error(Debugger * debugger, int code,
 	debugger_error(debugger, message, code);
 	free(message);
 	return code;
+}
+
+
+/* debugger_helper_set_register */
+static void _debugger_helper_set_register(Debugger * debugger,
+		char const * name, uint64_t value)
+{
+	GtkTreeModel * model = GTK_TREE_MODEL(debugger->reg_store);
+	GtkTreeIter iter;
+	gboolean valid;
+	gchar * p;
+	int res;
+	char buf[17];
+
+	for(valid = gtk_tree_model_get_iter_first(debugger->reg_store, &iter);
+			valid == TRUE;
+			valid = gtk_tree_model_iter_next(model, &iter))
+	{
+		gtk_tree_model_get(model, &iter, 0, &p, -1);
+		res = strcasecmp(p, name);
+		g_free(p);
+		if(res == 0)
+			break;
+	}
+	if(valid == TRUE)
+	{
+		/* XXX adapt to the actual size */
+		snprintf(buf, sizeof(buf), "%016llx", value);
+		gtk_list_store_set(debugger->reg_store, &iter, 1, value,
+				2, buf, -1);
+	}
 }
 
 

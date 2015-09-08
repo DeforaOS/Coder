@@ -28,6 +28,7 @@
 #ifndef CODER_DEBUGGER_DEBUG_H
 # define CODER_DEBUGGER_DEBUG_H
 
+# include <stdint.h>
 # include <System.h>
 # include "common.h"
 
@@ -40,6 +41,8 @@ typedef struct _DebuggerDebugHelper
 {
 	Debugger * debugger;
 	int (*error)(Debugger * debugger, int code, char const * format, ...);
+	void (*set_register)(Debugger * debugger, char const * name,
+			uint64_t value);
 } DebuggerDebugHelper;
 
 typedef const struct _DebuggerDebugDefinition
