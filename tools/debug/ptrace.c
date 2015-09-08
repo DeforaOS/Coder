@@ -211,8 +211,7 @@ static void _start_on_child_watch(GPid pid, gint status, gpointer data)
 		if(debug->request >= 0)
 		{
 			if(_ptrace_request(debug, debug->request,
-						debug->addr, debug->data)
-					!= 0)
+						debug->addr, debug->data) != 0)
 			{
 				debug->request = -1;
 				return;
