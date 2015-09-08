@@ -181,12 +181,13 @@ static int _start_parent(PtraceDebug * debug)
 static void _start_on_child_setup(gpointer data)
 {
 	PtraceDebug * debug = data;
+	DebuggerDebugHelper * helper = debug->helper;
 
 	errno = 0;
 	if(ptrace(PT_TRACE_ME, 0, (caddr_t)NULL, (ptrace_data_t)0) == -1
 			&& errno != 0)
 	{
-		debugger_error(NULL, strerror(errno), 1);
+		helper->error(NULL, 1, "%s", strerror(errno));
 		_exit(125);
 	}
 }
