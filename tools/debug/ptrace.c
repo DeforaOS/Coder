@@ -368,7 +368,5 @@ static int _ptrace_schedule(PtraceDebug * debug, int request, void * addr,
 	if(request < 0)
 		return 0;
 	/* we can issue the request directly */
-	if(_ptrace_request(debug, request, addr, data) != 0)
-		return -1;
-	return 0;
+	return (_ptrace_request(debug, request, addr, data) == 0) ? 0 : -1;
 }
