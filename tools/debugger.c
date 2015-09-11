@@ -914,7 +914,7 @@ static void _debugger_helper_set_register(Debugger * debugger,
 	for(valid = gtk_tree_model_get_iter_first(model, &iter); valid == TRUE;
 			valid = gtk_tree_model_iter_next(model, &iter))
 	{
-		gtk_tree_model_get(model, &iter, 0, &p, -1);
+		gtk_tree_model_get(model, &iter, RV_NAME, &p, -1);
 		res = strcasecmp(p, name);
 		g_free(p);
 		if(res == 0)
@@ -924,8 +924,8 @@ static void _debugger_helper_set_register(Debugger * debugger,
 	{
 		/* XXX adapt to the actual size */
 		snprintf(buf, sizeof(buf), "%016llx", value);
-		gtk_list_store_set(debugger->reg_store, &iter, 1, value,
-				2, buf, -1);
+		gtk_list_store_set(debugger->reg_store, &iter, RV_VALUE, value,
+				RV_VALUE_DISPLAY, buf, -1);
 	}
 }
 
