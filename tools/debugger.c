@@ -58,8 +58,8 @@ static char const _debugger_license[] =
 /* Debugger */
 /* private */
 /* types */
-enum { RV_NAME = 0, RV_VALUE, RV_VALUE_DISPLAY };
-#define RV_LAST RV_VALUE_DISPLAY
+enum { RV_NAME = 0, RV_VALUE, RV_VALUE_DISPLAY, RV_SIZE };
+#define RV_LAST RV_SIZE
 #define RV_COUNT (RV_LAST + 1)
 
 struct _Debugger
@@ -342,7 +342,8 @@ Debugger * debugger_new(void)
 	debugger->reg_store = gtk_list_store_new(RV_COUNT,
 			G_TYPE_STRING,	/* name */
 			G_TYPE_UINT64,	/* value */
-			G_TYPE_STRING);	/* value (string) */
+			G_TYPE_STRING,	/* value (string) */
+			G_TYPE_UINT);	/* size */
 	debugger->reg_view = gtk_tree_view_new_with_model(
 			GTK_TREE_MODEL(debugger->reg_store));
 	/* registers: name */
@@ -908,25 +909,34 @@ static void _debugger_helper_set_register(Debugger * debugger,
 	GtkTreeIter iter;
 	gboolean valid;
 	gchar * p;
+	unsigned int size;
 	int res;
-	char buf[17];
+	char buf[33];
 
 	for(valid = gtk_tree_model_get_iter_first(model, &iter); valid == TRUE;
 			valid = gtk_tree_model_iter_next(model, &iter))
 	{
-		gtk_tree_model_get(model, &iter, RV_NAME, &p, -1);
+		gtk_tree_model_get(model, &iter, RV_NAME, &p, RV_SIZE, &size,
+				-1);
 		res = strcasecmp(p, name);
 		g_free(p);
 		if(res == 0)
 			break;
 	}
-	if(valid == TRUE)
-	{
-		/* XXX adapt to the actual size */
+	if(valid != TRUE)
+		return;
+	if(size <= 16)
+		snprintf(buf, sizeof(buf), "%04lx", value);
+	else if(size <= 20)
+		snprintf(buf, sizeof(buf), "%05lx", value);
+	else if(size <= 32)
+		snprintf(buf, sizeof(buf), "%08lx", value);
+	else if(size <= 64)
 		snprintf(buf, sizeof(buf), "%016llx", value);
-		gtk_list_store_set(debugger->reg_store, &iter, RV_VALUE, value,
-				RV_VALUE_DISPLAY, buf, -1);
-	}
+	else
+		snprintf(buf, sizeof(buf), "%032llx", value);
+	gtk_list_store_set(debugger->reg_store, &iter, RV_VALUE, value,
+			RV_VALUE_DISPLAY, buf, -1);
 }
 
 
@@ -947,7 +957,8 @@ static void _debugger_helper_backend_set_registers(Debugger * debugger,
 			continue;
 		gtk_list_store_append(GTK_LIST_STORE(model), &iter);
 		gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-				RV_NAME, registers[i].name, -1);
+				RV_NAME, registers[i].name,
+				RV_SIZE, registers[i].size, -1);
 	}
 }
 
