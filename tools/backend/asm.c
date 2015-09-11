@@ -68,11 +68,9 @@ static int _asm_close(AsmBackend * backend);
 static char const * _asm_arch_get_name(AsmBackend * backend);
 static char const * _asm_format_get_name(AsmBackend * backend);
 
-/* useful */
-
 
 /* constants */
-static DebuggerBackendDefinition _asm_definition =
+DebuggerBackendDefinition backend =
 {
 	"asm",
 	NULL,

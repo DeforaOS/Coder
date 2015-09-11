@@ -36,7 +36,7 @@
 /* protected */
 /* public */
 /* functions */
-Debugger * debugger_new(void);
+Debugger * debugger_new(char const * backend, char const * debug);
 void debugger_delete(Debugger * debugger);
 
 /* accessors */

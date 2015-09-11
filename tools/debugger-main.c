@@ -69,7 +69,8 @@ static int _error(char const * message, int ret)
 /* usage */
 static int _usage(void)
 {
-	fprintf(stderr, _("Usage: %s [filename]\n"), PROGNAME);
+	fprintf(stderr, _("Usage: %s [-b backend][-d debug] [filename]\n"),
+			PROGNAME);
 	return 1;
 }
 
@@ -80,6 +81,8 @@ static int _usage(void)
 int main(int argc, char * argv[])
 {
 	int o;
+	char const * backend = "asm";
+	char const * debug = "ptrace";
 	Debugger * debugger;
 
 	if(setlocale(LC_ALL, "") == NULL)
@@ -87,15 +90,21 @@ int main(int argc, char * argv[])
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
-	while((o = getopt(argc, argv, "")) != -1)
+	while((o = getopt(argc, argv, "b:d:")) != -1)
 		switch(o)
 		{
+			case 'b':
+				backend = optarg;
+				break;
+			case 'd':
+				debug = optarg;
+				break;
 			default:
 				return _usage();
 		}
 	if(optind != argc && optind + 1 != argc)
 		return _usage();
-	if((debugger = debugger_new()) == NULL)
+	if((debugger = debugger_new(backend, debug)) == NULL)
 	{
 		error_print(PROGNAME);
 		return 2;

@@ -233,15 +233,10 @@ static DesktopToolbar _debugger_toolbar[] =
 };
 
 
-/* XXX load at run-time */
-#include "backend/asm.c"
-#include "debug/ptrace.c"
-
-
 /* public */
 /* functions */
 /* debugger_new */
-Debugger * debugger_new(void)
+Debugger * debugger_new(char const * backend, char const * debug)
 {
 	Debugger * debugger;
 	GtkAccelGroup * accel;
@@ -260,21 +255,27 @@ Debugger * debugger_new(void)
 	debugger->bhelper.error = _debugger_helper_error;
 	debugger->bhelper.set_registers
 		= _debugger_helper_backend_set_registers;
-	debugger->bplugin = NULL;
-	debugger->bdefinition = &_asm_definition; /* XXX */
+	debugger->bplugin = plugin_new(LIBDIR, PACKAGE, "backend", backend);
+	debugger->bdefinition = (debugger->bplugin != NULL)
+		? plugin_lookup(debugger->bplugin, "backend") : NULL;
 	debugger->backend = NULL;
 	/* debug */
 	debugger->dhelper.debugger = debugger;
 	debugger->dhelper.error = _debugger_helper_error;
 	debugger->dhelper.set_register = _debugger_helper_set_register;
-	debugger->dplugin = NULL;
-	debugger->ddefinition = NULL;
+	debugger->dplugin = plugin_new(LIBDIR, PACKAGE, "debug", debug);
+	debugger->ddefinition = (debugger->dplugin != NULL)
+		? plugin_lookup(debugger->dplugin, "debug") : NULL;
 	debugger->debug = NULL;
 	/* child */
 	debugger->filename = NULL;
+	/* widgets */
+	debugger->window = NULL;
 	/* check for errors */
-	if((debugger->backend = debugger->bdefinition->init(&debugger->bhelper))
-			== NULL)
+	if(debugger->bdefinition == NULL
+			|| (debugger->backend = debugger->bdefinition->init(
+					&debugger->bhelper)) == NULL
+			|| debugger->ddefinition == NULL)
 	{
 		debugger_delete(debugger);
 		return NULL;
@@ -376,8 +377,17 @@ void debugger_delete(Debugger * debugger)
 {
 	if(debugger_is_running(debugger))
 		debugger_stop(debugger);
+	if(debugger->debug != NULL)
+		debugger->ddefinition->destroy(debugger->debug);
+	if(debugger->dplugin != NULL)
+		plugin_delete(debugger->dplugin);
+	if(debugger->backend != NULL)
+		debugger->bdefinition->destroy(debugger->backend);
+	if(debugger->bplugin != NULL)
+		plugin_delete(debugger->bplugin);
 	string_delete(debugger->filename);
-	gtk_widget_destroy(debugger->window);
+	if(debugger->window != NULL)
+		gtk_widget_destroy(debugger->window);
 	pango_font_description_free(debugger->bold);
 	object_delete(debugger);
 }
@@ -640,7 +650,6 @@ int debugger_runv(Debugger * debugger, va_list ap)
 		return -1;
 	if(debugger_stop(debugger) != 0)
 		return -1;
-	debugger->ddefinition = &_ptrace_definition; /* XXX */
 	if((debugger->debug = debugger->ddefinition->init(&debugger->dhelper))
 			== NULL
 			|| debugger->ddefinition->start(debugger->debug, ap)
@@ -677,10 +686,6 @@ int debugger_stop(Debugger * debugger)
 	debugger->ddefinition->stop(debugger->debug);
 	debugger->ddefinition->destroy(debugger->debug);
 	debugger->debug = NULL;
-	debugger->ddefinition = NULL;
-	if(debugger->dplugin != NULL)
-		plugin_delete(debugger->dplugin);
-	debugger->dplugin = NULL;
 	_debugger_set_sensitive_toolbar(debugger, TRUE, FALSE);
 	return 0;
 }

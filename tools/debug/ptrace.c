@@ -90,7 +90,7 @@ static int _ptrace_schedule(PtraceDebug * debug, int request, void * addr,
 
 
 /* constants */
-static DebuggerDebugDefinition _ptrace_definition =
+DebuggerDebugDefinition debug =
 {
 	"ptrace",
 	NULL,
