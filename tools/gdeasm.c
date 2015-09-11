@@ -740,12 +740,17 @@ int gdeasm_open_dialog(GDeasm * gdeasm)
 	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
+	/* core files */
+	filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, _("Core files"));
+	gtk_file_filter_add_mime_type(filter, "application/x-core");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	/* executable files */
 	filter = gtk_file_filter_new();
-        gtk_file_filter_set_name(filter, _("Executable files"));
-        gtk_file_filter_add_mime_type(filter, "application/x-executable");
-        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
-        gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(dialog), filter);
+	gtk_file_filter_set_name(filter, _("Executable files"));
+	gtk_file_filter_add_mime_type(filter, "application/x-executable");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(dialog), filter);
 	/* java classes */
 	filter = gtk_file_filter_new();
         gtk_file_filter_set_name(filter, _("Java classes"));
