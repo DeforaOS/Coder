@@ -251,7 +251,6 @@ Debugger * debugger_new(void)
 	GtkWidget * combo;
 	GtkWidget * window;
 	GtkWidget * widget;
-	GtkListStore * store;
 	GtkTreeViewColumn * column;
 	GtkCellRenderer * renderer;
 
