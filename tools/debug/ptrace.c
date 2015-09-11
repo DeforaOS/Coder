@@ -187,7 +187,7 @@ static int _start_parent(PtraceDebug * debug)
 static void _start_on_child_setup(gpointer data)
 {
 	PtraceDebug * debug = data;
-	DebuggerDebugHelper * helper = debug->helper;
+	DebuggerDebugHelper const * helper = debug->helper;
 
 	errno = 0;
 	if(ptrace(PT_TRACE_ME, 0, (caddr_t)NULL, (ptrace_data_t)0) == -1
@@ -302,7 +302,7 @@ static int _ptrace_step(PtraceDebug * debug)
 static void _ptrace_get_registers(PtraceDebug * debug)
 {
 #ifdef PT_GETREGS
-	DebuggerDebugHelper * helper = debug->helper;
+	DebuggerDebugHelper const * helper = debug->helper;
 	struct reg regs;
 
 	if(_ptrace_request(debug, PT_GETREGS, &regs, 0) != 0)
