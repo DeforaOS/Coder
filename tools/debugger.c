@@ -911,8 +911,7 @@ static void _debugger_helper_set_register(Debugger * debugger,
 	int res;
 	char buf[17];
 
-	for(valid = gtk_tree_model_get_iter_first(debugger->reg_store, &iter);
-			valid == TRUE;
+	for(valid = gtk_tree_model_get_iter_first(model, &iter); valid == TRUE;
 			valid = gtk_tree_model_iter_next(model, &iter))
 	{
 		gtk_tree_model_get(model, &iter, 0, &p, -1);
