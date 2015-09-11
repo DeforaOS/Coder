@@ -206,12 +206,17 @@ static char * _asm_open_dialog(AsmBackend * backend, GtkWidget * window,
 	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
+	/* core files */
+	filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, "Core files");
+	gtk_file_filter_add_mime_type(filter, "application/x-core");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	/* executable files */
 	filter = gtk_file_filter_new();
-        gtk_file_filter_set_name(filter, "Executable files");
-        gtk_file_filter_add_mime_type(filter, "application/x-executable");
-        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
-        gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(dialog), filter);
+	gtk_file_filter_set_name(filter, "Executable files");
+	gtk_file_filter_add_mime_type(filter, "application/x-executable");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(dialog), filter);
 	/* all files */
 	filter = gtk_file_filter_new();
 	gtk_file_filter_set_name(filter, "All files");
