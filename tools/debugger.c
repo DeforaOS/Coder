@@ -58,7 +58,12 @@ static char const _debugger_license[] =
 /* Debugger */
 /* private */
 /* types */
-enum { RV_NAME = 0, RV_VALUE, RV_VALUE_DISPLAY, RV_SIZE };
+enum { NP_DISASSEMBLY = 0, NP_CALL_GRAPH, NP_HEXDUMP };
+
+typedef enum _RegisterValue
+{
+	RV_NAME = 0, RV_VALUE, RV_VALUE_DISPLAY, RV_SIZE
+} RegisterValue;
 #define RV_LAST RV_SIZE
 #define RV_COUNT (RV_LAST + 1)
 
@@ -1087,7 +1092,8 @@ static void _debugger_on_view_call_graph(gpointer data)
 {
 	Debugger * debugger = data;
 
-	gtk_notebook_set_current_page(GTK_NOTEBOOK(debugger->notebook), 1);
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(debugger->notebook),
+			NP_CALL_GRAPH);
 }
 
 
@@ -1096,7 +1102,8 @@ static void _debugger_on_view_disassembly(gpointer data)
 {
 	Debugger * debugger = data;
 
-	gtk_notebook_set_current_page(GTK_NOTEBOOK(debugger->notebook), 0);
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(debugger->notebook),
+			NP_DISASSEMBLY);
 }
 
 
@@ -1105,5 +1112,6 @@ static void _debugger_on_view_hexdump(gpointer data)
 {
 	Debugger * debugger = data;
 
-	gtk_notebook_set_current_page(GTK_NOTEBOOK(debugger->notebook), 2);
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(debugger->notebook),
+			NP_HEXDUMP);
 }
