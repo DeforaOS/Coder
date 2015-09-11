@@ -753,19 +753,19 @@ int gdeasm_open_dialog(GDeasm * gdeasm)
 	gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(dialog), filter);
 	/* java classes */
 	filter = gtk_file_filter_new();
-        gtk_file_filter_set_name(filter, _("Java classes"));
-        gtk_file_filter_add_mime_type(filter, "application/x-java");
-        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	gtk_file_filter_set_name(filter, _("Java classes"));
+	gtk_file_filter_add_mime_type(filter, "application/x-java");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	/* objects */
 	filter = gtk_file_filter_new();
-        gtk_file_filter_set_name(filter, _("Objects"));
-        gtk_file_filter_add_mime_type(filter, "application/x-object");
-        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	gtk_file_filter_set_name(filter, _("Objects"));
+	gtk_file_filter_add_mime_type(filter, "application/x-object");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	/* shared objects */
 	filter = gtk_file_filter_new();
-        gtk_file_filter_set_name(filter, _("Shared objects"));
-        gtk_file_filter_add_mime_type(filter, "application/x-sharedlib");
-        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	gtk_file_filter_set_name(filter, _("Shared objects"));
+	gtk_file_filter_add_mime_type(filter, "application/x-sharedlib");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	/* all files */
 	filter = gtk_file_filter_new();
 	gtk_file_filter_set_name(filter, _("All files"));
