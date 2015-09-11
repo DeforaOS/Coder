@@ -77,7 +77,7 @@ struct _Debugger
 	DebuggerDebug * debug;
 
 	/* child */
-	char * filename;
+	String * filename;
 
 	/* widgets */
 	PangoFontDescription * bold;
@@ -376,7 +376,7 @@ void debugger_delete(Debugger * debugger)
 {
 	if(debugger_is_running(debugger))
 		debugger_stop(debugger);
-	free(debugger->filename);
+	string_delete(debugger->filename);
 	gtk_widget_destroy(debugger->window);
 	pango_font_description_free(debugger->bold);
 	object_delete(debugger);
@@ -414,7 +414,7 @@ int debugger_close(Debugger * debugger)
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(debugger->reg_view));
 	gtk_list_store_clear(GTK_LIST_STORE(model));
 	/* FIXME really implement */
-	free(debugger->filename);
+	string_delete(debugger->filename);
 	debugger->filename = NULL;
 	gtk_window_set_title(GTK_WINDOW(debugger->window), _("Debugger"));
 	return 0;
@@ -488,12 +488,12 @@ int debugger_open(Debugger * debugger, char const * arch, char const * format,
 		return debugger_open_dialog(debugger, arch, format);
 	if(debugger_close(debugger) != 0)
 		return -debugger_error(debugger, error_get(), 1);
-	if((debugger->filename = strdup(filename)) == NULL)
+	if((debugger->filename = string_new(filename)) == NULL)
 		return -1;
 	if(debugger->bdefinition->open(debugger->backend, arch, format,
 				filename) != 0)
 	{
-		free(debugger->filename);
+		string_delete(debugger->filename);
 		debugger->filename = NULL;
 		return -debugger_error(debugger, error_get(), 1);
 	}
