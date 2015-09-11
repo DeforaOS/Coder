@@ -28,6 +28,7 @@
 #ifndef CODER_DEBUGGER_BACKEND_H
 # define CODER_DEBUGGER_BACKEND_H
 
+# include <gtk/gtk.h>
 # include <System.h>
 # include <Devel/Asm.h>
 # include "common.h"
@@ -54,6 +55,8 @@ typedef const struct _DebuggerBackendDefinition
 	void (*destroy)(DebuggerBackend * backend);
 	int (*open)(DebuggerBackend * backend, char const * arch,
 			char const * format, char const * filename);
+	char * (*open_dialog)(DebuggerBackend * backend, GtkWidget * window,
+			char const * arch, char const * format);
 	int (*close)(DebuggerBackend * backend);
 	char const * (*arch_get_name)(DebuggerBackend * backend);
 	char const * (*format_get_name)(DebuggerBackend * backend);

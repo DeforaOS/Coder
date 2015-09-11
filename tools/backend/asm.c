@@ -27,11 +27,19 @@
 
 #include <stdarg.h>
 #include <string.h>
-#include <glib.h>
+#include <gtk/gtk.h>
 #include <System.h>
 #include <Devel/Asm.h>
 #include "../backend.h"
 #include "../debugger.h"
+#include "../../config.h"
+
+#ifndef PREFIX
+# define PREFIX	"/usr/local"
+#endif
+#ifndef LIBDIR
+# define LIBDIR	PREFIX "/lib"
+#endif
 
 
 /* asm */
@@ -54,6 +62,8 @@ static AsmBackend * _asm_init(DebuggerBackendHelper const * helper);
 static void _asm_destroy(AsmBackend * backend);
 static int _asm_open(AsmBackend * backend, char const * arch,
 		char const * format, char const * filename);
+static char * _asm_open_dialog(AsmBackend * backend, GtkWidget * window,
+		char const * arch, char const * format);
 static int _asm_close(AsmBackend * backend);
 static char const * _asm_arch_get_name(AsmBackend * backend);
 static char const * _asm_format_get_name(AsmBackend * backend);
@@ -70,6 +80,7 @@ static DebuggerBackendDefinition _asm_definition =
 	_asm_init,
 	_asm_destroy,
 	_asm_open,
+	_asm_open_dialog,
 	_asm_close,
 	_asm_arch_get_name,
 	_asm_format_get_name
@@ -137,6 +148,136 @@ static gboolean _open_on_idle(gpointer data)
 	backend->helper->set_registers(backend->helper->debugger, registers,
 			cnt);
 	return FALSE;
+}
+
+
+/* asm_open_dialog */
+static void _open_dialog_type(GtkWidget * combobox, char const * type,
+		char const * value);
+
+static char * _asm_open_dialog(AsmBackend * backend, GtkWidget * window,
+		char const * arch, char const * format)
+{
+	GtkWidget * dialog;
+	GtkWidget * vbox;
+	GtkWidget * hbox;
+	GtkWidget * awidget;
+	GtkWidget * fwidget;
+	GtkWidget * widget;
+	GtkFileFilter * filter;
+	char * a = NULL;
+	char * f = NULL;
+	char * filename = NULL;
+
+	dialog = gtk_file_chooser_dialog_new("Open file...",
+			(window != NULL) ? GTK_WINDOW(window) : NULL,
+			GTK_FILE_CHOOSER_ACTION_OPEN,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+#if GTK_CHECK_VERSION(2, 14, 0)
+	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+#else
+	vbox = GTK_DIALOG(dialog)->vbox;
+#endif
+	/* arch */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
+	hbox = gtk_hbox_new(FALSE, 4);
+#endif
+	awidget = gtk_combo_box_new_text();
+	gtk_combo_box_append_text(GTK_COMBO_BOX(awidget), "Auto-detect");
+	_open_dialog_type(awidget, "arch", arch);
+	gtk_box_pack_end(GTK_BOX(hbox), awidget, FALSE, TRUE, 0);
+	widget = gtk_label_new("Architecture:");
+	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	/* format */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
+	hbox = gtk_hbox_new(FALSE, 4);
+#endif
+	fwidget = gtk_combo_box_new_text();
+	gtk_combo_box_append_text(GTK_COMBO_BOX(fwidget), "Auto-detect");
+	_open_dialog_type(fwidget, "format", format);
+	gtk_box_pack_end(GTK_BOX(hbox), fwidget, FALSE, TRUE, 0);
+	widget = gtk_label_new("File format:");
+	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	gtk_widget_show_all(vbox);
+	/* executable files */
+	filter = gtk_file_filter_new();
+        gtk_file_filter_set_name(filter, "Executable files");
+        gtk_file_filter_add_mime_type(filter, "application/x-executable");
+        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+        gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(dialog), filter);
+	/* all files */
+	filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, "All files");
+	gtk_file_filter_add_pattern(filter, "*");
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+	{
+		if(gtk_combo_box_get_active(GTK_COMBO_BOX(awidget)) == 0)
+			a = NULL;
+		else
+			a = gtk_combo_box_get_active_text(GTK_COMBO_BOX(
+						awidget));
+		if(gtk_combo_box_get_active(GTK_COMBO_BOX(fwidget)) == 0)
+			f = NULL;
+		else
+			f = gtk_combo_box_get_active_text(GTK_COMBO_BOX(
+						fwidget));
+		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(
+					dialog));
+	}
+	gtk_widget_destroy(dialog);
+	g_free(a);
+	g_free(f);
+	return filename;
+}
+
+static void _open_dialog_type(GtkWidget * combobox, char const * type,
+		char const * value)
+{
+	char * path;
+	DIR * dir;
+	struct dirent * de;
+#ifdef __APPLE__
+	char const ext[] = ".dylib";
+#else
+	char const ext[] = ".so";
+#endif
+	size_t len;
+	int i;
+	int active = 0;
+
+	if((path = g_build_filename(LIBDIR, "Asm", type, NULL)) == NULL)
+		return;
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s(%s) \"%s\"\n", __func__, type, path);
+#endif
+	dir = opendir(path);
+	g_free(path);
+	if(dir == NULL)
+		return;
+	for(i = 0; (de = readdir(dir)) != NULL; i++)
+	{
+		if(strcmp(de->d_name, ".") == 0
+				|| strcmp(de->d_name, "..") == 0)
+			continue;
+		if((len = strlen(de->d_name)) < sizeof(ext))
+			continue;
+		if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
+			continue;
+		de->d_name[len - sizeof(ext) + 1] = '\0';
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), de->d_name);
+		if(value != NULL && strcmp(de->d_name, value) == 0)
+			active = i;
+	}
+	closedir(dir);
+	gtk_combo_box_set_active(GTK_COMBO_BOX(combobox), active);
 }
 
 

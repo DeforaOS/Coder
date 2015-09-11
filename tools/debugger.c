@@ -47,12 +47,6 @@ static char const _debugger_license[] =
 #ifndef PROGNAME
 # define PROGNAME	"debugger"
 #endif
-#ifndef PREFIX
-# define PREFIX		"/usr/local"
-#endif
-#ifndef LIBDIR
-# define LIBDIR		PREFIX "/lib"
-#endif
 
 
 /* Debugger */
@@ -513,138 +507,26 @@ int debugger_open(Debugger * debugger, char const * arch, char const * format,
 
 
 /* debugger_open_dialog */
-static void _open_dialog_type(GtkWidget * combobox, char const * type,
-		char const * value);
-
 int debugger_open_dialog(Debugger * debugger, char const * arch,
 		char const * format)
 {
-	int ret = 0;
-	GtkWidget * dialog;
-	GtkWidget * vbox;
-	GtkWidget * hbox;
-	GtkWidget * awidget;
-	GtkWidget * fwidget;
-	GtkWidget * widget;
-	GtkFileFilter * filter;
-	char * a = NULL;
-	char * f = NULL;
-	char * filename = NULL;
+	int ret;
+	char * filename;
 
 	if(_debugger_confirm_close(debugger) == FALSE)
 		return -1;
-	dialog = gtk_file_chooser_dialog_new(_("Open file..."),
-			GTK_WINDOW(debugger->window),
-			GTK_FILE_CHOOSER_ACTION_OPEN,
-			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
-#if GTK_CHECK_VERSION(2, 14, 0)
-	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-#else
-	vbox = GTK_DIALOG(dialog)->vbox;
-#endif
-	/* arch */
-#if GTK_CHECK_VERSION(3, 0, 0)
-	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-#else
-	hbox = gtk_hbox_new(FALSE, 4);
-#endif
-	awidget = gtk_combo_box_new_text();
-	gtk_combo_box_append_text(GTK_COMBO_BOX(awidget), _("Auto-detect"));
-	_open_dialog_type(awidget, "arch", arch);
-	gtk_box_pack_end(GTK_BOX(hbox), awidget, FALSE, TRUE, 0);
-	widget = gtk_label_new(_("Architecture:"));
-	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
-	/* format */
-#if GTK_CHECK_VERSION(3, 0, 0)
-	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-#else
-	hbox = gtk_hbox_new(FALSE, 4);
-#endif
-	fwidget = gtk_combo_box_new_text();
-	gtk_combo_box_append_text(GTK_COMBO_BOX(fwidget), _("Auto-detect"));
-	_open_dialog_type(fwidget, "format", format);
-	gtk_box_pack_end(GTK_BOX(hbox), fwidget, FALSE, TRUE, 0);
-	widget = gtk_label_new(_("File format:"));
-	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
-	gtk_widget_show_all(vbox);
-	/* executable files */
-	filter = gtk_file_filter_new();
-        gtk_file_filter_set_name(filter, _("Executable files"));
-        gtk_file_filter_add_mime_type(filter, "application/x-executable");
-        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
-        gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(dialog), filter);
-	/* all files */
-	filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, _("All files"));
-	gtk_file_filter_add_pattern(filter, "*");
-	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
-	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+	if((filename = debugger->bdefinition->open_dialog(debugger->backend,
+					debugger->window, arch, format))
+			== NULL)
+		return -1;
+	if(debugger_close(debugger) != 0)
 	{
-		if(gtk_combo_box_get_active(GTK_COMBO_BOX(awidget)) == 0)
-			a = NULL;
-		else
-			a = gtk_combo_box_get_active_text(GTK_COMBO_BOX(
-						awidget));
-		if(gtk_combo_box_get_active(GTK_COMBO_BOX(fwidget)) == 0)
-			f = NULL;
-		else
-			f = gtk_combo_box_get_active_text(GTK_COMBO_BOX(
-						fwidget));
-		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(
-					dialog));
+		free(filename);
+		return -debugger_error(debugger, error_get(), 1);
 	}
-	gtk_widget_destroy(dialog);
-	if(filename != NULL)
-		ret = debugger_open(debugger, a, f, filename);
-	g_free(a);
-	g_free(f);
-	g_free(filename);
+	ret = debugger_open(debugger, arch, format, filename);
+	free(filename);
 	return ret;
-}
-
-static void _open_dialog_type(GtkWidget * combobox, char const * type,
-		char const * value)
-{
-	char * path;
-	DIR * dir;
-	struct dirent * de;
-#ifdef __APPLE__
-	char const ext[] = ".dylib";
-#else
-	char const ext[] = ".so";
-#endif
-	size_t len;
-	int i;
-	int active = 0;
-
-	if((path = g_build_filename(LIBDIR, "Asm", type, NULL)) == NULL)
-		return;
-#ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s(%s) \"%s\"\n", __func__, type, path);
-#endif
-	dir = opendir(path);
-	g_free(path);
-	if(dir == NULL)
-		return;
-	for(i = 0; (de = readdir(dir)) != NULL; i++)
-	{
-		if(strcmp(de->d_name, ".") == 0
-				|| strcmp(de->d_name, "..") == 0)
-			continue;
-		if((len = strlen(de->d_name)) < sizeof(ext))
-			continue;
-		if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
-			continue;
-		de->d_name[len - sizeof(ext) + 1] = '\0';
-		gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), de->d_name);
-		if(value != NULL && strcmp(de->d_name, value) == 0)
-			active = i;
-	}
-	closedir(dir);
-	gtk_combo_box_set_active(GTK_COMBO_BOX(combobox), active);
 }
 
 
