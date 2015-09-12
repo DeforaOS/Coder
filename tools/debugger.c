@@ -82,14 +82,18 @@ struct _Debugger
 
 	/* widgets */
 	PangoFontDescription * bold;
+	PangoFontDescription * monospace;
 	GtkWidget * window;
 	GtkWidget * notebook;
 	/* call graph */
 	GtkWidget * dcg_view;
 	/* disassembly */
 	GtkWidget * das_view;
+	GtkTextBuffer * das_tbuf;
 	/* hexdump */
 	GtkWidget * dhx_view;
+	GtkTextBuffer * dhx_tbuf;
+	GtkTextIter dhx_iter;
 	/* registers */
 	GtkListStore * reg_store;
 	GtkWidget * reg_view;
@@ -295,6 +299,8 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 	/* widgets */
 	debugger->bold = pango_font_description_new();
 	pango_font_description_set_weight(debugger->bold, PANGO_WEIGHT_BOLD);
+	debugger->monospace = pango_font_description_new();
+	pango_font_description_set_family(debugger->monospace, "Monospace");
 	accel = gtk_accel_group_new();
 	debugger->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_add_accel_group(GTK_WINDOW(debugger->window), accel);
@@ -320,23 +326,38 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 	/* notebook */
 	debugger->notebook = gtk_notebook_new();
 	/* disassembly */
+	window = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(window),
+			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	debugger->das_view = gtk_text_view_new();
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(debugger->das_view),
 			FALSE);
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(debugger->das_view), FALSE);
-	gtk_notebook_append_page(GTK_NOTEBOOK(debugger->notebook),
-			debugger->das_view, gtk_label_new(_("Disassembly")));
+	gtk_widget_modify_font(debugger->das_view, debugger->monospace);
+	debugger->das_tbuf = gtk_text_view_get_buffer(
+			GTK_TEXT_VIEW(debugger->das_view));
+	gtk_container_add(GTK_CONTAINER(window), debugger->das_view);
+	gtk_notebook_append_page(GTK_NOTEBOOK(debugger->notebook), window,
+			gtk_label_new(_("Disassembly")));
 	/* call graph */
 	debugger->dcg_view = gtk_drawing_area_new();
 	gtk_notebook_append_page(GTK_NOTEBOOK(debugger->notebook),
 			debugger->dcg_view, gtk_label_new(_("Call graph")));
 	/* hexdump */
+	window = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(window),
+			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	debugger->dhx_view = gtk_text_view_new();
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(debugger->dhx_view),
 			FALSE);
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(debugger->dhx_view), FALSE);
-	gtk_notebook_append_page(GTK_NOTEBOOK(debugger->notebook),
-			debugger->dhx_view, gtk_label_new(_("Hexdump")));
+	gtk_widget_modify_font(debugger->dhx_view, debugger->monospace);
+	debugger->dhx_tbuf = gtk_text_view_get_buffer(
+			GTK_TEXT_VIEW(debugger->dhx_view));
+	gtk_text_buffer_get_start_iter(debugger->dhx_tbuf, &debugger->dhx_iter);
+	gtk_container_add(GTK_CONTAINER(window), debugger->dhx_view);
+	gtk_notebook_append_page(GTK_NOTEBOOK(debugger->notebook), window,
+			gtk_label_new(_("Hexdump")));
 	gtk_paned_add1(GTK_PANED(paned), debugger->notebook);
 	/* registers */
 #if GTK_CHECK_VERSION(3, 0, 0)
@@ -400,6 +421,7 @@ void debugger_delete(Debugger * debugger)
 	string_delete(debugger->filename);
 	if(debugger->window != NULL)
 		gtk_widget_destroy(debugger->window);
+	pango_font_description_free(debugger->monospace);
 	pango_font_description_free(debugger->bold);
 	object_delete(debugger);
 }
