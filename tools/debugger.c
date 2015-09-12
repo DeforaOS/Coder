@@ -63,6 +63,8 @@ typedef enum _RegisterValue
 
 struct _Debugger
 {
+	DebuggerPrefs prefs;
+
 	/* backend */
 	DebuggerBackendHelper bhelper;
 	Plugin * bplugin;
@@ -236,7 +238,7 @@ static DesktopToolbar _debugger_toolbar[] =
 /* public */
 /* functions */
 /* debugger_new */
-Debugger * debugger_new(char const * backend, char const * debug)
+Debugger * debugger_new(DebuggerPrefs * prefs)
 {
 	Debugger * debugger;
 	GtkAccelGroup * accel;
@@ -250,12 +252,21 @@ Debugger * debugger_new(char const * backend, char const * debug)
 
 	if((debugger = object_new(sizeof(*debugger))) == NULL)
 		return NULL;
+	if(prefs != NULL)
+		debugger->prefs = *prefs;
+	else
+		memset(&debugger->prefs, 0, sizeof(debugger->prefs));
+	if(debugger->prefs.backend == NULL)
+		debugger->prefs.backend = "asm";
+	if(debugger->prefs.debug == NULL)
+		debugger->prefs.debug = "ptrace";
 	/* backend */
 	debugger->bhelper.debugger = debugger;
 	debugger->bhelper.error = _debugger_helper_error;
 	debugger->bhelper.set_registers
 		= _debugger_helper_backend_set_registers;
-	debugger->bplugin = plugin_new(LIBDIR, PACKAGE, "backend", backend);
+	debugger->bplugin = plugin_new(LIBDIR, PACKAGE, "backend",
+			debugger->prefs.backend);
 	debugger->bdefinition = (debugger->bplugin != NULL)
 		? plugin_lookup(debugger->bplugin, "backend") : NULL;
 	debugger->backend = NULL;
@@ -263,7 +274,8 @@ Debugger * debugger_new(char const * backend, char const * debug)
 	debugger->dhelper.debugger = debugger;
 	debugger->dhelper.error = _debugger_helper_error;
 	debugger->dhelper.set_register = _debugger_helper_set_register;
-	debugger->dplugin = plugin_new(LIBDIR, PACKAGE, "debug", debug);
+	debugger->dplugin = plugin_new(LIBDIR, PACKAGE, "debug",
+			debugger->prefs.debug);
 	debugger->ddefinition = (debugger->dplugin != NULL)
 		? plugin_lookup(debugger->dplugin, "debug") : NULL;
 	debugger->debug = NULL;

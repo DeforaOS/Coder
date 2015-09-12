@@ -33,10 +33,18 @@
 
 
 /* Debugger */
-/* protected */
 /* public */
+/* types */
+typedef struct _DebuggerPrefs
+{
+	int uppercase;
+	char const * backend;
+	char const * debug;
+} DebuggerPrefs;
+
+
 /* functions */
-Debugger * debugger_new(char const * backend, char const * debug);
+Debugger * debugger_new(DebuggerPrefs * prefs);
 void debugger_delete(Debugger * debugger);
 
 /* accessors */

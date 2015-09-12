@@ -27,6 +27,7 @@
 
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 #include <locale.h>
 #include <libintl.h>
 #include <gtk/gtk.h>
@@ -81,30 +82,30 @@ static int _usage(void)
 int main(int argc, char * argv[])
 {
 	int o;
-	char const * backend = "asm";
-	char const * debug = "ptrace";
 	Debugger * debugger;
+	DebuggerPrefs prefs;
 
 	if(setlocale(LC_ALL, "") == NULL)
 		_error("setlocale", 1);
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
+	memset(&prefs, 0, sizeof(prefs));
 	while((o = getopt(argc, argv, "b:d:")) != -1)
 		switch(o)
 		{
 			case 'b':
-				backend = optarg;
+				prefs.backend = optarg;
 				break;
 			case 'd':
-				debug = optarg;
+				prefs.debug = optarg;
 				break;
 			default:
 				return _usage();
 		}
 	if(optind != argc && optind + 1 != argc)
 		return _usage();
-	if((debugger = debugger_new(backend, debug)) == NULL)
+	if((debugger = debugger_new(&prefs)) == NULL)
 	{
 		error_print(PROGNAME);
 		return 2;
