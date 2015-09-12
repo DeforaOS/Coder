@@ -33,6 +33,7 @@ static char const _debugger_license[] =
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <libintl.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
@@ -79,6 +80,8 @@ struct _Debugger
 
 	/* child */
 	String * filename;
+	guint source;
+	FILE * fp;
 
 	/* widgets */
 	PangoFontDescription * bold;
@@ -112,6 +115,9 @@ static gboolean _debugger_confirm(Debugger * debugger, char const * message);
 static gboolean _debugger_confirm_close(Debugger * debugger);
 static gboolean _debugger_confirm_reset(Debugger * debugger);
 
+static void _debugger_hexdump_append(Debugger * debugger, char const * buf,
+		size_t size);
+
 /* helpers */
 static int _debugger_helper_error(Debugger * debugger, int code,
 		char const * format, ...);
@@ -126,6 +132,7 @@ static void _debugger_on_about(gpointer data);
 static void _debugger_on_close(gpointer data);
 static gboolean _debugger_on_closex(gpointer data);
 static void _debugger_on_continue(gpointer data);
+static gboolean _debugger_on_idle(gpointer data);
 static void _debugger_on_next(gpointer data);
 static void _debugger_on_open(gpointer data);
 static void _debugger_on_pause(gpointer data);
@@ -285,6 +292,8 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 	debugger->debug = NULL;
 	/* child */
 	debugger->filename = NULL;
+	debugger->source = 0;
+	debugger->fp = NULL;
 	/* widgets */
 	debugger->window = NULL;
 	/* check for errors */
@@ -408,6 +417,8 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 /* debugger_delete */
 void debugger_delete(Debugger * debugger)
 {
+	if(debugger->source != 0)
+		g_source_remove(debugger->source);
 	if(debugger_is_running(debugger))
 		debugger_stop(debugger);
 	if(debugger->debug != NULL)
@@ -446,15 +457,19 @@ int debugger_is_running(Debugger * debugger)
 /* debugger_close */
 int debugger_close(Debugger * debugger)
 {
-	GtkTextBuffer * tbuf;
 	GtkTreeModel * model;
 
 	if(debugger_is_opened(debugger) == FALSE)
 		return 0;
-	tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(debugger->das_view));
-	gtk_text_buffer_set_text(tbuf, "", 0);
-	tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(debugger->dhx_view));
-	gtk_text_buffer_set_text(tbuf, "", 0);
+	if(debugger->source != 0)
+		g_source_remove(debugger->source);
+	debugger->source = 0;
+	if(debugger->fp != NULL)
+		fclose(debugger->fp);
+	debugger->fp = NULL;
+	gtk_text_buffer_set_text(debugger->das_tbuf, "", 0);
+	gtk_text_buffer_set_text(debugger->dhx_tbuf, "", 0);
+	gtk_text_buffer_get_start_iter(debugger->dhx_tbuf, &debugger->dhx_iter);
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(debugger->reg_view));
 	gtk_list_store_clear(GTK_LIST_STORE(model));
 	/* FIXME really implement */
@@ -546,6 +561,7 @@ int debugger_open(Debugger * debugger, char const * arch, char const * format,
 		gtk_window_set_title(GTK_WINDOW(debugger->window), s);
 	string_delete(s);
 	_debugger_set_sensitive_toolbar(debugger, TRUE, FALSE);
+	debugger->source = g_idle_add(_debugger_on_idle, debugger);
 	return 0;
 }
 
@@ -804,6 +820,34 @@ static gboolean _debugger_confirm_reset(Debugger * debugger)
 }
 
 
+/* debugger_hexdump_append */
+static void _debugger_hexdump_append(Debugger * debugger, char const * buf,
+		size_t size)
+{
+	size_t i;
+	unsigned char c[16];
+	char buf2[64];
+	char const * format = debugger->prefs.uppercase
+			? "%02X %02X %02X %02X %02X %02X %02X %02X"
+			" %02X %02X %02X %02X %02X %02X %02X %02X\n"
+			: "%02x %02x %02x %02x %02x %02x %02x %02x"
+			" %02x %02x %02x %02x %02x %02x %02x %02x\n";
+	int s;
+
+	/* hexadecimal values */
+	for(i = 0; i < 16 && i < size; i++)
+		c[i] = (unsigned char)buf[i];
+	for(; i < 16 && i < size; i++)
+		c[i] = 0;
+	/* FIXME wrong if i < 16 */
+	s = snprintf(buf2, sizeof(buf2), format,
+			c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7],
+			c[8], c[9], c[10], c[11], c[12], c[13], c[14], c[15]);
+	gtk_text_buffer_insert(debugger->dhx_tbuf, &debugger->dhx_iter, buf2,
+			s);
+}
+
+
 /* helpers */
 /* debugger_helper_error */
 static int _debugger_helper_error(Debugger * debugger, int code,
@@ -942,6 +986,37 @@ static void _debugger_on_continue(gpointer data)
 	Debugger * debugger = data;
 
 	debugger_continue(debugger);
+}
+
+
+/* debugger_on_idle */
+static gboolean _debugger_on_idle(gpointer data)
+{
+	Debugger * debugger = data;
+	char buf[16];
+	size_t size;
+
+	if(debugger->fp == NULL)
+		debugger->fp = fopen(debugger->filename, "r");
+	if(debugger->fp != NULL)
+	{
+		if((size = fread(buf, sizeof(*buf), sizeof(buf), debugger->fp))
+				> 0)
+			_debugger_hexdump_append(debugger, buf, size);
+		else
+		{
+			if(ferror(debugger->fp))
+				debugger_error(debugger, strerror(errno), 1);
+			fclose(debugger->fp);
+			debugger->fp = NULL;
+		}
+	}
+	if(debugger->fp == NULL)
+	{
+		debugger->source = 0;
+		return FALSE;
+	}
+	return TRUE;
 }
 
 
