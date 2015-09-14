@@ -82,6 +82,7 @@ struct _Debugger
 	String * filename;
 	guint source;
 	FILE * fp;
+	size_t pos;
 
 	/* widgets */
 	PangoFontDescription * bold;
@@ -115,8 +116,8 @@ static gboolean _debugger_confirm(Debugger * debugger, char const * message);
 static gboolean _debugger_confirm_close(Debugger * debugger);
 static gboolean _debugger_confirm_reset(Debugger * debugger);
 
-static void _debugger_hexdump_append(Debugger * debugger, char const * buf,
-		size_t size);
+static void _debugger_hexdump_append(Debugger * debugger, size_t pos,
+		char const * buf, size_t size);
 
 /* helpers */
 static int _debugger_helper_error(Debugger * debugger, int code,
@@ -821,17 +822,17 @@ static gboolean _debugger_confirm_reset(Debugger * debugger)
 
 
 /* debugger_hexdump_append */
-static void _debugger_hexdump_append(Debugger * debugger, char const * buf,
-		size_t size)
+static void _debugger_hexdump_append(Debugger * debugger, size_t pos,
+		char const * buf, size_t size)
 {
 	size_t i;
 	unsigned char c[16];
 	char buf2[64];
 	char const * format = debugger->prefs.uppercase
-			? "%02X %02X %02X %02X %02X %02X %02X %02X"
-			" %02X %02X %02X %02X %02X %02X %02X %02X\n"
-			: "%02x %02x %02x %02x %02x %02x %02x %02x"
-			" %02x %02x %02x %02x %02x %02x %02x %02x\n";
+			? "%s%08x  %02X %02X %02X %02X %02X %02X %02X %02X"
+			" %02X %02X %02X %02X %02X %02X %02X %02X"
+			: "%s%08x  %02x %02x %02x %02x %02x %02x %02x %02x"
+			" %02x %02x %02x %02x %02x %02x %02x %02x";
 	int s;
 
 	/* hexadecimal values */
@@ -840,7 +841,7 @@ static void _debugger_hexdump_append(Debugger * debugger, char const * buf,
 	for(; i < 16 && i < size; i++)
 		c[i] = 0;
 	/* FIXME wrong if i < 16 */
-	s = snprintf(buf2, sizeof(buf2), format,
+	s = snprintf(buf2, sizeof(buf2), format, (pos > 0) ? "\n" : "", pos,
 			c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7],
 			c[8], c[9], c[10], c[11], c[12], c[13], c[14], c[15]);
 	gtk_text_buffer_insert(debugger->dhx_tbuf, &debugger->dhx_iter, buf2,
@@ -997,12 +998,19 @@ static gboolean _debugger_on_idle(gpointer data)
 	size_t size;
 
 	if(debugger->fp == NULL)
+	{
 		debugger->fp = fopen(debugger->filename, "r");
+		debugger->pos = 0;
+	}
 	if(debugger->fp != NULL)
 	{
 		if((size = fread(buf, sizeof(*buf), sizeof(buf), debugger->fp))
 				> 0)
-			_debugger_hexdump_append(debugger, buf, size);
+		{
+			_debugger_hexdump_append(debugger, debugger->pos, buf,
+					size);
+			debugger->pos += size;
+		}
 		else
 		{
 			if(ferror(debugger->fp))
