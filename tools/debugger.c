@@ -391,11 +391,22 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 #else
 	widget = gtk_vbox_new(FALSE, 0);
 #endif
+#if GTK_CHECK_VERSION(2, 24, 0)
+	debugger->combo = gtk_combo_box_text_new();
+#else
 	debugger->combo = gtk_combo_box_new_text();
+#endif
+#if GTK_CHECK_VERSION(2, 24, 0)
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(debugger->combo),
+			_("Registers"));
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(debugger->combo),
+			_("Stack"));
+#else
 	gtk_combo_box_append_text(GTK_COMBO_BOX(debugger->combo),
 			_("Registers"));
-	gtk_combo_box_set_active(GTK_COMBO_BOX(debugger->combo), CP_REGISTERS);
 	gtk_combo_box_append_text(GTK_COMBO_BOX(debugger->combo), _("Stack"));
+#endif
+	gtk_combo_box_set_active(GTK_COMBO_BOX(debugger->combo), CP_REGISTERS);
 	g_signal_connect_swapped(debugger->combo, "changed", G_CALLBACK(
 				_debugger_on_view_changed), debugger);
 	gtk_box_pack_start(GTK_BOX(widget), debugger->combo, FALSE, TRUE, 0);
