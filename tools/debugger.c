@@ -55,6 +55,8 @@ static char const _debugger_license[] =
 /* types */
 enum { NP_DISASSEMBLY = 0, NP_CALL_GRAPH, NP_HEXDUMP };
 
+enum { CP_REGISTERS = 0, CP_STACK };
+
 typedef enum _RegisterValue
 {
 	RV_NAME = 0, RV_VALUE, RV_VALUE_DISPLAY, RV_SIZE
@@ -392,7 +394,7 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 	debugger->combo = gtk_combo_box_new_text();
 	gtk_combo_box_append_text(GTK_COMBO_BOX(debugger->combo),
 			_("Registers"));
-	gtk_combo_box_set_active(GTK_COMBO_BOX(debugger->combo), 0);
+	gtk_combo_box_set_active(GTK_COMBO_BOX(debugger->combo), CP_REGISTERS);
 	gtk_combo_box_append_text(GTK_COMBO_BOX(debugger->combo), _("Stack"));
 	g_signal_connect_swapped(debugger->combo, "changed", G_CALLBACK(
 				_debugger_on_view_changed), debugger);
@@ -1154,11 +1156,11 @@ static void _debugger_on_view_changed(gpointer data)
 
 	switch(gtk_combo_box_get_active(GTK_COMBO_BOX(debugger->combo)))
 	{
-		case 0:
+		case CP_REGISTERS:
 			gtk_widget_show(debugger->reg_view);
 			gtk_widget_hide(debugger->stk_view);
 			break;
-		case 1:
+		case CP_STACK:
 			gtk_widget_hide(debugger->reg_view);
 			gtk_widget_show(debugger->stk_view);
 			break;
