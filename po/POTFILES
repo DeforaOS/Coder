@@ -1,6 +1,8 @@
 ../src/coder.c
 ../src/main.c
 ../src/project.c
+../tools/backend/asm.c
+../tools/debug/ptrace.c
 ../tools/debugger.c
 ../tools/debugger-main.c
 ../tools/gdeasm.c

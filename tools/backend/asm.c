@@ -27,12 +27,14 @@
 
 #include <stdarg.h>
 #include <string.h>
+#include <libintl.h>
 #include <gtk/gtk.h>
 #include <System.h>
 #include <Devel/Asm.h>
 #include "../backend.h"
 #include "../debugger.h"
 #include "../../config.h"
+#define _(string) gettext(string)
 
 #ifndef PREFIX
 # define PREFIX	"/usr/local"
@@ -167,7 +169,7 @@ static char * _asm_open_dialog(AsmBackend * backend, GtkWidget * window,
 	char * f = NULL;
 	char * filename = NULL;
 
-	dialog = gtk_file_chooser_dialog_new("Open file...",
+	dialog = gtk_file_chooser_dialog_new(_("Open file..."),
 			(window != NULL) ? GTK_WINDOW(window) : NULL,
 			GTK_FILE_CHOOSER_ACTION_OPEN,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
@@ -184,10 +186,10 @@ static char * _asm_open_dialog(AsmBackend * backend, GtkWidget * window,
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
 	awidget = gtk_combo_box_new_text();
-	gtk_combo_box_append_text(GTK_COMBO_BOX(awidget), "Auto-detect");
+	gtk_combo_box_append_text(GTK_COMBO_BOX(awidget), _("Auto-detect"));
 	_open_dialog_type(awidget, "arch", arch);
 	gtk_box_pack_end(GTK_BOX(hbox), awidget, FALSE, TRUE, 0);
-	widget = gtk_label_new("Architecture:");
+	widget = gtk_label_new(_("Architecture:"));
 	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* format */
@@ -197,42 +199,42 @@ static char * _asm_open_dialog(AsmBackend * backend, GtkWidget * window,
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
 	fwidget = gtk_combo_box_new_text();
-	gtk_combo_box_append_text(GTK_COMBO_BOX(fwidget), "Auto-detect");
+	gtk_combo_box_append_text(GTK_COMBO_BOX(fwidget), _("Auto-detect"));
 	_open_dialog_type(fwidget, "format", format);
 	gtk_box_pack_end(GTK_BOX(hbox), fwidget, FALSE, TRUE, 0);
-	widget = gtk_label_new("File format:");
+	widget = gtk_label_new(_("File format:"));
 	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
 	/* core files */
 	filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, "Core files");
+	gtk_file_filter_set_name(filter, _("Core files"));
 	gtk_file_filter_add_mime_type(filter, "application/x-core");
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	/* executable files */
 	filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, "Executable files");
+	gtk_file_filter_set_name(filter, _("Executable files"));
 	gtk_file_filter_add_mime_type(filter, "application/x-executable");
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(dialog), filter);
 	/* java classes */
 	filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, "Java classes");
+	gtk_file_filter_set_name(filter, _("Java classes"));
 	gtk_file_filter_add_mime_type(filter, "application/x-java");
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	/* objects */
 	filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, "Objects");
+	gtk_file_filter_set_name(filter, _("Objects"));
 	gtk_file_filter_add_mime_type(filter, "application/x-object");
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	/* shared objects */
 	filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, "Shared objects");
+	gtk_file_filter_set_name(filter, _("Shared objects"));
 	gtk_file_filter_add_mime_type(filter, "application/x-sharedlib");
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	/* all files */
 	filter = gtk_file_filter_new();
-	gtk_file_filter_set_name(filter, "All files");
+	gtk_file_filter_set_name(filter, _("All files"));
 	gtk_file_filter_add_pattern(filter, "*");
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)

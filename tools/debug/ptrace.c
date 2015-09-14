@@ -37,8 +37,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <libintl.h>
 #include <glib.h>
 #include "../debug.h"
+#define _(string) gettext(string)
 
 
 /* ptrace */
@@ -164,7 +166,7 @@ static int _ptrace_start(PtraceDebug * debug, va_list argp)
 		error_set_code(-errno, "%s", error->message);
 		g_error_free(error);
 		return -debug->helper->error(debug->helper->debugger, 1,
-				"%s", "Could not start execution");
+				"%s", _("Could not start execution"));
 	}
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s() %d\n", __func__, debug->pid);
