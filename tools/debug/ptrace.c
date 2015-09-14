@@ -156,7 +156,7 @@ static int _ptrace_start(PtraceDebug * debug, va_list argp)
 
 	if((argv[0] = va_arg(argp, char *)) == NULL)
 		return -debug->helper->error(debug->helper->debugger, 1,
-				"%s", "Invalid argument");
+				"%s", strerror(EINVAL));
 	argv[1] = argv[0];
 	if(g_spawn_async(NULL, argv, NULL, flags, _start_on_child_setup,
 				debug, &debug->pid, &error) == FALSE)
