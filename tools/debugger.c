@@ -314,7 +314,7 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 	accel = gtk_accel_group_new();
 	debugger->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_add_accel_group(GTK_WINDOW(debugger->window), accel);
-	gtk_window_set_default_size(GTK_WINDOW(debugger->window), 640, 480);
+	gtk_window_set_default_size(GTK_WINDOW(debugger->window), 800, 600);
 	gtk_window_set_title(GTK_WINDOW(debugger->window), _("Debugger"));
 	g_signal_connect_swapped(debugger->window, "delete-event", G_CALLBACK(
 				_debugger_on_closex), debugger);
@@ -404,7 +404,7 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 	gtk_container_add(GTK_CONTAINER(window), debugger->reg_view);
 	gtk_box_pack_start(GTK_BOX(widget), window, TRUE, TRUE, 0);
 	gtk_paned_add2(GTK_PANED(paned), widget);
-	gtk_paned_set_position(GTK_PANED(paned), 380);
+	gtk_paned_set_position(GTK_PANED(paned), 600);
 	gtk_box_pack_start(GTK_BOX(vbox), paned, TRUE, TRUE, 0);
 	/* statusbar */
 	debugger->statusbar = gtk_statusbar_new();
