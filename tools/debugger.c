@@ -62,6 +62,13 @@ typedef enum _RegisterValue
 #define RV_LAST RV_SIZE
 #define RV_COUNT (RV_LAST + 1)
 
+typedef enum _StackValue
+{
+	SV_ADDRESS = 0, SV_ADDRESS_DISPLAY, SV_VALUE, SV_VALUE_DISPLAY
+} StackValue;
+#define SV_LAST SV_VALUE_DISPLAY
+#define SV_COUNT (SV_LAST + 1)
+
 struct _Debugger
 {
 	DebuggerPrefs prefs;
@@ -98,9 +105,16 @@ struct _Debugger
 	GtkWidget * dhx_view;
 	GtkTextBuffer * dhx_tbuf;
 	GtkTextIter dhx_iter;
+	/* combo */
+	GtkWidget * combo;
 	/* registers */
-	GtkListStore * reg_store;
 	GtkWidget * reg_view;
+	GtkListStore * reg_store;
+	GtkWidget * reg_tree;
+	/* stack */
+	GtkWidget * stk_view;
+	GtkListStore * stk_store;
+	GtkWidget * stk_tree;
 	/* statusbar */
 	GtkWidget * statusbar;
 };
@@ -142,6 +156,7 @@ static void _debugger_on_run(gpointer data);
 static void _debugger_on_step(gpointer data);
 static void _debugger_on_stop(gpointer data);
 static void _debugger_on_view_call_graph(gpointer data);
+static void _debugger_on_view_changed(gpointer data);
 static void _debugger_on_view_disassembly(gpointer data);
 static void _debugger_on_view_hexdump(gpointer data);
 
@@ -256,7 +271,6 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 	GtkAccelGroup * accel;
 	GtkWidget * vbox;
 	GtkWidget * paned;
-	GtkWidget * combo;
 	GtkWidget * window;
 	GtkWidget * widget;
 	GtkTreeViewColumn * column;
@@ -369,40 +383,74 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 	gtk_notebook_append_page(GTK_NOTEBOOK(debugger->notebook), window,
 			gtk_label_new(_("Hexdump")));
 	gtk_paned_add1(GTK_PANED(paned), debugger->notebook);
-	/* registers */
+	/* combo */
 #if GTK_CHECK_VERSION(3, 0, 0)
 	widget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 #else
 	widget = gtk_vbox_new(FALSE, 0);
 #endif
-	combo = gtk_combo_box_new_text();
-	gtk_combo_box_append_text(GTK_COMBO_BOX(combo), _("Registers"));
-	gtk_combo_box_set_active(GTK_COMBO_BOX(combo), 0);
-	gtk_box_pack_start(GTK_BOX(widget), combo, FALSE, TRUE, 0);
-	window = gtk_scrolled_window_new(NULL, NULL);
-	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(window),
+	debugger->combo = gtk_combo_box_new_text();
+	gtk_combo_box_append_text(GTK_COMBO_BOX(debugger->combo),
+			_("Registers"));
+	gtk_combo_box_set_active(GTK_COMBO_BOX(debugger->combo), 0);
+	gtk_combo_box_append_text(GTK_COMBO_BOX(debugger->combo), _("Stack"));
+	g_signal_connect_swapped(debugger->combo, "changed", G_CALLBACK(
+				_debugger_on_view_changed), debugger);
+	gtk_box_pack_start(GTK_BOX(widget), debugger->combo, FALSE, TRUE, 0);
+	/* registers */
+	debugger->reg_view = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(debugger->reg_view),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	debugger->reg_store = gtk_list_store_new(RV_COUNT,
 			G_TYPE_STRING,	/* name */
 			G_TYPE_UINT64,	/* value */
 			G_TYPE_STRING,	/* value (string) */
 			G_TYPE_UINT);	/* size */
-	debugger->reg_view = gtk_tree_view_new_with_model(
+	debugger->reg_tree = gtk_tree_view_new_with_model(
 			GTK_TREE_MODEL(debugger->reg_store));
 	/* registers: name */
 	renderer = gtk_cell_renderer_text_new();
 	g_object_set(renderer, "family", "Monospace", NULL);
 	column = gtk_tree_view_column_new_with_attributes(_("Name"),
 			renderer, "text", RV_NAME, NULL);
-	gtk_tree_view_append_column(GTK_TREE_VIEW(debugger->reg_view), column);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(debugger->reg_tree), column);
 	/* registers: value */
 	renderer = gtk_cell_renderer_text_new();
 	g_object_set(renderer, "family", "Monospace", NULL);
 	column = gtk_tree_view_column_new_with_attributes(_("Value"), renderer,
 			"text", RV_VALUE_DISPLAY, NULL);
-	gtk_tree_view_append_column(GTK_TREE_VIEW(debugger->reg_view), column);
-	gtk_container_add(GTK_CONTAINER(window), debugger->reg_view);
-	gtk_box_pack_start(GTK_BOX(widget), window, TRUE, TRUE, 0);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(debugger->reg_tree), column);
+	gtk_container_add(GTK_CONTAINER(debugger->reg_view),
+			debugger->reg_tree);
+	gtk_box_pack_start(GTK_BOX(widget), debugger->reg_view, TRUE, TRUE, 0);
+	/* stack */
+	debugger->stk_view = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(debugger->stk_view),
+			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	debugger->stk_store = gtk_list_store_new(SV_COUNT,
+			G_TYPE_UINT64,	/* address */
+			G_TYPE_STRING,	/* address (string) */
+			G_TYPE_UINT64,	/* value */
+			G_TYPE_STRING);	/* value (string) */
+	debugger->stk_tree = gtk_tree_view_new_with_model(
+			GTK_TREE_MODEL(debugger->stk_store));
+	/* stack: address */
+	renderer = gtk_cell_renderer_text_new();
+	g_object_set(renderer, "family", "Monospace", NULL);
+	column = gtk_tree_view_column_new_with_attributes(_("Address"),
+			renderer, "text", SV_ADDRESS_DISPLAY, NULL);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(debugger->stk_tree), column);
+	/* stack: value */
+	renderer = gtk_cell_renderer_text_new();
+	g_object_set(renderer, "family", "Monospace", NULL);
+	column = gtk_tree_view_column_new_with_attributes(_("Value"), renderer,
+			"text", SV_VALUE_DISPLAY, NULL);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(debugger->stk_tree), column);
+	gtk_container_add(GTK_CONTAINER(debugger->stk_view),
+			debugger->stk_tree);
+	gtk_widget_show_all(debugger->stk_tree);
+	gtk_widget_set_no_show_all(debugger->stk_view, TRUE);
+	gtk_box_pack_start(GTK_BOX(widget), debugger->stk_view, TRUE, TRUE, 0);
 	gtk_paned_add2(GTK_PANED(paned), widget);
 	gtk_paned_set_position(GTK_PANED(paned), 600);
 	gtk_box_pack_start(GTK_BOX(vbox), paned, TRUE, TRUE, 0);
@@ -458,8 +506,6 @@ int debugger_is_running(Debugger * debugger)
 /* debugger_close */
 int debugger_close(Debugger * debugger)
 {
-	GtkTreeModel * model;
-
 	if(debugger_is_opened(debugger) == FALSE)
 		return 0;
 	if(debugger->source != 0)
@@ -471,8 +517,8 @@ int debugger_close(Debugger * debugger)
 	gtk_text_buffer_set_text(debugger->das_tbuf, "", 0);
 	gtk_text_buffer_set_text(debugger->dhx_tbuf, "", 0);
 	gtk_text_buffer_get_start_iter(debugger->dhx_tbuf, &debugger->dhx_iter);
-	model = gtk_tree_view_get_model(GTK_TREE_VIEW(debugger->reg_view));
-	gtk_list_store_clear(GTK_LIST_STORE(model));
+	gtk_list_store_clear(debugger->reg_store);
+	gtk_list_store_clear(debugger->stk_store);
 	/* FIXME really implement */
 	string_delete(debugger->filename);
 	debugger->filename = NULL;
@@ -920,7 +966,7 @@ static void _debugger_helper_backend_set_registers(Debugger * debugger,
 	size_t i;
 	GtkTreeIter iter;
 
-	model = gtk_tree_view_get_model(GTK_TREE_VIEW(debugger->reg_view));
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(debugger->reg_tree));
 	gtk_list_store_clear(GTK_LIST_STORE(model));
 	for(i = 0; i < registers_cnt; i++)
 	{
@@ -1098,6 +1144,29 @@ static void _debugger_on_view_call_graph(gpointer data)
 
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(debugger->notebook),
 			NP_CALL_GRAPH);
+}
+
+
+/* debugger_on_view_changed */
+static void _debugger_on_view_changed(gpointer data)
+{
+	Debugger * debugger = data;
+
+	switch(gtk_combo_box_get_active(GTK_COMBO_BOX(debugger->combo)))
+	{
+		case 0:
+			gtk_widget_show(debugger->reg_view);
+			gtk_widget_hide(debugger->stk_view);
+			break;
+		case 1:
+			gtk_widget_hide(debugger->reg_view);
+			gtk_widget_show(debugger->stk_view);
+			break;
+		default:
+			gtk_widget_hide(debugger->reg_view);
+			gtk_widget_hide(debugger->stk_view);
+			break;
+	}
 }
 
 
