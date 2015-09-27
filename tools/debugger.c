@@ -29,6 +29,8 @@ static char const _debugger_license[] =
 
 #include <sys/types.h>
 #include <dirent.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -90,8 +92,9 @@ struct _Debugger
 	/* child */
 	String * filename;
 	guint source;
-	FILE * fp;
+	int fd;
 	size_t pos;
+	GIOChannel * channel;
 
 	/* widgets */
 	PangoFontDescription * bold;
@@ -132,8 +135,8 @@ static gboolean _debugger_confirm(Debugger * debugger, char const * message);
 static gboolean _debugger_confirm_close(Debugger * debugger);
 static gboolean _debugger_confirm_reset(Debugger * debugger);
 
-static void _debugger_hexdump_append(Debugger * debugger, size_t pos,
-		char const * buf, size_t size);
+static void _debugger_hexdump_append(Debugger * debugger, char const * buf,
+		size_t size);
 
 /* helpers */
 static int _debugger_helper_error(Debugger * debugger, int code,
@@ -310,7 +313,8 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 	/* child */
 	debugger->filename = NULL;
 	debugger->source = 0;
-	debugger->fp = NULL;
+	debugger->fd = -1;
+	debugger->channel = NULL;
 	/* widgets */
 	debugger->window = NULL;
 	/* check for errors */
@@ -532,9 +536,9 @@ int debugger_close(Debugger * debugger)
 	if(debugger->source != 0)
 		g_source_remove(debugger->source);
 	debugger->source = 0;
-	if(debugger->fp != NULL)
-		fclose(debugger->fp);
-	debugger->fp = NULL;
+	if(debugger->fd >= 0)
+		close(debugger->fd);
+	debugger->fd = -1;
 	gtk_text_buffer_set_text(debugger->das_tbuf, "", 0);
 	gtk_text_buffer_set_text(debugger->dhx_tbuf, "", 0);
 	gtk_text_buffer_get_start_iter(debugger->dhx_tbuf, &debugger->dhx_iter);
@@ -898,8 +902,8 @@ static gboolean _debugger_confirm_reset(Debugger * debugger)
 
 
 /* debugger_hexdump_append */
-static void _debugger_hexdump_append(Debugger * debugger, size_t pos,
-		char const * buf, size_t size)
+static void _debugger_hexdump_append(Debugger * debugger, char const * buf,
+		size_t size)
 {
 	size_t i;
 	unsigned char c[16];
@@ -911,17 +915,23 @@ static void _debugger_hexdump_append(Debugger * debugger, size_t pos,
 			" %02x %02x %02x %02x %02x %02x %02x %02x";
 	int s;
 
-	/* hexadecimal values */
+	/* read until the end of the line */
+	/* FIXME implement */
+	/* read complete lines */
 	for(i = 0; i < 16 && i < size; i++)
 		c[i] = (unsigned char)buf[i];
+	/* read until the end of the buffer */
+	/* FIXME wrong */
 	for(; i < 16 && i < size; i++)
 		c[i] = 0;
-	/* FIXME wrong if i < 16 */
-	s = snprintf(buf2, sizeof(buf2), format, (pos > 0) ? "\n" : "", pos,
+	/* FIXME wrong again (if i < 16) */
+	s = snprintf(buf2, sizeof(buf2), format,
+			(debugger->pos > 0) ? "\n" : "", debugger->pos,
 			c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7],
 			c[8], c[9], c[10], c[11], c[12], c[13], c[14], c[15]);
 	gtk_text_buffer_insert(debugger->dhx_tbuf, &debugger->dhx_iter, buf2,
 			s);
+	debugger->pos += size;
 }
 
 
@@ -1067,40 +1077,87 @@ static void _debugger_on_continue(gpointer data)
 
 
 /* debugger_on_idle */
+static gboolean _idle_hexdump(gpointer data);
+static gboolean _idle_hexdump_can_read(GIOChannel * channel,
+		GIOCondition condition, gpointer data);
+static gboolean _idle_hexdump_idle(gpointer data);
+
 static gboolean _debugger_on_idle(gpointer data)
 {
 	Debugger * debugger = data;
-	char buf[16];
-	size_t size;
 
-	if(debugger->fp == NULL)
+	debugger->source = g_idle_add(_idle_hexdump, debugger);
+	return FALSE;
+}
+
+static gboolean _idle_hexdump(gpointer data)
+{
+	Debugger * debugger = data;
+
+	debugger->source = 0;
+	if(debugger->fd < 0)
 	{
-		debugger->fp = fopen(debugger->filename, "r");
+		debugger->fd = open(debugger->filename, O_RDONLY);
 		debugger->pos = 0;
 	}
-	if(debugger->fp != NULL)
+	if(debugger->fd < 0)
+		return FALSE;
+	debugger->channel = g_io_channel_unix_new(debugger->fd);
+	g_io_channel_set_encoding(debugger->channel, NULL, NULL);
+	debugger->source = g_io_add_watch(debugger->channel, G_IO_IN,
+			_idle_hexdump_can_read, debugger);
+	debugger->pos = 0;
+	return FALSE;
+}
+
+static gboolean _idle_hexdump_can_read(GIOChannel * channel,
+		GIOCondition condition, gpointer data)
+{
+	Debugger * debugger = data;
+	GIOStatus status;
+	char buf[BUFSIZ];
+	gsize size = sizeof(buf);
+	GError * error = NULL;
+
+	if(channel != debugger->channel || condition != G_IO_IN)
+		return FALSE;
+	switch((status = g_io_channel_read_chars(channel, buf, size, &size,
+					&error)))
 	{
-		if((size = fread(buf, sizeof(*buf), sizeof(buf), debugger->fp))
-				> 0)
-		{
-			_debugger_hexdump_append(debugger, debugger->pos, buf,
-					size);
-			debugger->pos += size;
-		}
-		else
-		{
-			if(ferror(debugger->fp))
-				debugger_error(debugger, strerror(errno), 1);
-			fclose(debugger->fp);
-			debugger->fp = NULL;
-		}
+		case G_IO_STATUS_AGAIN:
+			/* try again once idle */
+			debugger->source = g_idle_add(_idle_hexdump_idle,
+					debugger);
+			return FALSE;
+		case G_IO_STATUS_NORMAL:
+		case G_IO_STATUS_EOF:
+			break;
+		case G_IO_STATUS_ERROR:
+			/* FIXME report the error */
+			g_error_free(error);
+			/* fallback */
+		default:
+			debugger->source = 0;
+			debugger_close(debugger);
+			return FALSE;
 	}
-	if(debugger->fp == NULL)
+	_debugger_hexdump_append(debugger, buf, size);
+	if(status == G_IO_STATUS_EOF)
 	{
 		debugger->source = 0;
 		return FALSE;
 	}
-	return TRUE;
+	debugger->source = g_idle_add(_idle_hexdump_idle, debugger);
+	return FALSE;
+}
+
+static gboolean _idle_hexdump_idle(gpointer data)
+{
+	Debugger * debugger = data;
+
+	debugger->source = g_io_add_watch(debugger->channel, G_IO_IN,
+			_idle_hexdump_can_read, debugger);
+	return FALSE;
 }
 
 
