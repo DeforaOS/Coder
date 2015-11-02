@@ -616,7 +616,11 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
 	label = gtk_label_new(_("Engine:"));
+#if GTK_CHECK_VERSION(3, 0, 0)
+	g_object_set(label, "halign", 0.0, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+#endif
 	gtk_size_group_add_widget(group, label);
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
 #if GTK_CHECK_VERSION(2, 24, 0)
@@ -634,7 +638,11 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
 	label = gtk_label_new(_("Connection file:"));
+#if GTK_CHECK_VERSION(3, 0, 0)
+	g_object_set(label, "halign", 0.0, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+#endif
 	gtk_size_group_add_widget(group, label);
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
 	filesel = gtk_file_chooser_button_new(_("Open connection file..."),
@@ -656,7 +664,11 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
 	label = gtk_label_new(_("Section:"));
+#if GTK_CHECK_VERSION(3, 0, 0)
+	g_object_set(label, "halign", 0.0, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+#endif
 	gtk_size_group_add_widget(group, label);
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
 #if GTK_CHECK_VERSION(2, 24, 0)
@@ -1134,14 +1146,22 @@ static int _sequel_open_tab(Sequel * sequel)
 	gtk_button_set_relief(GTK_BUTTON(widget), GTK_RELIEF_NONE);
 	gtk_box_pack_start(GTK_BOX(p->label), widget, FALSE, TRUE, 0);
 	gtk_widget_show_all(p->label);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	paned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
+#else
 	paned = gtk_vpaned_new();
+#endif
 	p->page = paned;
 	/* text area */
 	widget = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	p->text = gtk_text_view_new();
+#if GTK_CHECK_VERSION(3, 0, 0)
+	gtk_widget_override_font(p->text, sequel->font);
+#else
 	gtk_widget_modify_font(p->text, sequel->font);
+#endif
 	gtk_container_add(GTK_CONTAINER(widget), p->text);
 	gtk_paned_add1(GTK_PANED(paned), widget);
 	/* results area */
