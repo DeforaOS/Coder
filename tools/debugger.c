@@ -359,7 +359,11 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(debugger->das_view),
 			FALSE);
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(debugger->das_view), FALSE);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	gtk_widget_override_font(debugger->das_view, debugger->monospace);
+#else
 	gtk_widget_modify_font(debugger->das_view, debugger->monospace);
+#endif
 	debugger->das_tbuf = gtk_text_view_get_buffer(
 			GTK_TEXT_VIEW(debugger->das_view));
 	gtk_container_add(GTK_CONTAINER(window), debugger->das_view);
@@ -377,7 +381,11 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(debugger->dhx_view),
 			FALSE);
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(debugger->dhx_view), FALSE);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	gtk_widget_override_font(debugger->dhx_view, debugger->monospace);
+#else
 	gtk_widget_modify_font(debugger->dhx_view, debugger->monospace);
+#endif
 	debugger->dhx_tbuf = gtk_text_view_get_buffer(
 			GTK_TEXT_VIEW(debugger->dhx_view));
 	gtk_text_buffer_get_start_iter(debugger->dhx_tbuf, &debugger->dhx_iter);
@@ -729,12 +737,21 @@ static GtkWidget * _properties_label(Debugger * debugger, GtkSizeGroup * group,
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
 	widget = gtk_label_new(label);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	g_object_set(widget, "halign", 0.0, NULL);
+	gtk_widget_override_font(widget, debugger->bold);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
 	gtk_widget_modify_font(widget, debugger->bold);
+#endif
 	gtk_size_group_add_widget(group, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	widget = gtk_label_new((value != NULL) ? value : "");
+#if GTK_CHECK_VERSION(3, 0, 0)
+	g_object_set(widget, "halign", 0.0, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+#endif
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	return hbox;
 }
