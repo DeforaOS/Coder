@@ -402,7 +402,8 @@ int gdeasm_load_comments_dialog(GDeasm * gdeasm)
 	GtkFileFilter * filter;
 	char * filename = NULL;
 
-	dialog = gtk_file_chooser_dialog_new(_("Load comments..."), NULL,
+	dialog = gtk_file_chooser_dialog_new(_("Load comments..."),
+			GTK_WINDOW(gdeasm->window),
 			GTK_FILE_CHOOSER_ACTION_OPEN,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
@@ -702,7 +703,8 @@ int gdeasm_open_dialog(GDeasm * gdeasm)
 	char * format = NULL;
 	char * filename = NULL;
 
-	dialog = gtk_file_chooser_dialog_new(_("Open file..."), NULL,
+	dialog = gtk_file_chooser_dialog_new(_("Open file..."),
+			GTK_WINDOW(gdeasm->window),
 			GTK_FILE_CHOOSER_ACTION_OPEN,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
@@ -923,7 +925,8 @@ int gdeasm_save_comments_dialog(GDeasm * gdeasm)
 	GtkFileFilter * filter;
 	char * filename = NULL;
 
-	dialog = gtk_file_chooser_dialog_new(_("Save comments as..."), NULL,
+	dialog = gtk_file_chooser_dialog_new(_("Save comments as..."),
+			GTK_WINDOW(gdeasm->window),
 			GTK_FILE_CHOOSER_ACTION_SAVE,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
