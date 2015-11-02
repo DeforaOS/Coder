@@ -717,8 +717,14 @@ int gdeasm_open_dialog(GDeasm * gdeasm)
 #else
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
+#if GTK_CHECK_VERSION(2, 24, 0)
+	awidget = gtk_combo_box_text_new();
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(awidget),
+			_("Auto-detect"));
+#else
 	awidget = gtk_combo_box_new_text();
 	gtk_combo_box_append_text(GTK_COMBO_BOX(awidget), _("Auto-detect"));
+#endif
 	_open_dialog_type(awidget, "arch");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(awidget), 0);
 	gtk_box_pack_end(GTK_BOX(hbox), awidget, FALSE, TRUE, 0);
@@ -731,8 +737,14 @@ int gdeasm_open_dialog(GDeasm * gdeasm)
 #else
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
+#if GTK_CHECK_VERSION(2, 24, 0)
+	fwidget = gtk_combo_box_text_new();
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(fwidget),
+			_("Auto-detect"));
+#else
 	fwidget = gtk_combo_box_new_text();
 	gtk_combo_box_append_text(GTK_COMBO_BOX(fwidget), _("Auto-detect"));
+#endif
 	_open_dialog_type(fwidget, "format");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(fwidget), 0);
 	gtk_box_pack_end(GTK_BOX(hbox), fwidget, FALSE, TRUE, 0);
@@ -773,6 +785,18 @@ int gdeasm_open_dialog(GDeasm * gdeasm)
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
 	{
+#if GTK_CHECK_VERSION(2, 24, 0)
+		if(gtk_combo_box_get_active(GTK_COMBO_BOX(awidget)) == 0)
+			arch = NULL;
+		else
+			arch = gtk_combo_box_text_get_active_text(
+					GTK_COMBO_BOX_TEXT(awidget));
+		if(gtk_combo_box_get_active(GTK_COMBO_BOX(fwidget)) == 0)
+			format = NULL;
+		else
+			format = gtk_combo_box_text_get_active_text(
+					GTK_COMBO_BOX_TEXT(fwidget));
+#else
 		if(gtk_combo_box_get_active(GTK_COMBO_BOX(awidget)) == 0)
 			arch = NULL;
 		else
@@ -783,6 +807,7 @@ int gdeasm_open_dialog(GDeasm * gdeasm)
 		else
 			format = gtk_combo_box_get_active_text(GTK_COMBO_BOX(
 						fwidget));
+#endif
 		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(
 					dialog));
 	}
@@ -826,7 +851,12 @@ static void _open_dialog_type(GtkWidget * combobox, char const * type)
 		if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
 			continue;
 		de->d_name[len - sizeof(ext) + 1] = '\0';
+#if GTK_CHECK_VERSION(2, 24, 0)
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(combobox),
+				de->d_name);
+#else
 		gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), de->d_name);
+#endif
 	}
 	closedir(dir);
 }
