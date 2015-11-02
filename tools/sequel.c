@@ -619,7 +619,11 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 	gtk_size_group_add_widget(group, label);
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
+#if GTK_CHECK_VERSION(2, 24, 0)
+	entry1 = gtk_combo_box_text_new();
+#else
 	entry1 = gtk_combo_box_new_text();
+#endif
 	_connect_dialog_engines(entry1);
 	gtk_box_pack_start(GTK_BOX(hbox), entry1, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
@@ -655,7 +659,11 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 	gtk_size_group_add_widget(group, label);
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
+#if GTK_CHECK_VERSION(2, 24, 0)
+	entry2 = gtk_combo_box_text_new();
+#else
 	entry2 = gtk_combo_box_new_text();
+#endif
 	gtk_box_pack_start(GTK_BOX(hbox), entry2, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
@@ -667,9 +675,18 @@ static int _sequel_connect_dialog(Sequel * sequel)
 		return 0;
 	}
 	gtk_widget_hide(dialog);
+#if GTK_CHECK_VERSION(2, 24, 0)
+	engine = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(entry1));
+#else
 	engine = gtk_combo_box_get_active_text(GTK_COMBO_BOX(entry1));
+#endif
 	filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(filesel));
+#if GTK_CHECK_VERSION(2, 24, 0)
+	section = gtk_combo_box_text_get_active_text(
+			GTK_COMBO_BOX_TEXT(entry2));
+#else
 	section = gtk_combo_box_get_active_text(GTK_COMBO_BOX(entry2));
+#endif
 	if(filename == NULL)
 		/* FIXME report error */
 		ret = -1;
@@ -704,7 +721,12 @@ static void _connect_dialog_engines(GtkWidget * combobox)
 		if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
 			continue;
 		de->d_name[len - sizeof(ext) + 1] = '\0';
+#if GTK_CHECK_VERSION(2, 24, 0)
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(combobox),
+				de->d_name);
+#else
 		gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), de->d_name);
+#endif
 		gtk_combo_box_set_active(GTK_COMBO_BOX(combobox), 0);
 	}
 	closedir(dir);
@@ -737,7 +759,11 @@ static void _connect_dialog_config_foreach(char const * section, void * data)
 {
 	GtkWidget * entry2 = data;
 
+#if GTK_CHECK_VERSION(2, 24, 0)
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(entry2), section);
+#else
 	gtk_combo_box_append_text(GTK_COMBO_BOX(entry2), section);
+#endif
 	gtk_combo_box_set_active(GTK_COMBO_BOX(entry2), 0);
 }
 
