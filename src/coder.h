@@ -49,6 +49,7 @@ int coder_project_save_as(Coder * coder, char const * filename);
 int coder_project_save_dialog(Coder * coder);
 
 /* interface */
+void coder_show_files(Coder * coder, gboolean show);
 void coder_show_preferences(Coder * coder, gboolean show);
 
 #endif /* !CODER_CODER_H */

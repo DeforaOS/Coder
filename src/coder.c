@@ -195,30 +195,11 @@ Coder * coder_new(void)
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(coder->tb_window), vbox);
 	/* files */
-	coder->fi_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_default_size(GTK_WINDOW(coder->fi_window), 150, 200);
-	gtk_window_set_title(GTK_WINDOW(coder->fi_window), _("Files"));
-#if GTK_CHECK_VERSION(3, 0, 0)
-	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-#else
-	hbox = gtk_hbox_new(FALSE, 0);
-	vbox = gtk_vbox_new(FALSE, 0);
-#endif
-	gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, 2);
-#if GTK_CHECK_VERSION(2, 24, 0)
-	coder->fi_combo = gtk_combo_box_text_new();
-#else
-	coder->fi_combo = gtk_combo_box_new_text();
-#endif
-	gtk_box_pack_start(GTK_BOX(vbox), coder->fi_combo, FALSE, TRUE, 2);
-	coder->fi_view = gtk_tree_view_new();
-	gtk_box_pack_start(GTK_BOX(vbox), coder->fi_view, TRUE, TRUE, 2);
-	gtk_container_add(GTK_CONTAINER(coder->fi_window), hbox);
+	coder->fi_window = NULL;
+	coder_show_files(coder, TRUE);
 	/* about */
 	coder->ab_window = NULL;
 	gtk_widget_show_all(coder->tb_window);
-	gtk_widget_show_all(coder->fi_window);
 	return coder;
 }
 
@@ -499,9 +480,66 @@ int coder_project_save_dialog(Coder * coder)
 }
 
 
+/* coder_show_files */
+static void _show_files_window(Coder * coder);
+/* callbacks */
+static gboolean _files_on_closex(gpointer data);
+
+void coder_show_files(Coder * coder, gboolean show)
+{
+	if(coder->fi_window == NULL)
+		_show_files_window(coder);
+	if(show)
+		gtk_window_present(GTK_WINDOW(coder->fi_window));
+	else
+		gtk_widget_hide(coder->fi_window);
+}
+
+static void _show_files_window(Coder * coder)
+{
+	GtkWidget * vbox;
+	GtkWidget * hbox;
+
+	coder->fi_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_default_size(GTK_WINDOW(coder->fi_window), 150, 200);
+	gtk_window_set_title(GTK_WINDOW(coder->fi_window), _("Files"));
+	g_signal_connect_swapped(coder->fi_window, "delete-event", G_CALLBACK(
+				_files_on_closex), coder);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+#else
+	hbox = gtk_hbox_new(FALSE, 0);
+	vbox = gtk_vbox_new(FALSE, 0);
+#endif
+	/* FIXME use gtk_container_set_border_width() instead */
+	gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, 2);
+#if GTK_CHECK_VERSION(2, 24, 0)
+	coder->fi_combo = gtk_combo_box_text_new();
+#else
+	coder->fi_combo = gtk_combo_box_new_text();
+#endif
+	gtk_box_pack_start(GTK_BOX(vbox), coder->fi_combo, FALSE, TRUE, 2);
+	coder->fi_view = gtk_tree_view_new();
+	gtk_box_pack_start(GTK_BOX(vbox), coder->fi_view, TRUE, TRUE, 2);
+	gtk_container_add(GTK_CONTAINER(coder->fi_window), hbox);
+	gtk_widget_show_all(hbox);
+}
+
+/* callbacks */
+static gboolean _files_on_closex(gpointer data)
+{
+	Coder * coder = data;
+
+	gtk_widget_hide(coder->fi_window);
+	return TRUE;
+}
+
+
 /* coder_show_preferences */
 static void _show_preferences_window(Coder * coder);
 static void _preferences_set(Coder * coder);
+/* callbacks */
 static gboolean _on_preferences_closex(gpointer data);
 static void _on_preferences_apply(gpointer data);
 static void _on_preferences_cancel(gpointer data);
@@ -621,6 +659,7 @@ static void _on_preferences_ok(gpointer data)
 	/* FIXME actually save preferences */
 }
 
+/* callbacks */
 static gboolean _on_preferences_closex(gpointer data)
 {
 	Coder * coder = data;
