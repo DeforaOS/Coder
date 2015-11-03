@@ -65,6 +65,7 @@ static void _console_on_clear(gpointer data);
 static void _console_on_close(gpointer data);
 static gboolean _console_on_closex(gpointer data);
 static void _console_on_execute(gpointer data);
+static void _execute_php(Console * console, char * text);
 
 static int _console(void)
 {
@@ -200,23 +201,32 @@ static gboolean _console_on_closex(gpointer data)
 
 static void _console_on_execute(gpointer data)
 {
-	const unsigned int flags = G_SPAWN_FILE_AND_ARGV_ZERO;
 	Console * console = data;
 	GtkTextBuffer * tbuf;
 	GtkTextIter start;
 	GtkTextIter end;
 	gchar * text;
-	char * argv[] = { BINDIR "/" PROGNAME_PHP, PROGNAME_PHP, "-r", NULL,
-		NULL };
-	gchar * output = NULL;
-	int status;
-	GError * error = NULL;
 
 	/* obtain the code */
 	tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(console->code));
 	gtk_text_buffer_get_start_iter(tbuf, &start);
 	gtk_text_buffer_get_end_iter(tbuf, &end);
 	text = gtk_text_buffer_get_text(tbuf, &start, &end, FALSE);
+	_execute_php(console, text);
+	g_free(text);
+}
+
+static void _execute_php(Console * console, char * text)
+{
+	const unsigned int flags = G_SPAWN_FILE_AND_ARGV_ZERO;
+	char * argv[] = { BINDIR "/" PROGNAME_PHP, PROGNAME_PHP, "-r", NULL,
+		NULL };
+	gchar * output = NULL;
+	int status;
+	GError * error = NULL;
+	GtkTextBuffer * tbuf;
+	GtkTextIter end;
+
 	argv[3] = text;
 	/* FIXME implement asynchronously */
 	if(g_spawn_sync(NULL, argv, NULL, flags, NULL, NULL, &output, NULL,
@@ -225,17 +235,13 @@ static void _console_on_execute(gpointer data)
 		fprintf(stderr, "%s: %s (status: %d)\n", PROGNAME,
 				error->message, status);
 		g_error_free(error);
+		return;
 	}
-	else
-	{
-		/* append the output */
-		tbuf = gtk_text_view_get_buffer(
-				GTK_TEXT_VIEW(console->console));
-		gtk_text_buffer_get_end_iter(tbuf, &end);
-		gtk_text_buffer_insert(tbuf, &end, output, -1);
-	}
+	/* append the output */
+	tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(console->console));
+	gtk_text_buffer_get_end_iter(tbuf, &end);
+	gtk_text_buffer_insert(tbuf, &end, output, -1);
 	g_free(output);
-	g_free(text);
 }
 
 
