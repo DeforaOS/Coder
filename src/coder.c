@@ -111,6 +111,8 @@ static const DesktopMenu _coder_menu_project[] =
 
 static const DesktopMenu _coder_menu_tools[] =
 {
+	{ N_("_Debugger"), G_CALLBACK(on_tools_debugger), NULL, 0, 0 },
+	{ N_("_PHP console"), G_CALLBACK(on_tools_php_console), NULL, 0, 0 },
 	{ N_("_Simulator"), G_CALLBACK(on_tools_simulator), "stock_cell-phone",
 		0, 0 },
 	{ N_("S_QL console"), G_CALLBACK(on_tools_sql_console),

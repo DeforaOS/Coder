@@ -151,6 +151,40 @@ void on_project_save_as(gpointer data)
 }
 
 
+/* on_tools_debugger */
+void on_tools_debugger(gpointer data)
+{
+	Coder * coder = data;
+	char * argv[] = { BINDIR "/debugger", "debugger", NULL };
+	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO;
+	GError * error = NULL;
+
+	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL, NULL, &error)
+			!= TRUE)
+	{
+		coder_error(coder, error->message, 1);
+		g_error_free(error);
+	}
+}
+
+
+/* on_tools_php_console */
+void on_tools_php_console(gpointer data)
+{
+	Coder * coder = data;
+	char * argv[] = { BINDIR "/console", "console", NULL };
+	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO;
+	GError * error = NULL;
+
+	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL, NULL, &error)
+			!= TRUE)
+	{
+		coder_error(coder, error->message, 1);
+		g_error_free(error);
+	}
+}
+
+
 /* on_tools_simulator */
 void on_tools_simulator(gpointer data)
 {

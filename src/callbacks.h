@@ -38,6 +38,8 @@ void on_project_save(gpointer data);
 void on_project_save_as(gpointer data);
 
 /* tools menu */
+void on_tools_debugger(gpointer data);
+void on_tools_php_console(gpointer data);
 void on_tools_simulator(gpointer data);
 void on_tools_sql_console(gpointer data);
 
