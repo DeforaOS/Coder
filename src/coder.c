@@ -109,6 +109,12 @@ static const DesktopMenu _coder_menu_project[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
+static const DesktopMenu _coder_menu_view[] =
+{
+	{ N_("_Files"), G_CALLBACK(on_view_files), NULL, 0, 0 },
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
 static const DesktopMenu _coder_menu_tools[] =
 {
 	{ N_("_Debugger"), G_CALLBACK(on_tools_debugger), NULL, 0, 0 },
@@ -132,6 +138,7 @@ static const DesktopMenubar _coder_menubar[] =
 {
 	{ N_("_File"),		_coder_menu_file },
 	{ N_("_Project"),	_coder_menu_project },
+	{ N_("_View"),		_coder_menu_view },
 	{ N_("_Tools"),		_coder_menu_tools },
 	{ N_("_Help"),		_coder_menu_help },
 	{ NULL,			NULL }

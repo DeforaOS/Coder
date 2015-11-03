@@ -37,6 +37,9 @@ void on_project_properties(gpointer data);
 void on_project_save(gpointer data);
 void on_project_save_as(gpointer data);
 
+/* view menu */
+void on_view_files(gpointer data);
+
 /* tools menu */
 void on_tools_debugger(gpointer data);
 void on_tools_php_console(gpointer data);

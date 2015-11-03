@@ -217,3 +217,12 @@ void on_tools_sql_console(gpointer data)
 		g_error_free(error);
 	}
 }
+
+
+/* on_view_files */
+void on_view_files(gpointer data)
+{
+	Coder * coder = data;
+
+	coder_show_files(coder, TRUE);
+}
