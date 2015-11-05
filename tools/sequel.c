@@ -617,7 +617,7 @@ static int _sequel_connect_dialog(Sequel * sequel)
 #endif
 	label = gtk_label_new(_("Engine:"));
 #if GTK_CHECK_VERSION(3, 0, 0)
-	g_object_set(label, "halign", 0.0, NULL);
+	g_object_set(label, "halign", GTK_ALIGN_START, NULL);
 #else
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 #endif
@@ -639,7 +639,7 @@ static int _sequel_connect_dialog(Sequel * sequel)
 #endif
 	label = gtk_label_new(_("Connection file:"));
 #if GTK_CHECK_VERSION(3, 0, 0)
-	g_object_set(label, "halign", 0.0, NULL);
+	g_object_set(label, "halign", GTK_ALIGN_START, NULL);
 #else
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 #endif
@@ -665,7 +665,7 @@ static int _sequel_connect_dialog(Sequel * sequel)
 #endif
 	label = gtk_label_new(_("Section:"));
 #if GTK_CHECK_VERSION(3, 0, 0)
-	g_object_set(label, "halign", 0.0, NULL);
+	g_object_set(label, "halign", GTK_ALIGN_START, NULL);
 #else
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 #endif
