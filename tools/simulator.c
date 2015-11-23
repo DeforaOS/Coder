@@ -277,9 +277,13 @@ static int _new_chooser(Simulator * simulator)
 #endif
 	gtk_box_set_spacing(GTK_BOX(vbox), 4);
 	/* profile */
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Profile: "));
+#if GTK_CHECK_VERSION(3, 0, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+#endif
 	gtk_size_group_add_widget(lgroup, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	store = gtk_tree_store_new(3,
@@ -309,9 +313,13 @@ static int _new_chooser(Simulator * simulator)
 	gtk_box_pack_end(GTK_BOX(hbox), combobox, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* dpi */
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Resolution: "));
+#if GTK_CHECK_VERSION(3, 0, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+#endif
 	gtk_size_group_add_widget(lgroup, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	data.dpi = gtk_spin_button_new_with_range(48.0, 300.0, 1.0);
@@ -320,9 +328,13 @@ static int _new_chooser(Simulator * simulator)
 	gtk_box_pack_end(GTK_BOX(hbox), data.dpi, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* width */
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Width: "));
+#if GTK_CHECK_VERSION(3, 0, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+#endif
 	gtk_size_group_add_widget(lgroup, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	data.width = gtk_spin_button_new_with_range(120, 1600, 1.0);
@@ -332,9 +344,13 @@ static int _new_chooser(Simulator * simulator)
 	gtk_box_pack_end(GTK_BOX(hbox), data.width, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* height */
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Height: "));
+#if GTK_CHECK_VERSION(3, 0, 0)
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
+#else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+#endif
 	gtk_size_group_add_widget(lgroup, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	data.height = gtk_spin_button_new_with_range(120, 1600, 1.0);
@@ -656,11 +672,7 @@ static gboolean _new_on_idle(gpointer data)
 	gtk_window_set_resizable(GTK_WINDOW(simulator->window), FALSE);
 	g_signal_connect_swapped(simulator->window, "delete-event", G_CALLBACK(
 				_simulator_on_closex), simulator);
-#if GTK_CHECK_VERSION(3, 0, 0)
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-#else
-	vbox = gtk_vbox_new(FALSE, 0);
-#endif
 	/* menubar */
 	widget = desktop_menubar_create(_simulator_menubar, simulator, group);
 	g_object_unref(group);
@@ -1002,7 +1014,7 @@ static void _simulator_on_file_run(gpointer data)
 #else
 	vbox = GTK_DIALOG(dialog)->vbox;
 #endif
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);
 	/* label */
 	widget = gtk_label_new(_("Command:"));
