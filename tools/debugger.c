@@ -614,7 +614,7 @@ int debugger_open(Debugger * debugger, char const * arch, char const * format,
 	if(filename == NULL)
 		return debugger_open_dialog(debugger, arch, format);
 	if(debugger_close(debugger) != 0)
-		return -debugger_error(debugger, error_get(), 1);
+		return -debugger_error(debugger, error_get(NULL), 1);
 	if((debugger->filename = string_new(filename)) == NULL)
 		return -1;
 	if(debugger->bdefinition->open(debugger->backend, arch, format,
@@ -622,7 +622,7 @@ int debugger_open(Debugger * debugger, char const * arch, char const * format,
 	{
 		string_delete(debugger->filename);
 		debugger->filename = NULL;
-		return -debugger_error(debugger, error_get(), 1);
+		return -debugger_error(debugger, error_get(NULL), 1);
 	}
 	if((s = string_new_append(_("Debugger"), " - ", filename, NULL))
 			!= NULL)
@@ -650,7 +650,7 @@ int debugger_open_dialog(Debugger * debugger, char const * arch,
 	if(debugger_close(debugger) != 0)
 	{
 		free(filename);
-		return -debugger_error(debugger, error_get(), 1);
+		return -debugger_error(debugger, error_get(NULL), 1);
 	}
 	ret = debugger_open(debugger, arch, format, filename);
 	free(filename);

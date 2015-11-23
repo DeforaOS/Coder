@@ -256,7 +256,7 @@ static void _start_on_child_watch(GPid pid, gint status, gpointer data)
 		error_set_code(WEXITSTATUS(status), "%s", error->message);
 		g_error_free(error);
 		debug->helper->error(debug->helper->debugger,
-				WEXITSTATUS(status), "%s", error_get(),
+				WEXITSTATUS(status), "%s", error_get(NULL),
 	}
 	debug->source = 0;
 	_ptrace_exit(debug);
@@ -377,7 +377,7 @@ static int _ptrace_request(PtraceDebug * debug, int request, void * addr,
 		if(errno == ESRCH)
 			_ptrace_exit(debug);
 		return -debug->helper->error(debug->helper->debugger, 1,
-				"%s", error_get());
+				"%s", error_get(NULL));
 	}
 	debug->running = TRUE;
 	return 0;

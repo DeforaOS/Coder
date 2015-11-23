@@ -551,7 +551,7 @@ static int _sequel_connect(Sequel * sequel, char const * engine,
 		sequel->database = database_new(engine, config, section);
 	if(sequel->database == NULL)
 	{
-		sequel_error(sequel, error_get(), 1);
+		sequel_error(sequel, error_get(NULL), 1);
 		gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[4].widget),
 				FALSE);
 	}
@@ -816,7 +816,7 @@ static int _sequel_execute(Sequel * sequel)
 	gtk_widget_set_sensitive(GTK_WIDGET(_sequel_toolbar[8].widget),
 			(sequel->tabs[i].store != NULL) ? TRUE : FALSE);
 	if(res != 0)
-		return -sequel_error(sequel, error_get(), 1);
+		return -sequel_error(sequel, error_get(NULL), 1);
 	return 0;
 }
 

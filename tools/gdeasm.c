@@ -363,11 +363,11 @@ int gdeasm_load_comments(GDeasm * gdeasm, char const * filename)
 	fprintf(stderr, "DEBUG: %s(\"%s\")\n", __func__, filename);
 #endif
 	if((config = config_new()) == NULL)
-		return -_gdeasm_error(gdeasm, error_get(), 1);
+		return -_gdeasm_error(gdeasm, error_get(NULL), 1);
 	if(config_load(config, filename) != 0)
 	{
 		config_delete(config);
-		return -_gdeasm_error(gdeasm, error_get(), 1);
+		return -_gdeasm_error(gdeasm, error_get(NULL), 1);
 	}
 	for(valid = gtk_tree_model_get_iter_first(model, &parent); valid;
 			valid = gtk_tree_model_iter_next(model, &parent))
@@ -474,7 +474,7 @@ int gdeasm_open(GDeasm * gdeasm, char const * arch, char const * format,
 			return 0;
 	}
 	if((a = asm_new(arch, format)) == NULL)
-		return -_gdeasm_error(gdeasm, error_get(), 1);
+		return -_gdeasm_error(gdeasm, error_get(NULL), 1);
 	_gdeasm_set_status(gdeasm, "");
 	if((code = asm_open_deassemble(a, filename, TRUE)) != NULL)
 	{
@@ -491,7 +491,7 @@ int gdeasm_open(GDeasm * gdeasm, char const * arch, char const * format,
 	}
 	asm_delete(a);
 	if(ret != 0)
-		_gdeasm_error(gdeasm, error_get(), 1);
+		_gdeasm_error(gdeasm, error_get(NULL), 1);
 	return ret;
 }
 
@@ -881,7 +881,7 @@ int gdeasm_save_comments(GDeasm * gdeasm, char const * filename)
 	args.ret = 0;
 	args.gdeasm = gdeasm;
 	if((args.config = config_new()) == NULL)
-		return -_gdeasm_error(gdeasm, error_get(), 1);
+		return -_gdeasm_error(gdeasm, error_get(NULL), 1);
 	gtk_tree_model_foreach(GTK_TREE_MODEL(gdeasm->asm_store),
 			_save_comments_foreach, &args);
 	if(args.ret == 0)
@@ -889,7 +889,7 @@ int gdeasm_save_comments(GDeasm * gdeasm, char const * filename)
 		if(config_save(args.config, filename) == 0)
 			gdeasm->modified = FALSE;
 		else
-			args.ret = -_gdeasm_error(gdeasm, error_get(), 1);
+			args.ret = -_gdeasm_error(gdeasm, error_get(NULL), 1);
 	}
 	config_delete(args.config);
 	return args.ret;
@@ -909,8 +909,8 @@ static gboolean _save_comments_foreach(GtkTreeModel * model, GtkTreePath * path,
 	{
 		snprintf(buf, sizeof(buf), "0x%x", offset);
 		if(config_set(args->config, "comments", buf, p) != 0)
-			args->ret = -_gdeasm_error(args->gdeasm, error_get(),
-					1);
+			args->ret = -_gdeasm_error(args->gdeasm,
+					error_get(NULL), 1);
 	}
 	g_free(p);
 	return (args->ret == 0) ? FALSE : TRUE;

@@ -353,12 +353,12 @@ int coder_project_open(Coder * coder, char const * filename)
 	Project * project;
 
 	if((project = project_new()) == NULL)
-		return -coder_error(coder, error_get(), 1);
+		return -coder_error(coder, error_get(NULL), 1);
 	if(project_load(project, filename) != 0
 			|| coder_project_open_project(coder, project) != 0)
 	{
 		project_delete(project);
-		return -coder_error(coder, error_get(), 1);
+		return -coder_error(coder, error_get(NULL), 1);
 	}
 	coder->cur = project;
 #if GTK_CHECK_VERSION(2, 24, 0)
