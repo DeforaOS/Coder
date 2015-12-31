@@ -137,7 +137,7 @@ static const DesktopMenu _simulator_file_menu[] =
 	{ N_("_Run..."), G_CALLBACK(_simulator_on_file_run), NULL,
 		GDK_CONTROL_MASK, GDK_KEY_R },
 	{ "", NULL, NULL, 0, 0 },
-	{ N_("_Close"), G_CALLBACK(_simulator_on_file_quit), GTK_STOCK_QUIT,
+	{ N_("_Quit"), G_CALLBACK(_simulator_on_file_quit), GTK_STOCK_QUIT,
 		GDK_CONTROL_MASK, GDK_KEY_Q },
 	{ NULL, NULL, NULL, 0, 0 }
 };
