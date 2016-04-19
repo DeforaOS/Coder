@@ -643,7 +643,7 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	gtk_size_group_add_widget(group, label);
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
 	/* engine */
-	store = gtk_list_store_new(1, G_TYPE_STRING);
+	store = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING);
 	entry1 = gtk_combo_box_new_with_model(GTK_TREE_MODEL(store));
 	renderer = gtk_cell_renderer_text_new();
 	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(entry1), renderer, TRUE);
@@ -745,6 +745,9 @@ static void _connect_dialog_engines(GtkListStore * store)
 #endif
 	size_t len;
 	GtkTreeIter iter;
+	Plugin * plugin;
+	DatabaseEngineDefinition * database;
+	String * engine;
 
 	if((dir = opendir(path)) == NULL)
 		return;
@@ -758,13 +761,23 @@ static void _connect_dialog_engines(GtkListStore * store)
 		if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
 			continue;
 		de->d_name[len - sizeof(ext) + 1] = '\0';
+		if((plugin = plugin_new(LIBDIR, "Database", "engine",
+						de->d_name)) != NULL
+				&& (database = plugin_lookup(plugin,
+						"database")) != NULL)
+			engine = database->name;
+		else
+			engine = NULL;
 #if GTK_CHECK_VERSION(2, 6, 0)
 		gtk_list_store_insert_with_values(store, &iter, -1,
 #else
 		gtk_list_store_append(store, &iter);
 		gtk_list_store_set(store, &iter,
 #endif
-				0, de->d_name, -1);
+				0, de->d_name,
+				1, (engine != NULL) ? engine : de->d_name, -1);
+		if(plugin != NULL)
+			plugin_delete(plugin);
 	}
 	closedir(dir);
 }
