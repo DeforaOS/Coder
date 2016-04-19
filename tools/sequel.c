@@ -456,7 +456,11 @@ static void _console_window(Sequel * sequel)
 	gtk_window_set_title(GTK_WINDOW(sequel->lo_window), _("Log console"));
 	g_signal_connect_swapped(sequel->lo_window, "delete-event", G_CALLBACK(
 				_console_on_closex), sequel);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+#else
 	vbox = gtk_vbox_new(FALSE, 0);
+#endif
 	/* toolbar */
 	widget = gtk_toolbar_new();
 	toolitem = gtk_tool_button_new_from_stock(GTK_STOCK_CLEAR);
