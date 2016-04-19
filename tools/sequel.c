@@ -609,6 +609,7 @@ static int _sequel_connect_dialog(Sequel * sequel)
 #else
 	vbox = GTK_DIALOG(dialog)->vbox;
 #endif
+	gtk_box_set_spacing(GTK_BOX(vbox), 4);
 	/* engine */
 #if GTK_CHECK_VERSION(3, 0, 0)
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
