@@ -593,7 +593,7 @@ static int _sequel_connect(Sequel * sequel, char const * engine,
 
 
 /* sequel_connect_dialog */
-static void _connect_dialog_engines(GtkWidget * combobox);
+static void _connect_dialog_engines(GtkListStore * store);
 static void _connect_dialog_on_file_set(GtkWidget * widget, gpointer data);
 static void _connect_dialog_config_foreach(char const * section, void * data);
 
@@ -605,11 +605,14 @@ static int _sequel_connect_dialog(Sequel * sequel)
 	GtkWidget * vbox;
 	GtkWidget * hbox;
 	GtkWidget * label;
+	GtkListStore * store;
+	GtkTreeIter iter;
 	GtkWidget * entry1;
+	GtkCellRenderer * renderer;
 	GtkWidget * filesel;
 	GtkFileFilter * filter;
 	GtkWidget * entry2;
-	gchar const * engine;
+	gchar * engine;
 	gchar * filename;
 	gchar const * section;
 
@@ -639,12 +642,16 @@ static int _sequel_connect_dialog(Sequel * sequel)
 #endif
 	gtk_size_group_add_widget(group, label);
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
-#if GTK_CHECK_VERSION(2, 24, 0)
-	entry1 = gtk_combo_box_text_new();
-#else
-	entry1 = gtk_combo_box_new_text();
-#endif
-	_connect_dialog_engines(entry1);
+	/* engine */
+	store = gtk_list_store_new(1, G_TYPE_STRING);
+	entry1 = gtk_combo_box_new_with_model(GTK_TREE_MODEL(store));
+	renderer = gtk_cell_renderer_text_new();
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(entry1), renderer, TRUE);
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(entry1), renderer,
+			"text", 1, NULL);
+	_connect_dialog_engines(store);
+	if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(store), &iter) == TRUE)
+		gtk_combo_box_set_active(GTK_COMBO_BOX(entry1), 0);
 	gtk_box_pack_start(GTK_BOX(hbox), entry1, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* filename */
@@ -703,11 +710,11 @@ static int _sequel_connect_dialog(Sequel * sequel)
 		return 0;
 	}
 	gtk_widget_hide(dialog);
-#if GTK_CHECK_VERSION(2, 24, 0)
-	engine = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(entry1));
-#else
-	engine = gtk_combo_box_get_active_text(GTK_COMBO_BOX(entry1));
-#endif
+	if(gtk_combo_box_get_active_iter(GTK_COMBO_BOX(entry1), &iter))
+		gtk_tree_model_get(GTK_TREE_MODEL(store), &iter, 0, &engine,
+				-1);
+	else
+		engine = NULL;
 	filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(filesel));
 #if GTK_CHECK_VERSION(2, 24, 0)
 	section = gtk_combo_box_text_get_active_text(
@@ -715,17 +722,18 @@ static int _sequel_connect_dialog(Sequel * sequel)
 #else
 	section = gtk_combo_box_get_active_text(GTK_COMBO_BOX(entry2));
 #endif
-	if(filename == NULL)
+	if(engine == NULL || filename == NULL)
 		/* FIXME report error */
 		ret = -1;
 	else
 		ret = _sequel_connect(sequel, engine, filename, section);
 	g_free(filename);
+	g_free(engine);
 	gtk_widget_destroy(dialog);
 	return ret;
 }
 
-static void _connect_dialog_engines(GtkWidget * combobox)
+static void _connect_dialog_engines(GtkListStore * store)
 {
 	char const path[] = LIBDIR "/Database/engine";
 	DIR * dir;
@@ -736,6 +744,7 @@ static void _connect_dialog_engines(GtkWidget * combobox)
 	char const ext[] = ".so";
 #endif
 	size_t len;
+	GtkTreeIter iter;
 
 	if((dir = opendir(path)) == NULL)
 		return;
@@ -749,13 +758,13 @@ static void _connect_dialog_engines(GtkWidget * combobox)
 		if(strcmp(&de->d_name[len - sizeof(ext) + 1], ext) != 0)
 			continue;
 		de->d_name[len - sizeof(ext) + 1] = '\0';
-#if GTK_CHECK_VERSION(2, 24, 0)
-		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(combobox),
-				de->d_name);
+#if GTK_CHECK_VERSION(2, 6, 0)
+		gtk_list_store_insert_with_values(store, &iter, -1,
 #else
-		gtk_combo_box_append_text(GTK_COMBO_BOX(combobox), de->d_name);
+		gtk_list_store_append(store, &iter);
+		gtk_list_store_set(store, &iter,
 #endif
-		gtk_combo_box_set_active(GTK_COMBO_BOX(combobox), 0);
+				0, de->d_name, -1);
 	}
 	closedir(dir);
 }
