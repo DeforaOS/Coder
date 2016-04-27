@@ -33,6 +33,7 @@ static char const _debugger_license[] =
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <errno.h>
 #include <libintl.h>
 #include <gtk/gtk.h>
@@ -898,17 +899,21 @@ static gboolean _debugger_confirm_reset(Debugger * debugger)
 
 
 /* debugger_hexdump_append */
+static unsigned char _append(int c);
+
 static void _debugger_hexdump_append(Debugger * debugger, size_t pos,
 		char const * buf, size_t size)
 {
 	size_t i;
 	unsigned char c[16];
-	char buf2[64];
+	char buf2[80];
 	char const * format = debugger->prefs.uppercase
 			? "%s%08x  %02X %02X %02X %02X %02X %02X %02X %02X"
 			" %02X %02X %02X %02X %02X %02X %02X %02X"
+			"  %c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
 			: "%s%08x  %02x %02x %02x %02x %02x %02x %02x %02x"
-			" %02x %02x %02x %02x %02x %02x %02x %02x";
+			" %02x %02x %02x %02x %02x %02x %02x %02x"
+			"  %c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c";
 	int s;
 
 	/* hexadecimal values */
@@ -919,9 +924,20 @@ static void _debugger_hexdump_append(Debugger * debugger, size_t pos,
 	/* FIXME wrong if i < 16 */
 	s = snprintf(buf2, sizeof(buf2), format, (pos > 0) ? "\n" : "", pos,
 			c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7],
-			c[8], c[9], c[10], c[11], c[12], c[13], c[14], c[15]);
+			c[8], c[9], c[10], c[11], c[12], c[13], c[14], c[15],
+			_append(c[0]), _append(c[1]), _append(c[2]),
+			_append(c[3]), _append(c[4]), _append(c[5]),
+			_append(c[6]), _append(c[7]), _append(c[8]),
+			_append(c[9]), _append(c[10]), _append(c[11]),
+			_append(c[12]), _append(c[13]), _append(c[14]),
+			_append(c[15]));
 	gtk_text_buffer_insert(debugger->dhx_tbuf, &debugger->dhx_iter, buf2,
 			s);
+}
+
+static unsigned char _append(int c)
+{
+	return isascii(c) && isprint(c) ? c : '.';
 }
 
 
