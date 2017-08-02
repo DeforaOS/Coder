@@ -78,6 +78,7 @@ struct _Simulator
 	char * title;
 	char * command;
 
+	char name[8];
 	Display * display;
 	int dpi;
 	int width;
@@ -227,6 +228,7 @@ Simulator * simulator_new(SimulatorPrefs * prefs)
 	simulator->window = NULL;
 	simulator->toolbar = NULL;
 	/* set default values */
+	memset(&simulator->name, 0, sizeof(simulator->name));
 	simulator->display = NULL;
 	_new_load(simulator, NULL);
 	if(prefs != NULL && prefs->chooser != 0)
@@ -705,20 +707,40 @@ static gboolean _new_on_xephyr(gpointer data)
 {
 	Simulator * simulator = data;
 	char * argv[] = { BINDIR "/" XEPHYR_PROGNAME, XEPHYR_PROGNAME,
-		"-parent", NULL, "-dpi", NULL, ":1", NULL };
+		"-parent", NULL, "-dpi", NULL, NULL, NULL };
 	char parent[16];
 	char dpi[16];
+	char display[32];
+	size_t i;
 	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO
 		| G_SPAWN_DO_NOT_REAP_CHILD;
 	GError * error = NULL;
 
 	simulator->source = 0;
-	/* launch Xephyr */
+	/* set the parent */
 	snprintf(parent, sizeof(parent), "%u", gtk_socket_get_id(
 				GTK_SOCKET(simulator->socket)));
 	argv[3] = parent;
+	/* set the DPI */
 	snprintf(dpi, sizeof(dpi), "%u", simulator->dpi);
 	argv[5] = dpi;
+	/* detect the display */
+	for(i = 0; i < 16; i++)
+	{
+		snprintf(display, sizeof(display), "%s%zu%s", "/tmp/.X", i,
+				"-lock");
+		if(access(display, R_OK) == 0)
+			continue;
+		snprintf(simulator->name, sizeof(simulator->name), ":%zu", i);
+		argv[6] = simulator->name;
+		break;
+	}
+	if(argv[6] == NULL)
+	{
+		simulator_error(simulator, "No display available", 1);
+		return FALSE;
+	}
+	/* launch Xephyr */
 	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL,
 				&simulator->xephyr.pid, &error) == FALSE)
 	{
@@ -797,7 +819,7 @@ static int _error_text(char const * message, int ret)
 int simulator_run(Simulator * simulator, char const * command)
 {
 	char const display[] = "DISPLAY=";
-	char const display1[] = "DISPLAY=:1.0"; /* XXX may be wrong */
+	char buf[16];
 	char * argv[] = { "/bin/sh", "run", "-c", NULL, NULL };
 	char ** envp = NULL;
 	size_t i;
@@ -819,7 +841,11 @@ int simulator_run(Simulator * simulator, char const * command)
 		envp = p;
 		envp[i + 1] = NULL;
 		if(strncmp(environ[i], display, sizeof(display) - 1) == 0)
-			envp[i] = strdup(display1);
+		{
+			snprintf(buf, sizeof(buf), "%s%s", "DISPLAY=",
+					simulator->name);
+			envp[i] = strdup(buf);
+		}
 		else
 			envp[i] = strdup(environ[i]);
 		if(envp[i] == NULL)
@@ -866,8 +892,6 @@ int simulator_run(Simulator * simulator, char const * command)
 static void _simulator_on_button_clicked(GtkToolButton * button, gpointer data)
 {
 	Simulator * simulator = data;
-	/* FIXME may be wrong */
-	char const display[] = ":1.0";
 	char const * p;
 	KeySym keysym;
 	KeyCode keycode;
@@ -877,7 +901,7 @@ static void _simulator_on_button_clicked(GtkToolButton * button, gpointer data)
 		simulator_run(simulator, p);
 	/* simulate keys */
 	if(simulator->display == NULL)
-		simulator->display = XOpenDisplay(display);
+		simulator->display = XOpenDisplay(simulator->name);
 	if(simulator->display != NULL
 			&& (p = g_object_get_data(G_OBJECT(button), "keysym"))
 			&& (keysym = XStringToKeysym(p)) != NoSymbol
