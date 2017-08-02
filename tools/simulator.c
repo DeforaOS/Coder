@@ -929,6 +929,9 @@ static void _simulator_on_child_watch(GPid pid, gint status, gpointer data)
 		simulator_error(simulator, error->message, 1);
 		g_error_free(error);
 	}
+	memset(&simulator->name, 0, sizeof(simulator->name));
+	if(simulator->display != NULL)
+		XCloseDisplay(simulator->display);
 	g_spawn_close_pid(pid);
 	simulator->xephyr.pid = -1;
 	simulator->xephyr.source = 0;
