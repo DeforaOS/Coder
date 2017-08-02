@@ -1028,6 +1028,8 @@ static void _simulator_on_file_run(gpointer data)
 	int res;
 	char const * command;
 
+	if(simulator->name[0] == '\0')
+		return -simulator_error(simulator, "Xephyr is not running", 1);
 	dialog = gtk_dialog_new_with_buttons(_("Run..."),
 			GTK_WINDOW(simulator->window),
 			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
