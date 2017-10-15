@@ -70,7 +70,9 @@ static int _error(char const * message, int ret)
 /* usage */
 static int _usage(void)
 {
-	fprintf(stderr, _("Usage: %s [-b backend][-d debug] [filename]\n"),
+	fprintf(stderr, _("Usage: %s [-b backend][-d debug] [filename]\n"
+"  -b	Analysis backend to load\n"
+"  -d	Debugging backend to load\n"),
 			PROGNAME_DEBUGGER);
 	return 1;
 }
