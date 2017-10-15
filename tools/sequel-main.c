@@ -26,8 +26,8 @@
 #define _(string) gettext(string)
 
 /* constants */
-#ifndef PROGNAME
-# define PROGNAME	"sequel"
+#ifndef PROGNAME_SEQUEL
+# define PROGNAME_SEQUEL	"sequel"
 #endif
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
@@ -55,7 +55,7 @@ static int _sequel(void)
 	Sequel * sequel;
 
 	if((sequel = sequel_new()) == NULL)
-		return error_print(PROGNAME);
+		return error_print(PROGNAME_SEQUEL);
 	gtk_main();
 	sequel_delete(sequel);
 	return 0;
@@ -65,7 +65,7 @@ static int _sequel(void)
 /* error */
 static int _error(char const * message, int ret)
 {
-	fputs(PROGNAME ": ", stderr);
+	fputs(PROGNAME_SEQUEL ": ", stderr);
 	perror(message);
 	return ret;
 }
@@ -74,7 +74,7 @@ static int _error(char const * message, int ret)
 /* usage */
 static int _usage(void)
 {
-	fprintf(stderr, _("Usage: %s\n"), PROGNAME);
+	fprintf(stderr, _("Usage: %s\n"), PROGNAME_SEQUEL);
 	return 1;
 }
 
