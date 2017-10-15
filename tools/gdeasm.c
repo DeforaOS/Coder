@@ -232,7 +232,7 @@ GDeasm * gdeasm_new(void)
 	gtk_window_set_title(GTK_WINDOW(gdeasm->window), _("GDeasm"));
 	g_signal_connect_swapped(gdeasm->window, "delete-event", G_CALLBACK(
 				_gdeasm_on_closex), gdeasm);
-	vbox = gtk_vbox_new(FALSE, 0);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	/* menubar */
 	widget = desktop_menubar_create(_gdeasm_menubar, gdeasm, accel);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
@@ -325,7 +325,7 @@ GDeasm * gdeasm_new(void)
 	gtk_paned_add2(GTK_PANED(hpaned), scrolled);
 	gtk_box_pack_start(GTK_BOX(vbox), hpaned, TRUE, TRUE, 0);
 	/* statusbar */
-	hbox = gtk_hbox_new(FALSE, 4);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	gdeasm->statusbar = gtk_statusbar_new();
 	gtk_box_pack_start(GTK_BOX(hbox), gdeasm->statusbar, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
@@ -714,11 +714,7 @@ int gdeasm_open_dialog(GDeasm * gdeasm)
 	vbox = GTK_DIALOG(dialog)->vbox;
 #endif
 	/* arch */
-#if GTK_CHECK_VERSION(3, 0, 0)
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-#else
-	hbox = gtk_hbox_new(FALSE, 4);
-#endif
 #if GTK_CHECK_VERSION(2, 24, 0)
 	awidget = gtk_combo_box_text_new();
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(awidget),
@@ -734,11 +730,7 @@ int gdeasm_open_dialog(GDeasm * gdeasm)
 	gtk_box_pack_end(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* format */
-#if GTK_CHECK_VERSION(3, 0, 0)
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-#else
-	hbox = gtk_hbox_new(FALSE, 4);
-#endif
 #if GTK_CHECK_VERSION(2, 24, 0)
 	fwidget = gtk_combo_box_text_new();
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(fwidget),
