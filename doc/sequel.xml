@@ -72,6 +72,10 @@
 				<manvolnum>1</manvolnum>
 			</citerefentry>,
 			<citerefentry>
+				<refentrytitle>debugger</refentrytitle>
+				<manvolnum>1</manvolnum>
+			</citerefentry>,
+			<citerefentry>
 				<refentrytitle>simulator</refentrytitle>
 				<manvolnum>1</manvolnum>
 			</citerefentry>

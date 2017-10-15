@@ -69,6 +69,10 @@
 		<title>See also</title>
 		<para>
 			<citerefentry>
+				<refentrytitle>debugger</refentrytitle>
+				<manvolnum>1</manvolnum>
+			</citerefentry>,
+			<citerefentry>
 				<refentrytitle>sequel</refentrytitle>
 				<manvolnum>1</manvolnum>
 			</citerefentry>,
