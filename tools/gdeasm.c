@@ -1,6 +1,6 @@
 /* $Id$ */
 static char const _gdeasm_copyright[] =
-"Copyright © 2011-2015 Pierre Pronchery <khorben@defora.org>";
+"Copyright © 2011-2017 Pierre Pronchery <khorben@defora.org>";
 static char const _gdeasm_license[] =
 "Redistribution and use in source and binary forms, with or without\n"
 "modification, are permitted provided that the following conditions\n"
