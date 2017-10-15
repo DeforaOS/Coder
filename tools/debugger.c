@@ -46,8 +46,8 @@ static char const _debugger_license[] =
 #define _(string) gettext(string)
 #define N_(string) (string)
 
-#ifndef PROGNAME
-# define PROGNAME	"debugger"
+#ifndef PROGNAME_DEBUGGER
+# define PROGNAME_DEBUGGER	"debugger"
 #endif
 
 
@@ -587,7 +587,7 @@ int debugger_error(Debugger * debugger, char const * message, int ret)
 
 static int _error_text(char const * message, int ret)
 {
-	fprintf(stderr, "%s: %s\n", PROGNAME, message);
+	fprintf(stderr, "%s: %s\n", PROGNAME_DEBUGGER, message);
 	return ret;
 }
 

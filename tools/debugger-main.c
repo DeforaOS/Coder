@@ -37,8 +37,8 @@
 #define _(string) gettext(string)
 
 /* constants */
-#ifndef PROGNAME
-# define PROGNAME	"debugger"
+#ifndef PROGNAME_DEBUGGER
+# define PROGNAME_DEBUGGER	"debugger"
 #endif
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
@@ -61,7 +61,7 @@ static int _usage(void);
 /* error */
 static int _error(char const * message, int ret)
 {
-	fputs(PROGNAME ": ", stderr);
+	fputs(PROGNAME_DEBUGGER ": ", stderr);
 	perror(message);
 	return ret;
 }
@@ -71,7 +71,7 @@ static int _error(char const * message, int ret)
 static int _usage(void)
 {
 	fprintf(stderr, _("Usage: %s [-b backend][-d debug] [filename]\n"),
-			PROGNAME);
+			PROGNAME_DEBUGGER);
 	return 1;
 }
 
@@ -107,7 +107,7 @@ int main(int argc, char * argv[])
 		return _usage();
 	if((debugger = debugger_new(&prefs)) == NULL)
 	{
-		error_print(PROGNAME);
+		error_print(PROGNAME_DEBUGGER);
 		return 2;
 	}
 	if(argv[optind] != NULL)
