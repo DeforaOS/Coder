@@ -264,8 +264,10 @@ static void _open_dialog_type(GtkWidget * combobox, char const * type,
 	char * path;
 	DIR * dir;
 	struct dirent * de;
-#ifdef __APPLE__
+#if defined(__APPLE__)
 	char const ext[] = ".dylib";
+#elif defined(__WIN32__)
+	char const ext[] = ".dll";
 #else
 	char const ext[] = ".so";
 #endif
