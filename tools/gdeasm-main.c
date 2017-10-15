@@ -36,8 +36,8 @@
 #define N_(string) (string)
 
 /* constants */
-#ifndef PROGNAME
-# define PROGNAME	"gdeasm"
+#ifndef PROGNAME_GDEASM
+# define PROGNAME_GDEASM	"gdeasm"
 #endif
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
@@ -82,7 +82,7 @@ static int _gdeasm(char const * arch, char const * format,
 /* error */
 static int _error(char const * message, int ret)
 {
-	fputs(PROGNAME ": ", stderr);
+	fputs(PROGNAME_GDEASM ": ", stderr);
 	perror(message);
 	return ret;
 }
@@ -92,7 +92,7 @@ static int _error(char const * message, int ret)
 static int _usage(void)
 {
 	fprintf(stderr, _("Usage: %s [-C comments][-D][-a arch][-f format]"
-				" [filename]\n"), PROGNAME);
+				" [filename]\n"), PROGNAME_GDEASM);
 	return 1;
 }
 
