@@ -1026,7 +1026,7 @@ static void _gdeasm_on_about(gpointer data)
 	desktop_about_dialog_set_name(dialog, _("GDeasm"));
 	desktop_about_dialog_set_version(dialog, VERSION);
 	desktop_about_dialog_set_website(dialog,
-			"http://www.defora.org/");
+			"https://www.defora.org/");
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
 }

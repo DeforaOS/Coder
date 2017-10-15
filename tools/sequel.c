@@ -1454,7 +1454,7 @@ static void _sequel_on_help_about(gpointer data)
 	desktop_about_dialog_set_logo_icon_name(dialog, "stock_insert-table");
 	desktop_about_dialog_set_name(dialog, "Sequel");
 	desktop_about_dialog_set_version(dialog, VERSION);
-	desktop_about_dialog_set_website(dialog, "http://www.defora.org/");
+	desktop_about_dialog_set_website(dialog, "https://www.defora.org/");
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
 }
