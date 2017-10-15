@@ -41,8 +41,8 @@ static char const _license[] =
 #define N_(string) (string)
 
 /* constants */
-#ifndef PROGNAME
-# define PROGNAME		"simulator"
+#ifndef PROGNAME_SIMULATOR
+# define PROGNAME_SIMULATOR	"simulator"
 #endif
 #ifndef XEPHYR_PROGNAME
 # define XEPHYR_PROGNAME	"Xephyr"
@@ -810,7 +810,7 @@ int simulator_error(Simulator * simulator, char const * message, int ret)
 
 static int _error_text(char const * message, int ret)
 {
-	fprintf(stderr, PROGNAME ": %s\n", message);
+	fprintf(stderr, PROGNAME_SIMULATOR ": %s\n", message);
 	return ret;
 }
 
@@ -1143,7 +1143,7 @@ static void _simulator_on_help_about(gpointer data)
 /* simulator_on_help_contents */
 static void _simulator_on_help_contents(gpointer data)
 {
-	desktop_help_contents(PACKAGE, PROGNAME);
+	desktop_help_contents(PACKAGE, PROGNAME_SIMULATOR);
 }
 
 

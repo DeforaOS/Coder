@@ -28,8 +28,8 @@
 #define _(string) gettext(string)
 
 /* constants */
-#ifndef PROGNAME
-# define PROGNAME	"simulator"
+#ifndef PROGNAME_SIMULATOR
+# define PROGNAME_SIMULATOR	"simulator"
 #endif
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
@@ -61,7 +61,7 @@ static int _simulator(SimulatorPrefs * prefs)
 	Simulator * simulator;
 
 	if((simulator = simulator_new(prefs)) == NULL)
-		return error_print(PROGNAME);
+		return error_print(PROGNAME_SIMULATOR);
 	gtk_main();
 	simulator_delete(simulator);
 	return 0;
@@ -107,7 +107,7 @@ static int _simulator_list(void)
 /* error */
 static int _error(char const * message, int ret)
 {
-	fputs(PROGNAME ": ", stderr);
+	fputs(PROGNAME_SIMULATOR ": ", stderr);
 	perror(message);
 	return ret;
 }
@@ -117,7 +117,7 @@ static int _error(char const * message, int ret)
 static int _usage(void)
 {
 	fprintf(stderr, _("Usage: %s [-n][-m model][-t title] [command]\n"
-"       %s -l\n"), PROGNAME, PROGNAME);
+"       %s -l\n"), PROGNAME_SIMULATOR, PROGNAME_SIMULATOR);
 	return 1;
 }
 
