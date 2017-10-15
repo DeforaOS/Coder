@@ -44,8 +44,8 @@ static char const _license[] =
 #ifndef PROGNAME_SIMULATOR
 # define PROGNAME_SIMULATOR	"simulator"
 #endif
-#ifndef XEPHYR_PROGNAME
-# define XEPHYR_PROGNAME	"Xephyr"
+#ifndef PROGNAME_XEPHYR
+# define PROGNAME_XEPHYR	"Xephyr"
 #endif
 #ifndef PREFIX
 # define PREFIX			"/usr/local"
@@ -706,7 +706,7 @@ static gboolean _new_on_quit(gpointer data)
 static gboolean _new_on_xephyr(gpointer data)
 {
 	Simulator * simulator = data;
-	char * argv[] = { BINDIR "/" XEPHYR_PROGNAME, XEPHYR_PROGNAME,
+	char * argv[] = { BINDIR "/" PROGNAME_XEPHYR, PROGNAME_XEPHYR,
 		"-parent", NULL, "-dpi", NULL, NULL, NULL };
 	char parent[16];
 	char dpi[16];
