@@ -21,8 +21,8 @@ static char const _license[] =
 #include <Desktop.h>
 #include "../config.h"
 
-#ifndef PROGNAME
-# define PROGNAME	"console"
+#ifndef PROGNAME_CONSOLE
+# define PROGNAME_CONSOLE	"console"
 #endif
 #ifndef PROGNAME_PHP
 # define PROGNAME_PHP	"php"
@@ -232,7 +232,7 @@ static void _execute_php(Console * console, char * text)
 	if(g_spawn_sync(NULL, argv, NULL, flags, NULL, NULL, &output, NULL,
 				&status, &error) == FALSE)
 	{
-		fprintf(stderr, "%s: %s (status: %d)\n", PROGNAME,
+		fprintf(stderr, "%s: %s (status: %d)\n", PROGNAME_CONSOLE,
 				error->message, status);
 		g_error_free(error);
 		return;
