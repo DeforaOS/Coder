@@ -131,7 +131,7 @@ static const DesktopMenu _coder_menu_help[] =
 	{ N_("API _Reference"), G_CALLBACK(on_help_api_reference),
 		"help-contents", 0, 0 },
 	{ N_("_Contents"), G_CALLBACK(on_help_contents), "help-contents", 0,
-		0 },
+		GDK_KEY_F1 },
 	{ N_("_About"), G_CALLBACK(on_help_about), GTK_STOCK_ABOUT, 0, 0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
