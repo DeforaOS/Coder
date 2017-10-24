@@ -95,6 +95,15 @@ void on_help_about(gpointer data)
 }
 
 
+/* on_help_api_reference */
+void on_help_api_reference(gpointer data)
+{
+	Coder * coder = data;
+
+	coder_api_reference(coder);
+}
+
+
 /* on_help_contents */
 void on_help_contents(gpointer data)
 {

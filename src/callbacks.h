@@ -48,6 +48,7 @@ void on_tools_sql_console(gpointer data);
 
 /* help menu */
 void on_help_about(gpointer data);
+void on_help_api_reference(gpointer data);
 void on_help_contents(gpointer data);
 
 #endif /* !CODER_CALLBACKS_H */

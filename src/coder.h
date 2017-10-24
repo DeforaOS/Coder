@@ -35,6 +35,8 @@ void coder_delete(Coder * coder);
 /* useful */
 void coder_about(Coder * coder);
 
+int coder_api_reference(Coder * coder);
+
 int coder_error(Coder * coder, char const * message, int ret);
 
 void coder_file_open(Coder * coder, char const * filename);

@@ -128,6 +128,8 @@ static const DesktopMenu _coder_menu_tools[] =
 
 static const DesktopMenu _coder_menu_help[] =
 {
+	{ N_("API _Reference"), G_CALLBACK(on_help_api_reference),
+		"help-contents", 0, 0 },
 	{ N_("_Contents"), G_CALLBACK(on_help_contents), "help-contents", 0,
 		0 },
 	{ N_("_About"), G_CALLBACK(on_help_about), GTK_STOCK_ABOUT, 0, 0 },
@@ -299,6 +301,24 @@ static gboolean _about_on_closex(gpointer data)
 
 	gtk_widget_hide(coder->ab_window);
 	return TRUE;
+}
+
+
+/* coder_api_reference */
+int coder_api_reference(Coder * coder)
+{
+	char const * argv[] = { "devhelp", NULL };
+	const unsigned int flags = G_SPAWN_SEARCH_PATH;
+	GError * error = NULL;
+
+	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL, NULL, &error)
+			== FALSE)
+	{
+		coder_error(coder, error->message, 1);
+		g_error_free(error);
+		return -1;
+	}
+	return 0;
 }
 
 
