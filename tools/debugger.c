@@ -1,6 +1,6 @@
 /* $Id$ */
 static char const _debugger_copyright[] =
-"Copyright © 2015-2017 Pierre Pronchery <khorben@defora.org>";
+"Copyright © 2015-2018 Pierre Pronchery <khorben@defora.org>";
 static char const _debugger_license[] =
 "Redistribution and use in source and binary forms, with or without\n"
 "modification, are permitted provided that the following conditions\n"
