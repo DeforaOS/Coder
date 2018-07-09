@@ -349,7 +349,11 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 	_debugger_set_sensitive_toolbar(debugger, FALSE, FALSE);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	/* view */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
+#else
 	paned = gtk_hpaned_new();
+#endif
 	/* notebook */
 	debugger->notebook = gtk_notebook_new();
 	/* disassembly */
