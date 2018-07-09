@@ -28,6 +28,7 @@ static char const _debugger_license[] =
 
 
 #include <sys/types.h>
+#include <inttypes.h>
 #include <dirent.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -993,15 +994,15 @@ static void _debugger_helper_set_register(Debugger * debugger,
 	if(valid != TRUE)
 		return;
 	if(size <= 16)
-		snprintf(buf, sizeof(buf), "%04lx", value);
+		snprintf(buf, sizeof(buf), "%04" PRIx64, value);
 	else if(size <= 20)
-		snprintf(buf, sizeof(buf), "%05lx", value);
+		snprintf(buf, sizeof(buf), "%05" PRIx64, value);
 	else if(size <= 32)
-		snprintf(buf, sizeof(buf), "%08lx", value);
+		snprintf(buf, sizeof(buf), "%08" PRIx64, value);
 	else if(size <= 64)
-		snprintf(buf, sizeof(buf), "%016llx", value);
+		snprintf(buf, sizeof(buf), "%016" PRIx64, value);
 	else
-		snprintf(buf, sizeof(buf), "%032llx", value);
+		snprintf(buf, sizeof(buf), "%032" PRIx64, value);
 	gtk_list_store_set(debugger->reg_store, &iter, RV_VALUE, value,
 			RV_VALUE_DISPLAY, buf, -1);
 }
