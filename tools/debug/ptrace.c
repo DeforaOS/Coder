@@ -96,7 +96,7 @@ DebuggerDebugDefinition debug =
 {
 	"ptrace",
 	NULL,
-	LICENSE_GNU_LGPL3_FLAGS,
+	LICENSE_BSD3_FLAGS,
 	_ptrace_init,
 	_ptrace_destroy,
 	_ptrace_start,

@@ -76,7 +76,7 @@ DebuggerBackendDefinition backend =
 {
 	"asm",
 	NULL,
-	LICENSE_GNU_LGPL3_FLAGS,
+	LICENSE_BSD3_FLAGS,
 	_asm_init,
 	_asm_destroy,
 	_asm_open,
