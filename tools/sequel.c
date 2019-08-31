@@ -1463,6 +1463,8 @@ static void _sequel_on_help_about(gpointer data)
 /* sequel_on_help_contents */
 static void _sequel_on_help_contents(gpointer data)
 {
+	(void) data;
+
 	desktop_help_contents(PACKAGE, PROGNAME_SEQUEL);
 }
 
@@ -1565,6 +1567,8 @@ static void _sequel_on_tab_reordered(GtkWidget * widget, GtkWidget * child,
 	SequelTab tab;
 	guint old = 0;
 	size_t i;
+	(void) widget;
+	(void) data;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s(%u)\n", __func__, page);
@@ -1591,6 +1595,8 @@ static void _sequel_on_tab_switched(GtkWidget * widget, GtkWidget * child,
 	Sequel * sequel = data;
 	GtkListStore * store;
 	gboolean active;
+	(void) child;
+	(void) widget;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s(%u)\n", __func__, page);
