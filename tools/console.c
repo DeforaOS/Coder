@@ -195,6 +195,8 @@ static void _console_on_close(gpointer data)
 
 static gboolean _console_on_closex(gpointer data)
 {
+	(void) data;
+
 	gtk_main_quit();
 	return FALSE;
 }

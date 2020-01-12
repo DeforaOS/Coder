@@ -628,6 +628,7 @@ static gint _new_chooser_list_sort(GtkTreeModel * model, GtkTreeIter * a,
 	gchar * aname;
 	gchar * bfilename;
 	gchar * bname;
+	(void) data;
 
 	gtk_tree_model_get(model, a, 0, &afilename, 2, &aname, -1);
 	gtk_tree_model_get(model, b, 0, &bfilename, 2, &bname, -1);

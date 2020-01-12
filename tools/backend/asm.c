@@ -169,6 +169,7 @@ static char * _asm_open_dialog(AsmBackend * backend, GtkWidget * window,
 	char * a = NULL;
 	char * f = NULL;
 	char * filename = NULL;
+	(void) backend;
 
 	dialog = gtk_file_chooser_dialog_new(_("Open file..."),
 			(window != NULL) ? GTK_WINDOW(window) : NULL,

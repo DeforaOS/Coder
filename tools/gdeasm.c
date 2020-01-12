@@ -896,6 +896,7 @@ static gboolean _save_comments_foreach(GtkTreeModel * model, GtkTreePath * path,
 	int offset;
 	gchar * p;
 	char buf[16];
+	(void) path;
 
 	gtk_tree_model_get(model, iter, GAC_OFFSET, &offset, GAC_COMMENT, &p,
 			-1);
@@ -1076,6 +1077,7 @@ static void _gdeasm_on_comment_edited(GtkCellRendererText * renderer,
 	GDeasm * gdeasm = data;
 	GtkTreeModel * model = GTK_TREE_MODEL(gdeasm->asm_store);
 	GtkTreeIter iter;
+	(void) renderer;
 
 	if(gtk_tree_model_get_iter_from_string(model, &iter, arg1) == TRUE)
 	{
@@ -1097,6 +1099,7 @@ static void _gdeasm_on_function_activated(GtkTreeView * view,
 	gboolean valid;
 	gint u;
 	GtkTreeSelection * treesel;
+	(void) column;
 
 	if(gtk_tree_model_get_iter(model, &iter, path) != TRUE)
 		return;

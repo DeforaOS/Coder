@@ -81,6 +81,8 @@ void on_file_preferences(gpointer data)
 /* on_file_exit */
 void on_file_exit(gpointer data)
 {
+	(void) data;
+
 	/* FIXME check that everything is properly saved */
 	gtk_main_quit();
 }
@@ -107,6 +109,8 @@ void on_help_api_reference(gpointer data)
 /* on_help_contents */
 void on_help_contents(gpointer data)
 {
+	(void) data;
+
 	desktop_help_contents(PACKAGE, "coder");
 }
 
