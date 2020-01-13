@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Coder 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-13 00:44+0100\n"
+"POT-Creation-Date: 2020-01-13 01:22+0100\n"
 "PO-Revision-Date: 2015-08-24 02:40+0100\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: Spanish\n"
@@ -18,161 +18,161 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.7.5\n"
 
-#: ../src/coder.c:82
+#: ../src/coder.c:86
 msgid "_New file..."
 msgstr "Archivo _Nuevo..."
 
-#: ../src/coder.c:84
+#: ../src/coder.c:88
 msgid "_Open file..."
 msgstr "_Abrir archivo..."
 
-#: ../src/coder.c:87
+#: ../src/coder.c:91
 msgid "_Preferences..."
 msgstr "_Preferencias..."
 
-#: ../src/coder.c:90
+#: ../src/coder.c:94
 msgid "_Exit"
 msgstr "_Salir"
 
-#: ../src/coder.c:98
+#: ../src/coder.c:102
 msgid "_New project..."
 msgstr "Proyecto _Nuevo..."
 
-#: ../src/coder.c:100
+#: ../src/coder.c:104
 msgid "_Open project..."
 msgstr "_Abrir proyecto..."
 
-#: ../src/coder.c:102
+#: ../src/coder.c:106
 msgid "_Save project"
 msgstr "_Guardar proyecto"
 
-#: ../src/coder.c:104
+#: ../src/coder.c:108
 msgid "Save project _As..."
 msgstr "Guardar proyecto _como..."
 
-#: ../src/coder.c:107
+#: ../src/coder.c:111
 msgid "_Properties..."
 msgstr "_Propiedades"
 
-#: ../src/coder.c:114
+#: ../src/coder.c:118
 msgid "_Files"
 msgstr "_Archivos"
 
-#: ../src/coder.c:120
+#: ../src/coder.c:124
 msgid "_Debugger"
 msgstr "_Debugger"
 
-#: ../src/coder.c:121
+#: ../src/coder.c:125
 msgid "_PHP console"
 msgstr "Consola _PHP"
 
-#: ../src/coder.c:122
+#: ../src/coder.c:126
 msgid "_Simulator"
 msgstr "_Simulador"
 
-#: ../src/coder.c:124
+#: ../src/coder.c:128
 msgid "S_QL console"
 msgstr "Consola S_QL"
 
-#: ../src/coder.c:131
+#: ../src/coder.c:135
 msgid "API _Reference"
 msgstr ""
 
-#: ../src/coder.c:133 ../tools/sequel.c:222 ../tools/simulator.c:156
+#: ../src/coder.c:137 ../tools/sequel.c:222 ../tools/simulator.c:156
 msgid "_Contents"
 msgstr "_Contenidos"
 
-#: ../src/coder.c:135 ../tools/debugger.c:219 ../tools/debugger.c:221
+#: ../src/coder.c:139 ../tools/debugger.c:219 ../tools/debugger.c:221
 #: ../tools/gdeasm.c:156 ../tools/gdeasm.c:158 ../tools/sequel.c:225
 msgid "_About"
 msgstr "_Acerca de"
 
-#: ../src/coder.c:141 ../tools/debugger.c:228 ../tools/gdeasm.c:165
+#: ../src/coder.c:145 ../tools/debugger.c:228 ../tools/gdeasm.c:165
 #: ../tools/sequel.c:235 ../tools/simulator.c:169
 msgid "_File"
 msgstr "_Archivo"
 
-#: ../src/coder.c:142
+#: ../src/coder.c:146
 msgid "_Project"
 msgstr "_Proyecto"
 
-#: ../src/coder.c:143 ../tools/debugger.c:230 ../tools/sequel.c:237
+#: ../src/coder.c:147 ../tools/debugger.c:230 ../tools/sequel.c:237
 #: ../tools/simulator.c:170
 msgid "_View"
 msgstr "_Ver"
 
-#: ../src/coder.c:144
+#: ../src/coder.c:148
 msgid "_Tools"
 msgstr "_Herramientas"
 
-#: ../src/coder.c:145 ../tools/debugger.c:231 ../tools/gdeasm.c:166
+#: ../src/coder.c:149 ../tools/debugger.c:231 ../tools/gdeasm.c:166
 #: ../tools/sequel.c:238 ../tools/simulator.c:171
 msgid "_Help"
 msgstr "A_yuda"
 
-#: ../src/coder.c:154
+#: ../src/coder.c:158
 msgid "Exit"
 msgstr "Salir"
 
-#: ../src/coder.c:189
+#: ../src/coder.c:193
 msgid "Coder"
 msgstr "Codificador"
 
-#: ../src/coder.c:284
+#: ../src/coder.c:288
 msgid "Integrated Development Environment for the DeforaOS desktop"
 msgstr "Ambiente de desarrollo integrado para el escritorio de DeforaOS"
 
-#: ../src/coder.c:334 ../src/coder.c:338 ../tools/debugger.c:583
+#: ../src/coder.c:338 ../src/coder.c:342 ../tools/debugger.c:583
 #: ../tools/debugger.c:587 ../tools/gdeasm.c:999 ../tools/gdeasm.c:1003
 #: ../tools/sequel.c:408 ../tools/sequel.c:412 ../tools/simulator.c:802
 #: ../tools/simulator.c:806
 msgid "Error"
 msgstr "Error"
 
-#: ../src/coder.c:406
+#: ../src/coder.c:410
 msgid "Open project..."
 msgstr "Abrir proyecto..."
 
-#: ../src/coder.c:412
+#: ../src/coder.c:416
 msgid "Project files"
 msgstr "Archivos de proyecto"
 
-#: ../src/coder.c:417 ../tools/backend/asm.c:243 ../tools/gdeasm.c:416
+#: ../src/coder.c:421 ../tools/backend/asm.c:243 ../tools/gdeasm.c:416
 #: ../tools/gdeasm.c:777 ../tools/gdeasm.c:934 ../tools/sequel.c:678
 #: ../tools/sequel.c:1047 ../tools/sequel.c:1112 ../tools/sequel.c:1310
 #: ../tools/simulator.c:1084
 msgid "All files"
 msgstr "Todos los archivos"
 
-#: ../src/coder.c:494
+#: ../src/coder.c:498
 msgid "Save project as..."
 msgstr "Guardar proyecto como..."
 
-#: ../src/coder.c:532
+#: ../src/coder.c:536
 msgid "Files"
 msgstr "Archivos"
 
-#: ../src/coder.c:597
+#: ../src/coder.c:601
 msgid "Preferences"
 msgstr "Preferencias"
 
-#: ../src/coder.c:610
+#: ../src/coder.c:614
 msgid "Editor:"
 msgstr "Editor:"
 
-#: ../src/coder.c:617
+#: ../src/coder.c:621
 msgid "Run in a _terminal"
 msgstr "Ejecutar en una _terminal"
 
-#: ../src/coder.c:621
+#: ../src/coder.c:625
 msgid "Editor"
 msgstr "Editor"
 
-#: ../src/coder.c:626
+#: ../src/coder.c:630
 msgid "Plug-ins"
 msgstr "Plug-ins"
 
-#: ../src/coder.c:706
+#: ../src/coder.c:710
 msgid "No project opened"
 msgstr "Ningún proyecto abierto"
 
