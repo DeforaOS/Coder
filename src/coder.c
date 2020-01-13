@@ -36,6 +36,10 @@ static char const _license[] =
 # define PREFIX		"/usr/local"
 #endif
 
+#ifndef PROGNAME_HELPER
+# define PROGNAME_HELPER	"helper"
+#endif
+
 
 /* Coder */
 /* private */
@@ -307,7 +311,7 @@ static gboolean _about_on_closex(gpointer data)
 /* coder_api_reference */
 int coder_api_reference(Coder * coder)
 {
-	char const * argv[] = { "devhelp", NULL };
+	char const * argv[] = { PROGNAME_HELPER, NULL };
 	const unsigned int flags = G_SPAWN_SEARCH_PATH;
 	GError * error = NULL;
 
