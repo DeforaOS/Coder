@@ -256,6 +256,8 @@ static int _new_chooser(Simulator * simulator)
 	GtkWidget * dialog;
 	GtkWidget * vbox;
 	GtkWidget * hbox;
+	GtkWidget * frame;
+	GtkWidget * subvbox;
 	GtkTreeStore * store;
 	GtkTreeModel * model;
 	GtkWidget * combobox;
@@ -278,7 +280,7 @@ static int _new_chooser(Simulator * simulator)
 	vbox = GTK_DIALOG(dialog)->vbox;
 #endif
 	gtk_box_set_spacing(GTK_BOX(vbox), 4);
-	/* profile */
+	/* profile selector */
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Profile: "));
 #if GTK_CHECK_VERSION(3, 16, 0)
@@ -316,6 +318,13 @@ static int _new_chooser(Simulator * simulator)
 				_new_chooser_on_changed), &data);
 	gtk_box_pack_end(GTK_BOX(hbox), combobox, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	/* profile */
+	frame = gtk_frame_new(NULL);
+	gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, TRUE, 0);
+	subvbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+	gtk_box_set_spacing(GTK_BOX(subvbox), 4);
+	gtk_container_set_border_width(GTK_CONTAINER(subvbox), 4);
+	gtk_container_add(GTK_CONTAINER(frame), subvbox);
 	/* dpi */
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Resolution: "));
@@ -332,7 +341,7 @@ static int _new_chooser(Simulator * simulator)
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(data.dpi), simulator->dpi);
 	gtk_size_group_add_widget(group, data.dpi);
 	gtk_box_pack_end(GTK_BOX(hbox), data.dpi, FALSE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(subvbox), hbox, FALSE, TRUE, 0);
 	/* width */
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Width: "));
@@ -350,7 +359,7 @@ static int _new_chooser(Simulator * simulator)
 			simulator->width);
 	gtk_size_group_add_widget(group, data.width);
 	gtk_box_pack_end(GTK_BOX(hbox), data.width, FALSE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(subvbox), hbox, FALSE, TRUE, 0);
 	/* height */
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Height: "));
@@ -368,7 +377,7 @@ static int _new_chooser(Simulator * simulator)
 			simulator->height);
 	gtk_size_group_add_widget(group, data.height);
 	gtk_box_pack_end(GTK_BOX(hbox), data.height, FALSE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(subvbox), hbox, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
 	if(gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_OK)
 	{
