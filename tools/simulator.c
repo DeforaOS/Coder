@@ -281,7 +281,9 @@ static int _new_chooser(Simulator * simulator)
 	/* profile */
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Profile: "));
-#if GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION(3, 16, 0)
+	gtk_label_set_xalign(GTK_LABEL(widget), 0.0);
+#elif GTK_CHECK_VERSION(3, 0, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
 #else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
@@ -317,7 +319,9 @@ static int _new_chooser(Simulator * simulator)
 	/* dpi */
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Resolution: "));
-#if GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION(3, 16, 0)
+	gtk_label_set_xalign(GTK_LABEL(widget), 0.0);
+#elif GTK_CHECK_VERSION(3, 0, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
 #else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
@@ -332,7 +336,9 @@ static int _new_chooser(Simulator * simulator)
 	/* width */
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Width: "));
-#if GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION(3, 16, 0)
+	gtk_label_set_xalign(GTK_LABEL(widget), 0.0);
+#elif GTK_CHECK_VERSION(3, 0, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
 #else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
@@ -348,7 +354,9 @@ static int _new_chooser(Simulator * simulator)
 	/* height */
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(_("Height: "));
-#if GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION(3, 16, 0)
+	gtk_label_set_xalign(GTK_LABEL(widget), 0.0);
+#elif GTK_CHECK_VERSION(3, 0, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
 #else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
