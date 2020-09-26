@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Coder 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-13 01:22+0100\n"
+"POT-Creation-Date: 2020-09-26 07:53+0200\n"
 "PO-Revision-Date: 2015-08-24 02:40+0100\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: Spanish\n"
@@ -124,8 +124,8 @@ msgstr "Ambiente de desarrollo integrado para el escritorio de DeforaOS"
 
 #: ../src/coder.c:338 ../src/coder.c:342 ../tools/debugger.c:583
 #: ../tools/debugger.c:587 ../tools/gdeasm.c:999 ../tools/gdeasm.c:1003
-#: ../tools/sequel.c:408 ../tools/sequel.c:412 ../tools/simulator.c:802
-#: ../tools/simulator.c:806
+#: ../tools/sequel.c:408 ../tools/sequel.c:412 ../tools/simulator.c:822
+#: ../tools/simulator.c:826
 msgid "Error"
 msgstr "Error"
 
@@ -140,7 +140,7 @@ msgstr "Archivos de proyecto"
 #: ../src/coder.c:421 ../tools/backend/asm.c:243 ../tools/gdeasm.c:416
 #: ../tools/gdeasm.c:777 ../tools/gdeasm.c:934 ../tools/sequel.c:678
 #: ../tools/sequel.c:1047 ../tools/sequel.c:1112 ../tools/sequel.c:1310
-#: ../tools/simulator.c:1084
+#: ../tools/simulator.c:1104
 msgid "All files"
 msgstr "Todos los archivos"
 
@@ -219,7 +219,7 @@ msgstr "Formato de archivo:"
 msgid "Core files"
 msgstr "Archivos core"
 
-#: ../tools/backend/asm.c:222 ../tools/gdeasm.c:756 ../tools/simulator.c:1067
+#: ../tools/backend/asm.c:222 ../tools/gdeasm.c:756 ../tools/simulator.c:1087
 msgid "Executable files"
 msgstr "Archivos ejecutables"
 
@@ -607,79 +607,75 @@ msgstr ""
 msgid "Toggle _debugging mode"
 msgstr "Modo instrucción _depurando"
 
-#: ../tools/simulator.c:272
+#: ../tools/simulator.c:274
 msgid "Simulator profiles"
 msgstr "Simulador de perfiles"
 
-#: ../tools/simulator.c:283
+#: ../tools/simulator.c:285
 msgid "Profile: "
 msgstr "Perfil: "
 
-#: ../tools/simulator.c:296
+#: ../tools/simulator.c:300
 msgid "Custom profile"
 msgstr "Ajustar perfil"
 
-#: ../tools/simulator.c:319
+#: ../tools/simulator.c:330
 msgid "Resolution: "
 msgstr "Resolución: "
 
-#: ../tools/simulator.c:334
+#: ../tools/simulator.c:347
 msgid "Width: "
 msgstr "Ancho:"
 
-#: ../tools/simulator.c:350
+#: ../tools/simulator.c:365
 msgid "Height: "
 msgstr "Altura: "
 
-#: ../tools/simulator.c:666
-msgid "Simulator - "
-msgstr "Simulador - "
-
-#: ../tools/simulator.c:669
+#: ../tools/simulator.c:683 ../tools/simulator.c:686
 msgid "Simulator"
 msgstr "Simulador"
 
-#: ../tools/simulator.c:963
+#: ../tools/simulator.c:983
 msgid "Child exited with error code "
 msgstr "Child cerrado con código de error "
 
-#: ../tools/simulator.c:967
+#: ../tools/simulator.c:987
 msgid "Child killed with signal "
 msgstr "Child killed con señal "
 
-#: ../tools/simulator.c:971
+#: ../tools/simulator.c:991
 msgid "Child exited with an error"
 msgstr "Child cerrado con error"
 
-#: ../tools/simulator.c:1034
+#: ../tools/simulator.c:1054
 msgid "Xephyr is not running"
 msgstr ""
 
-#: ../tools/simulator.c:1037
+#: ../tools/simulator.c:1057
 msgid "Run..."
 msgstr "Ejecutar..."
 
-#: ../tools/simulator.c:1053
+#: ../tools/simulator.c:1073
 msgid "Command:"
 msgstr "Comando:"
 
-#: ../tools/simulator.c:1060
+#: ../tools/simulator.c:1080
 msgid "Run program..."
 msgstr "Ejecutar programa..."
 
-#: ../tools/simulator.c:1072
+#: ../tools/simulator.c:1092
 msgid "Perl scripts"
 msgstr "Perl scripts:"
 
-#: ../tools/simulator.c:1076
+#: ../tools/simulator.c:1096
 msgid "Python scripts"
 msgstr "Python scripts"
 
-#: ../tools/simulator.c:1080
+#: ../tools/simulator.c:1100
 msgid "Shell scripts"
 msgstr "Shell scripts"
 
-#: ../tools/simulator.c:1135
+#: ../tools/simulator.c:1155
 msgid "Simulator for the DeforaOS desktop"
 msgstr "Simulador de escritorio de DeforaOS"
 
