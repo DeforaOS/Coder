@@ -671,8 +671,8 @@ static gboolean _new_on_idle(gpointer data)
 	gtk_widget_set_size_request(simulator->window, simulator->width,
 			simulator->height);
 	gtk_window_add_accel_group(GTK_WINDOW(simulator->window), group);
-	if(simulator->title == NULL || (p = string_new_append(_("Simulator - "),
-					simulator->title, NULL)) == NULL)
+	if(simulator->title == NULL || (p = string_new_append(_("Simulator"),
+					" - ", simulator->title, NULL)) == NULL)
 		gtk_window_set_title(GTK_WINDOW(simulator->window),
 				_("Simulator"));
 	else
