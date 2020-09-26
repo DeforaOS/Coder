@@ -719,7 +719,7 @@ static gboolean _new_on_xephyr(gpointer data)
 
 	simulator->source = 0;
 	/* set the parent */
-	snprintf(parent, sizeof(parent), "%u", gtk_socket_get_id(
+	snprintf(parent, sizeof(parent), "%lu", gtk_socket_get_id(
 				GTK_SOCKET(simulator->socket)));
 	argv[3] = parent;
 	/* set the DPI */
