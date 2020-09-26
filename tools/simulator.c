@@ -707,8 +707,7 @@ static gboolean _new_on_quit(gpointer data)
 static gboolean _new_on_xephyr(gpointer data)
 {
 	Simulator * simulator = data;
-	char * argv[] = { BINDIR "/" PROGNAME_XEPHYR, PROGNAME_XEPHYR,
-		"-parent", NULL, "-dpi", NULL, NULL, NULL };
+	char * argv[8] = { BINDIR "/" PROGNAME_XEPHYR, PROGNAME_XEPHYR };
 	char parent[16];
 	char dpi[16];
 	char display[32];
@@ -716,15 +715,18 @@ static gboolean _new_on_xephyr(gpointer data)
 	GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO
 		| G_SPAWN_DO_NOT_REAP_CHILD;
 	GError * error = NULL;
+	size_t pos = 2;
 
 	simulator->source = 0;
 	/* set the parent */
+	argv[pos++] = "-parent";
 	snprintf(parent, sizeof(parent), "%lu", gtk_socket_get_id(
 				GTK_SOCKET(simulator->socket)));
-	argv[3] = parent;
+	argv[pos++] = parent;
 	/* set the DPI */
+	argv[pos++] = "-dpi";
 	snprintf(dpi, sizeof(dpi), "%u", simulator->dpi);
-	argv[5] = dpi;
+	argv[pos++] = dpi;
 	/* detect the display */
 	for(i = 0; i < 16; i++)
 	{
@@ -733,14 +735,15 @@ static gboolean _new_on_xephyr(gpointer data)
 		if(access(display, R_OK) == 0)
 			continue;
 		snprintf(simulator->name, sizeof(simulator->name), ":%zu", i);
-		argv[6] = simulator->name;
+		argv[pos] = simulator->name;
 		break;
 	}
-	if(argv[6] == NULL)
+	if(argv[pos++] == NULL)
 	{
 		simulator_error(simulator, "No display available", 1);
 		return FALSE;
 	}
+	argv[pos] = NULL;
 	/* launch Xephyr */
 	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL,
 				&simulator->xephyr.pid, &error) == FALSE)
