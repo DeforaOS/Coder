@@ -28,10 +28,12 @@ static char const _license[] =
 #include <X11/extensions/XTest.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
-#if GTK_CHECK_VERSION(3, 0, 0)
-# include <gtk/gtkx.h>
-#else
-# include <gdk/gdkx.h>
+#if defined(GDK_WINDOWING_X11)
+# if GTK_CHECK_VERSION(3, 0, 0)
+#  include <gtk/gtkx.h>
+# else
+#  include <gdk/gdkx.h>
+# endif
 #endif
 #include <System.h>
 #include <Desktop.h>
@@ -182,7 +184,8 @@ static void _new_chooser_list_vendor(GtkTreeStore * store, char const * vendor,
 		GtkTreeIter * parent);
 static void _new_chooser_load(SimulatorData * data, GtkWidget * combobox);
 static void _new_chooser_on_changed(GtkWidget * widget, gpointer data);
-static void _new_chooser_on_config(String const * section, void * data);
+static void _new_chooser_on_config(Config const * config,
+		String const * section, void * data);
 static int _new_load(Simulator * simulator, char const * model);
 static Config * _new_load_config(char const * model);
 /* callbacks */
@@ -542,7 +545,8 @@ static void _new_chooser_on_changed(GtkWidget * widget, gpointer data)
 	g_free(name);
 }
 
-static void _new_chooser_on_config(String const * section, void * data)
+static void _new_chooser_on_config(Config const * config,
+		String const * section, void * data)
 {
 	SimulatorData * d = data;
 	const String button[] = "button::";
@@ -555,18 +559,18 @@ static void _new_chooser_on_config(String const * section, void * data)
 		return;
 	if(d->simulator->toolbar == NULL)
 		d->simulator->toolbar = gtk_toolbar_new();
-	if((p = config_get(d->config, section, "icon")) != NULL)
+	if((p = config_get(config, section, "icon")) != NULL)
 		image = gtk_image_new_from_icon_name(p,
 				GTK_ICON_SIZE_LARGE_TOOLBAR);
 	else
 		image = NULL;
-	p = config_get(d->config, section, "name");
+	p = config_get(config, section, "name");
 	toolitem = gtk_tool_button_new(image, p);
 	/* XXX memory leaks */
-	if((p = config_get(d->config, section, "command")) != NULL)
+	if((p = config_get(config, section, "command")) != NULL)
 			g_object_set_data(G_OBJECT(toolitem), "command",
 					g_strdup(p));
-	if((q = config_get(d->config, section, "keysym")) != NULL)
+	if((q = config_get(config, section, "keysym")) != NULL)
 			g_object_set_data(G_OBJECT(toolitem), "keysym",
 					g_strdup(q));
 	if(p == NULL && q == NULL)
@@ -702,9 +706,14 @@ static gboolean _new_on_idle(gpointer data)
 		gtk_box_pack_start(GTK_BOX(vbox), simulator->toolbar, FALSE,
 				TRUE, 0);
 	/* view */
+#if defined(GDK_WINDOWING_X11)
 	simulator->socket = gtk_socket_new();
 	g_signal_connect_swapped(simulator->socket, "plug-added", G_CALLBACK(
 				_simulator_on_plug_added), simulator);
+#else
+	simulator->socket = gtk_image_new_from_icon_name("error",
+			GTK_ICON_SIZE_LARGE_TOOLBAR);
+#endif
 	gtk_box_pack_start(GTK_BOX(vbox), simulator->socket, TRUE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(simulator->window), vbox);
 	gtk_widget_show_all(simulator->window);
@@ -737,8 +746,12 @@ static gboolean _new_on_xephyr(gpointer data)
 	simulator->source = 0;
 	/* set the parent */
 	argv[pos++] = "-parent";
+#if defined(GDK_WINDOWING_X11)
 	snprintf(parent, sizeof(parent), "%lu", gtk_socket_get_id(
 				GTK_SOCKET(simulator->socket)));
+#else
+	parent[0] = '\0';
+#endif
 	argv[pos++] = parent;
 	/* set the DPI */
 	argv[pos++] = "-dpi";

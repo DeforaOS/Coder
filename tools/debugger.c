@@ -314,6 +314,8 @@ Debugger * debugger_new(DebuggerPrefs * prefs)
 	debugger->source = 0;
 	debugger->fp = NULL;
 	/* widgets */
+	debugger->bold = NULL;
+	debugger->monospace = NULL;
 	debugger->window = NULL;
 	/* check for errors */
 	if(debugger->bdefinition == NULL
