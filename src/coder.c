@@ -601,10 +601,18 @@ static void _show_preferences_window(Coder * coder)
 	gtk_window_set_title(GTK_WINDOW(coder->pr_window), _("Preferences"));
 	g_signal_connect_swapped(coder->pr_window, "delete-event", G_CALLBACK(
 				_on_preferences_closex), coder);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+#else
 	vbox = gtk_vbox_new(FALSE, 4);
+#endif
 	nb = gtk_notebook_new();
 	/* notebook page editor */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	nb_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+#else
 	nb_vbox = gtk_vbox_new(FALSE, 4);
+#endif
 	gtk_container_set_border_width(GTK_CONTAINER(nb_vbox), 4);
 #if GTK_CHECK_VERSION(3, 0, 0)
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
@@ -624,7 +632,11 @@ static void _show_preferences_window(Coder * coder)
 	gtk_notebook_append_page(GTK_NOTEBOOK(nb), nb_vbox, gtk_label_new(
 				_("Editor")));
 	/* notebook page plug-ins */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	nb_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+#else
 	nb_vbox = gtk_vbox_new(FALSE, 0);
+#endif
 	gtk_container_set_border_width(GTK_CONTAINER(nb_vbox), 4);
 	gtk_notebook_append_page(GTK_NOTEBOOK(nb), nb_vbox, gtk_label_new(
 				_("Plug-ins")));
