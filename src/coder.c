@@ -1,6 +1,6 @@
 /* $Id$ */
 static char const _copyright[] =
-"Copyright © 2011-2020 Pierre Pronchery <khorben@defora.org>";
+"Copyright © 2011-2024 Pierre Pronchery <khorben@defora.org>";
 /* This file is part of DeforaOS Desktop Coder */
 static char const _license[] =
 "This program is free software: you can redistribute it and/or modify\n"
