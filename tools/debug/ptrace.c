@@ -48,7 +48,7 @@
 typedef struct _DebuggerDebug PtraceDebug;
 
 /* platform */
-#ifdef __NetBSD__
+#if defined(__APPLE__) || defined(__NetBSD__)
 typedef int ptrace_data_t;
 #endif
 
@@ -288,7 +288,11 @@ static int _ptrace_continue(PtraceDebug * debug)
 /* ptrace_next */
 static int _ptrace_next(PtraceDebug * debug)
 {
+#ifdef PT_SYSCALL
 	return _ptrace_schedule(debug, PT_SYSCALL, (caddr_t)1, 0);
+#else
+	return _ptrace_schedule(debug, PT_STEP, (caddr_t)1, 0);
+#endif
 }
 
 
