@@ -48,7 +48,7 @@
 typedef struct _DebuggerDebug PtraceDebug;
 
 /* platform */
-#if defined(__APPLE__) || defined(__NetBSD__)
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__)
 typedef int ptrace_data_t;
 #endif
 
